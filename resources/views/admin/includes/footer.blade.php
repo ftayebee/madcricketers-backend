@@ -1,20 +1,13 @@
-<footer class="footer text-center text-sm-start d-print-none">
-    <div class="container-fluid">
-        <div class="row">
-            <div class="col-12">
-                <div class="card mb-0 rounded-bottom-0">
-                    <div class="card-body">
-                        <p class="text-muted mb-0">
-                            ©
-                            <script> document.write(new Date().getFullYear()) </script>
-                            F.Tayebee
-                            <span class="text-muted d-none d-sm-inline-block float-end">
-                                Design with <i class="iconoir-heart-solid text-danger align-middle"></i> by Mannatthemes
-                            </span>
-                        </p>
-                    </div>
-                </div>
-            </div>
-        </div>
+<footer class="footer">
+    <p class="fs-11 text-muted fw-medium text-uppercase mb-0 copyright">
+        <span>F.Tayebee ©</span>
+        <script>
+            document.write(new Date().getFullYear());
+        </script>
+    </p>
+    <div class="d-flex align-items-center gap-4">
+        <a href="javascript:void(0);" class="fs-11 fw-semibold text-uppercase">Help</a>
+        <a href="javascript:void(0);" class="fs-11 fw-semibold text-uppercase">Terms</a>
+        <a href="javascript:void(0);" class="fs-11 fw-semibold text-uppercase">Privacy</a>
     </div>
 </footer>

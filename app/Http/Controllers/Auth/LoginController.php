@@ -23,8 +23,10 @@ class LoginController extends Controller
     {
         if (Auth::user()->role->slug == 'super-admin' || Auth::user()->role->slug == 'admin') {
             return RouteServiceProvider::ADMIN_DASHBOARD;
+        } else if(Auth::user()->role->slug == 'manager') {
+            return RouteServiceProvider::MANAGER_DASHBOARD;
         }
 
-        return RouteServiceProvider::EMPLOYEE_DASHBOARD;
+        return RouteServiceProvider::PLAYER_DASHBOARD;
     }
 }

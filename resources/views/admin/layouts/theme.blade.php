@@ -1,44 +1,29 @@
-
 <!DOCTYPE html>
 <html lang="en" dir="ltr" data-startbar="dark" data-bs-theme="light">
 
-    <head>
-        
-        @include('admin.includes.header')
-        @include('admin.includes.css')
-    </head>
+<head>
+    @include('admin.includes.header')
+    @include('admin.includes.css')
+</head>
 
-    
-    <!-- Top Bar Start -->
-    <body>
-        <!-- Top Bar Start -->
-        @include('admin.includes.topbar')
-        <!-- Top Bar End -->
+<body>
+    @include('admin.includes.sidebar')
 
-        <!-- leftbar-tab-menu -->
-        @include('admin.includes.sidebar')
-        <div class="startbar-overlay d-print-none"></div>
-        <!-- end leftbar-tab-menu-->
+    @include('admin.includes.topbar')
 
+    <main class="nxl-container">
+        <div class="nxl-content">
+            @include('admin.includes.breadcrumb')
 
-        <div class="page-wrapper">
-            <!-- Page Content-->
-            <div class="page-content">
-                <div class="container-fluid">
-                    @include('admin.includes.breadcrumb')
-                    
-                    @yield('content')
-                </div><!-- container -->
-
-                <!--Start Footer-->
-                @include('admin.includes.footer')
-                <!--end footer-->
+            <div class="main-content">
+                @yield('content')
             </div>
-            <!-- end page content -->
         </div>
-        <!-- end page-wrapper -->
+        @include('admin.includes.footer')
+    </main>
 
-        @include('admin.includes.scripts')
-    </body>
-    <!--end body-->
+    @include('admin.includes.scripts')
+</body>
+<!--end body-->
+
 </html>
