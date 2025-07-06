@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en" dir="ltr" data-startbar="dark" data-bs-theme="light">
+<html lang="en">
 
 <head>
     @include('admin.includes.header')
@@ -7,23 +7,45 @@
 </head>
 
 <body>
-    @include('admin.includes.sidebar')
 
-    @include('admin.includes.topbar')
+    <!-- START Wrapper -->
+    <div class="wrapper">
 
-    <main class="nxl-container">
-        <div class="nxl-content">
-            @include('admin.includes.breadcrumb')
+        <!-- ========== Topbar Start ========== -->
+        @include('admin.includes.topbar')
 
-            <div class="main-content">
+        <!-- ========== App Menu Start ========== -->
+        @include('admin.includes.sidebar')
+        <!-- ========== App Menu End ========== -->
+
+        <!-- ==================================================== -->
+        <!-- Start right Content here -->
+        <!-- ==================================================== -->
+        <div class="page-content">
+
+            <!-- Start Container Fluid -->
+            <div class="container-fluid">
+                <!-- Start here.... -->
+                <!-- ========== Page Title Start ========== -->
+                @include('admin.includes.breadcrumb')
+                <!-- ========== Page Title End ========== -->
                 @yield('content')
             </div>
+            <!-- End Container Fluid -->
+
+            <!-- ========== Footer Start ========== -->
+            @include('admin.includes.footer')
+            <!-- ========== Footer End ========== -->
+
         </div>
-        @include('admin.includes.footer')
-    </main>
+        <!-- ==================================================== -->
+        <!-- End Page Content -->
+        <!-- ==================================================== -->
+
+    </div>
+    <!-- END Wrapper -->
 
     @include('admin.includes.scripts')
 </body>
-<!--end body-->
 
 </html>

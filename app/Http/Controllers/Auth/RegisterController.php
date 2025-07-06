@@ -6,6 +6,7 @@ use Exception;
 use App\Models\User;
 use Illuminate\Support\Facades\Log;
 use App\Http\Controllers\Controller;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use App\Providers\RouteServiceProvider;
 use Illuminate\Support\Facades\Validator;
@@ -15,7 +16,7 @@ class RegisterController extends Controller
 {
     use RegistersUsers;
 
-    protected $redirectTo = RouteServiceProvider::HOME;
+    protected $redirectTo;
 
     public function __construct()
     {
@@ -45,5 +46,17 @@ class RegisterController extends Controller
             Log::error('User Registration Failed: ' . $e->getMessage());
             abort(500, 'Registration failed. Please try again later.');
         }
+    }
+
+    protected function redirectTo()
+    {
+        $user = Auth::guard($guard)->user();
+        if ($user->hasRole('admin')) {
+            return RouteServiceProvider::ADMIN_DASHBOARD;
+        } elseif ($user->hasRole('manager')) {
+            return RouteServiceProvider::MANAGER_DASHBOARD;
+        }
+
+        return RouteServiceProvider::PLAYER_DASHBOARD;
     }
 }

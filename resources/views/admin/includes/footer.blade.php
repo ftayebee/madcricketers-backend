@@ -1,13 +1,14 @@
 <footer class="footer">
-    <p class="fs-11 text-muted fw-medium text-uppercase mb-0 copyright">
-        <span>F.Tayebee ©</span>
-        <script>
-            document.write(new Date().getFullYear());
-        </script>
-    </p>
-    <div class="d-flex align-items-center gap-4">
-        <a href="javascript:void(0);" class="fs-11 fw-semibold text-uppercase">Help</a>
-        <a href="javascript:void(0);" class="fs-11 fw-semibold text-uppercase">Terms</a>
-        <a href="javascript:void(0);" class="fs-11 fw-semibold text-uppercase">Privacy</a>
+    <div class="container-fluid">
+        <div class="row">
+            <div class="col-12 text-center">
+                <script>
+                    document.write(new Date().getFullYear())
+                </script> &copy; Lahomes. Crafted by <iconify-icon
+                    icon="solar:hearts-bold-duotone" class="fs-18 align-middle text-danger"></iconify-icon> <a
+                    href="https://1.envato.market/techzaa" class="fw-bold footer-text"
+                    target="_blank">Techzaa</a>
+            </div>
+        </div>
     </div>
 </footer>

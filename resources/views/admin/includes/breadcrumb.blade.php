@@ -1,19 +1,16 @@
-<div class="page-header">
-    <div class="page-header-left d-flex align-items-center">
-        <div class="page-header-title">
-            <h5 class="m-b-10">Dashboard</h5>
+<div class="row">
+    <div class="col-12">
+        <div class="page-title-box">
+            <h4 class="mb-0 fw-semibold">{{session()->get('title')}}</h4>
+            <ol class="breadcrumb mb-0">
+                @foreach (session()->get('breadcrumbs', 'default') as $item)
+                    @if ($item['url'])
+                        <li class="breadcrumb-item"><a href="{{$item['url']}}">{{$item['name']}}</a></li>
+                    @else
+                        <li class="breadcrumb-item">{{$item['name']}}</li>
+                    @endif
+                @endforeach
+            </ol>
         </div>
-        <ul class="breadcrumb">
-            @foreach (session()->get('breadcrumbs', 'default') as $item)
-                @if ($item['url'])
-                    <li class="breadcrumb-item"><a href="index.html">Home</a></li>
-                @else
-                    <li class="breadcrumb-item">Dashboard</li>
-                @endif
-            @endforeach
-        </ul>
-    </div>
-    <div class="page-header-right ms-auto">
-
     </div>
 </div>

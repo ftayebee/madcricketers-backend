@@ -1,60 +1,73 @@
 @extends('layouts.auth-theme')
 
 @section('content')
-<div class="auth-minimal-inner">
-    <div class="minimal-card-wrapper">
-        <div class="card mb-4 mt-5 mx-4 mx-sm-0 position-relative">
-            <div class="wd-50 bg-white p-2 rounded-circle shadow-lg position-absolute translate-middle top-0 start-50">
-                <img src="{{asset('storage/assets/images/logo-abbr.png')}}" alt="" class="img-fluid">
-            </div>
-            <div class="card-body p-sm-5">
-                <h2 class="fs-20 fw-bolder mb-4">Login</h2>
-                <h4 class="fs-13 fw-bold mb-2">Login to your account</h4>
-                <p class="fs-12 fw-medium text-muted">Thank you for get back <strong>Nelel</strong> web applications, let's access our the best recommendation for you.</p>
-                <form action="{{ route('login') }}" class="w-100 mt-4 pt-2" method="POST">
-                    @csrf
-                    <div class="mb-4">
-                        <input id="email" type="email" class="form-control @error('email') is-invalid @enderror" name="email" value="{{ old('email') }}" required autocomplete="email" autofocus placeholder="Email or Username">
+<div class="row justify-content-center">
+    <div class="col-xl-5">
+        <div class="card auth-card">
+            <div class="card-body px-3 py-5">
+                <div class="mx-auto mb-4 text-center auth-logo">
+                    <a href="index.html" class="logo-dark">
+                        <img src="{{ asset('storage/assets/images/logo-dark.png') }}" height="32" alt="logo dark">
+                    </a>
 
-                        @error('email')
-                            <span class="invalid-feedback" role="alert">
-                                <strong>{{ $message }}</strong>
-                            </span>
-                        @enderror
-                    </div>
-                    <div class="mb-3">
-                        <input id="password" type="password" class="form-control @error('password') is-invalid @enderror" name="password" required autocomplete="current-password">
+                    <a href="index.html" class="logo-light">
+                        <img src="{{ asset('storage/assets/images/logo-light.png') }}" height="28" alt="logo light">
+                    </a>
+                </div>
 
-                        @error('password')
-                            <span class="invalid-feedback" role="alert">
-                                <strong>{{ $message }}</strong>
-                            </span>
-                        @enderror
-                    </div>
-                    <div class="d-flex align-items-center justify-content-between">
-                        <div>
-                            <div class="custom-control custom-checkbox">
-                                <input class="custom-control-input" type="checkbox" name="remember" id="rememberMe" {{ old('remember') ? 'checked' : '' }}>
+                <h2 class="fw-bold text-uppercase text-center fs-18">Sign In</h2>
+                <p class="text-muted text-center mt-1 mb-4">Enter your email address and password to access
+                    admin panel.</p>
 
-                                <label class="custom-control-label c-pointer" for="rememberMe">Remember Me</label>
-                            </div>
+                <div class="px-4">
+                    <form action="{{ route('login') }}" class="authentication-form" method="POST">
+                        @csrf
+                        <div class="mb-3">
+                            <label class="form-label" for="example-email">Email</label>
+                            <input id="email" type="email" class="form-control bg-light bg-opacity-50 border-light py-2 @error('email') is-invalid @enderror" name="email" value="{{ old('email') }}" required autocomplete="email" autofocus placeholder="Email or Username">
+
+                            @error('email')
+                                <span class="invalid-feedback" role="alert">
+                                    <strong>{{ $message }}</strong>
+                                </span>
+                            @enderror
                         </div>
-                        <div>
+                        <div class="mb-3">
                             @if (Route::has('password.request'))
-                                <a class="fs-11 text-primary" href="{{ route('password.request') }}">
+                                <a class="float-end text-muted text-unline-dashed ms-1" href="{{ route('password.request') }}">
                                     {{ __('Forgot Your Password?') }}
                                 </a>
                             @endif
+                            <label class="form-label" for="example-password">Password</label>
+
+                            <input id="password" type="password" class="form-control bg-light bg-opacity-50 border-light py-2 @error('password') is-invalid @enderror" name="password" required autocomplete="current-password">
+
+                            @error('password')
+                                <span class="invalid-feedback" role="alert">
+                                    <strong>{{ $message }}</strong>
+                                </span>
+                            @enderror
                         </div>
-                    </div>
-                    <div class="mt-5">
-                        <button type="submit" class="btn btn-lg btn-primary w-100">
-                            {{ __('Login') }}
-                        </button>
-                    </div>
-                </form>
-            </div>
-        </div>
-    </div>
-</div>
+                        <div class="mb-3">
+                            <div class="form-check">
+                                <input type="checkbox" class="form-check-input" id="checkbox-signin" name="remember" {{ old('remember') ? 'checked' : '' }}>
+                                <label class="form-check-label" for="checkbox-signin">Remember me</label>
+                            </div>
+                        </div>
+
+                        <div class="mb-1 text-center d-grid">
+                            <button type="submit" class="btn btn-danger py-2 fw-medium">
+                                {{ __('Login') }}
+                            </button>
+                        </div>
+                    </form>
+                </div> <!-- end col -->
+            </div> <!-- end card-body -->
+        </div> <!-- end card -->
+
+        <p class="mb-0 text-center text-white">New here? <a href="auth-signup.html"
+                class="text-reset text-unline-dashed fw-bold ms-1">Sign Up</a></p>
+
+    </div> <!-- end col -->
+</div> <!-- end row -->
 @endsection

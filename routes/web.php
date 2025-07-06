@@ -19,7 +19,8 @@ Route::prefix('admin')->name('admin.')->group(function(){
     Route::prefix('settings')->name('settings.')->group(function(){
         Route::prefix('roles')->name('roles.')->group(function(){
             Route::get('/', [RoleController::class, 'index'])->name('index');
-            Route::get('/loader', [RoleController::class, 'loader'])->name('loader');
+            Route::get('/loader', [RoleController::class, 'tableLoader'])->name('loader');
+            Route::get('/show', [RoleController::class, 'show'])->name('show');
             Route::post('/store', [RoleController::class, 'store'])->name('store');
             Route::post('/update', [RoleController::class, 'update'])->name('update');
             Route::post('/destroy', [RoleController::class, 'destroy'])->name('destroy');

@@ -1,120 +1,71 @@
-<header class="nxl-header">
-    <div class="header-wrapper">
-        <!--! [Start] Header Left !-->
-        <div class="header-left d-flex align-items-center gap-4">
-            <!--! [Start] nxl-head-mobile-toggler !-->
-            <a href="javascript:void(0);" class="nxl-head-mobile-toggler" id="mobile-collapse">
-                <div class="hamburger hamburger--arrowturn">
-                    <div class="hamburger-box">
-                        <div class="hamburger-inner"></div>
+<header class="">
+    <div class="topbar">
+        <div class="container-fluid">
+            <div class="navbar-header">
+                <div class="d-flex align-items-center gap-2">
+                    <!-- Menu Toggle Button -->
+                    <div class="topbar-item">
+                        <button type="button" class="button-toggle-menu topbar-button">
+                            <i class="ri-menu-2-line fs-24"></i>
+                        </button>
                     </div>
-                </div>
-            </a>
-            <!--! [Start] nxl-head-mobile-toggler !-->
-            <!--! [Start] nxl-navigation-toggle !-->
-            <div class="nxl-navigation-toggle">
-                <a href="javascript:void(0);" id="menu-mini-button">
-                    <i class="feather-align-left"></i>
-                </a>
-                <a href="javascript:void(0);" id="menu-expend-button" style="display: none">
-                    <i class="feather-arrow-right"></i>
-                </a>
-            </div>
-            <!--! [End] nxl-navigation-toggle !-->
-            <!--! [Start] nxl-lavel-mega-menu-toggle !-->
-            <div class="nxl-lavel-mega-menu-toggle d-flex d-lg-none">
-                <a href="javascript:void(0);" id="nxl-lavel-mega-menu-open">
-                    <i class="feather-align-left"></i>
-                </a>
-            </div>
-            <!--! [End] nxl-lavel-mega-menu-toggle !-->
-            <!--! [Start] nxl-lavel-mega-menu !-->
-            <div class="nxl-drp-link nxl-lavel-mega-menu">
-                <div class="nxl-lavel-mega-menu-toggle d-flex d-lg-none">
-                    <a href="javascript:void(0)" id="nxl-lavel-mega-menu-hide">
-                        <i class="feather-arrow-left me-2"></i>
-                        <span>Back</span>
-                    </a>
-                </div>
-            </div>
-            <!--! [End] nxl-lavel-mega-menu !-->
-        </div>
-        <!--! [End] Header Left !-->
-        <!--! [Start] Header Right !-->
-        <div class="header-right ms-auto">
-            <div class="d-flex align-items-center">
-                <div class="nxl-h-item d-none d-sm-flex">
-                    <div class="full-screen-switcher">
-                        <a href="javascript:void(0);" class="nxl-head-link me-0" onclick="$('body').fullScreenHelper('toggle');">
-                            <i class="feather-maximize maximize"></i>
-                            <i class="feather-minimize minimize"></i>
-                        </a>
-                    </div>
-                </div>
-                <div class="nxl-h-item dark-light-theme">
-                    <a href="javascript:void(0);" class="nxl-head-link me-0 dark-button">
-                        <i class="feather-moon"></i>
-                    </a>
-                    <a href="javascript:void(0);" class="nxl-head-link me-0 light-button" style="display: none">
-                        <i class="feather-sun"></i>
-                    </a>
-                </div>
-                <div class="dropdown nxl-h-item">
-                    <a href="javascript:void(0);" data-bs-toggle="dropdown" role="button" data-bs-auto-close="outside">
-                        <img src="{{asset('storage/assets/images/avatar/1.png')}}" alt="user-image" class="img-fluid user-avtar me-0" />
-                    </a>
-                    <div class="dropdown-menu dropdown-menu-end nxl-h-dropdown nxl-user-dropdown">
-                        <div class="dropdown-header">
-                            <div class="d-flex align-items-center">
-                                <img src="{{asset('storage/assets/images/avatar/1.png')}}" alt="user-image" class="img-fluid user-avtar" />
-                                <div>
-                                    <h6 class="text-dark mb-0">Alexandra Della <span class="badge bg-soft-success text-success ms-1">PRO</span></h6>
-                                    <span class="fs-12 fw-medium text-muted">alex.della@outlook.com</span>
-                                </div>
-                            </div>
+
+                    <!-- App Search-->
+                    <form class="app-search d-none d-md-block me-auto">
+                        <div class="position-relative">
+                            <input type="search" class="form-control border-0" placeholder="Search..."
+                                autocomplete="off" value="">
+                            <i class="ri-search-line search-widget-icon"></i>
                         </div>
-                        <div class="dropdown">
-                            <a href="javascript:void(0);" class="dropdown-item" data-bs-toggle="dropdown">
-                                <span class="hstack">
-                                    <i class="wd-10 ht-10 border border-2 border-gray-1 bg-success rounded-circle me-2"></i>
-                                    <span>Active</span>
-                                </span>
-                                <i class="feather-chevron-right ms-auto me-0"></i>
+                    </form>
+                </div>
+
+                <div class="d-flex align-items-center gap-1">
+                    <!-- Theme Color (Light/Dark) -->
+                    <div class="topbar-item">
+                        <button type="button" class="topbar-button" id="light-dark-mode">
+                            <i class="ri-moon-line fs-24 light-mode"></i>
+                            <i class="ri-sun-line fs-24 dark-mode"></i>
+                        </button>
+                    </div>
+
+                    <!-- Category -->
+                    <div class="dropdown topbar-item d-none d-lg-flex">
+                        <button type="button" class="topbar-button" data-toggle="fullscreen">
+                            <i class="ri-fullscreen-line fs-24 fullscreen"></i>
+                            <i class="ri-fullscreen-exit-line fs-24 quit-fullscreen"></i>
+                        </button>
+                    </div>
+
+                    <!-- User -->
+                    <div class="dropdown topbar-item">
+                        <a type="button" class="topbar-button" id="page-header-user-dropdown"
+                            data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                            <span class="d-flex align-items-center">
+                                <img class="rounded-circle" width="32" src="{{asset('storage/assets/images/users/avatar-1.jpg') }}"
+                                    alt="avatar-3">
+                            </span>
+                        </a>
+                        <div class="dropdown-menu dropdown-menu-end">
+                            <!-- item-->
+                            <h6 class="dropdown-header">Welcome Gaston!</h6>
+
+                            <a class="dropdown-item" href="pages-faqs.html">
+                                <iconify-icon icon="solar:help-broken"
+                                    class="align-middle me-2 fs-18"></iconify-icon><span
+                                    class="align-middle">Profile</span>
+                            </a>
+                            <div class="dropdown-divider my-1"></div>
+
+                            <a class="dropdown-item text-danger" href="auth-signin.html">
+                                <iconify-icon icon="solar:logout-3-broken"
+                                    class="align-middle me-2 fs-18"></iconify-icon><span
+                                    class="align-middle">Logout</span>
                             </a>
                         </div>
-                        <div class="dropdown-divider"></div>
-                        <a href="javascript:void(0);" class="dropdown-item">
-                            <i class="feather-user"></i>
-                            <span>Profile Details</span>
-                        </a>
-                        <a href="javascript:void(0);" class="dropdown-item">
-                            <i class="feather-activity"></i>
-                            <span>Activity Feed</span>
-                        </a>
-                        <a href="javascript:void(0);" class="dropdown-item">
-                            <i class="feather-dollar-sign"></i>
-                            <span>Billing Details</span>
-                        </a>
-                        <a href="javascript:void(0);" class="dropdown-item">
-                            <i class="feather-bell"></i>
-                            <span>Notifications</span>
-                        </a>
-                        <a href="javascript:void(0);" class="dropdown-item">
-                            <i class="feather-settings"></i>
-                            <span>Account Settings</span>
-                        </a>
-                        <div class="dropdown-divider"></div>
-                        <a href="javascript:void(0);" class="dropdown-item" onclick="$('#logout-form').submit()">
-                            <i class="feather-log-out"></i>
-                            <span>Logout</span>
-                        </a>
-                        <form action="{{route('logout')}}" method="post" id="logout-form">
-                            @csrf
-                        </form>
                     </div>
                 </div>
             </div>
         </div>
-        <!--! [End] Header Right !-->
     </div>
 </header>
