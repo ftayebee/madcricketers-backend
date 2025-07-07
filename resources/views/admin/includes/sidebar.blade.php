@@ -42,15 +42,7 @@
                 </a>
             </li>
             <li class="nav-item">
-                <a class="nav-link" href="javascript:void(0);">
-                    <span class="nav-icon">
-                        <i class="ri-shield-star-line"></i>
-                    </span>
-                    <span class="nav-text">Permissions</span>
-                </a>
-            </li>
-            <li class="nav-item">
-                <a class="nav-link" href="javascript:void(0);">
+                <a class="nav-link" href="{{route('admin.settings.users.index')}}">
                     <span class="nav-icon">
                         <i class="ri-shield-star-line"></i>
                     </span>

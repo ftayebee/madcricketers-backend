@@ -15,43 +15,43 @@
                                     <tr>
                                         <th scope="col">Module</th>
                                         <th scope="col" class="text-center">All</th>
-                                        @foreach ($actions as $item)
-                                        <th scope="col" class="text-center">{{strtoupper($item)}}</th>
+                                        @foreach ($actions as $action)
+                                            <th scope="col" class="text-center">{{ strtoupper($action) }}</th>
                                         @endforeach
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    @php
-                                        $permissionSet = collect($role->permissions)->map(function($p){
-                                            return $p->module . ':' . $p->action;
-                                        })->toArray();
-                                    @endphp
-                                    @foreach ($modulesList as $item)
+                                    @foreach ($moduleList as $moduleName => $modulePermissions)
+                                        @php
+                                            // Check if all permissions for this module are assigned to role
+                                            $allChecked = collect($modulePermissions)->every(function ($permission) use ($rolePermissions) {
+                                                return in_array($permission, $rolePermissions);
+                                            });
+                                        @endphp
                                         <tr>
-                                            <td>
-                                                {{strtoupper($item)}}
-                                            </td>
+                                            <td>{{ strtoupper($moduleName) }}</td>
                                             <td class="text-center">
                                                 <div class="form-check form-check-md m-auto d-flex justify-content-center">
                                                     <input type="checkbox"
-                                                        class="form-check-input permission-checkbox"
-                                                        data-module="{{ $item }}"
-                                                        data-action="all"
-                                                        data-role="{{ $role->id ?? '' }}">
+                                                        class="form-check-input permission-checkbox select-all"
+                                                        data-module="{{ $moduleName }}" data-action="all"
+                                                        data-role="{{ $role->id }}" {{ $allChecked ? 'checked' : '' }}>
                                                 </div>
                                             </td>
+
                                             @foreach ($actions as $action)
                                                 @php
-                                                    $key = $item . ':' . $action;
-                                                    $isChecked = in_array($key, $permissionSet);
+                                                    // Build expected permission name for this module + action
+                                                    $expectedPermission = $moduleName . '-' . $action;
+                                                    $isChecked = in_array($expectedPermission, $rolePermissions);
                                                 @endphp
                                                 <td class="text-center">
-                                                    <div class="form-check form-check-md text-center m-auto d-flex justify-content-center" >
-                                                        <input type="checkbox"
-                                                            class="form-check-input permission-checkbox"
-                                                            data-module="{{ $item }}"
+                                                    <div
+                                                        class="form-check form-check-md text-center m-auto d-flex justify-content-center">
+                                                        <input type="checkbox" class="form-check-input permission-checkbox"
+                                                            data-module="{{ $moduleName }}"
                                                             data-action="{{ $action }}"
-                                                            data-role="{{ $role->id ?? '' }}"
+                                                            data-role="{{ $role->id }}"
                                                             {{ $isChecked ? 'checked' : '' }}>
                                                     </div>
                                                 </td>
@@ -70,48 +70,22 @@
 
 @push('scripts')
     <script>
-        $(document).ready(function(){
-
-            if($('#btn-generate-permissions')){
-                $('#btn-generate-permissions').on('click', function () {
-                    $.ajax({
-                        url: "{{ route('admin.permissions.generate') }}",
-                        type: "POST",
-                        headers: {
-                            'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
-                        },
-                        success: function (response) {
-                            Swal.fire({
-                                icon: 'success',
-                                title: 'Permissions Generated',
-                                text: response.message || 'Permissions have been successfully generated.',
-                                confirmButtonText: 'OK'
-                            });
-                        },
-                        error: function (xhr) {
-                            const message = xhr.responseJSON?.message || 'Something went wrong.';
-
-                            // SweetAlert error
-                            Swal.fire({
-                                icon: 'error',
-                                title: 'Error',
-                                text: message
-                            });
-                        }
-                    });
-                });
-            }
-
-            if($('.permission-checkbox')){
-                $(document).on('change', '.permission-checkbox', function () {
+        $(document).ready(function() {
+            if ($('.permission-checkbox')) {
+                $(document).on('change', '.permission-checkbox', function() {
                     let checkbox = $(this);
                     let module = checkbox.data('module');
                     let action = checkbox.data('action');
                     let roleId = checkbox.data('role');
                     let checked = checkbox.is(':checked');
 
+                    console.log("Module: " + module)
+                    console.log("action: " + action)
+                    console.log("roleId: " + roleId)
+                    console.log("checked: " + typeof checked)
+
                     $.ajax({
-                        url: "{{ route('admin.permissions.update') }}",
+                        url: "{{ route('admin.settings.permissions.update') }}",
                         type: "POST",
                         data: {
                             _token: "{{ csrf_token() }}",
@@ -120,34 +94,38 @@
                             role_id: roleId,
                             checked: checked
                         },
-                        success: function (response) {
-                            if(response.success){
+                        success: function(response) {
+                            if (response.success) {
                                 Swal.fire({
                                     toast: true,
                                     position: 'top-end', // top-right corner
                                     icon: 'success',
-                                    title: response.message || 'Permission updated successfully',
+                                    title: response.message ||
+                                        'Permission updated successfully',
                                     showConfirmButton: false,
                                     timer: 3000,
                                     timerProgressBar: true
                                 }).then(() => {
-                                    window.location.reload(); // Correctly calling the reload method
+                                    window.location
+                                        .reload(); // Correctly calling the reload method
                                 });
                             } else {
                                 Swal.fire({
                                     toast: true,
                                     position: 'top-end', // top-right corner
                                     icon: 'warning',
-                                    title: response.message || 'Permission not updated successfully',
+                                    title: response.message ||
+                                        'Permission not updated successfully',
                                     showConfirmButton: false,
                                     timer: 3000,
                                     timerProgressBar: true
                                 }).then(() => {
-                                    window.location.reload(); // Correctly calling the reload method
+                                    window.location
+                                        .reload(); // Correctly calling the reload method
                                 });
                             }
                         },
-                        error: function (xhr) {
+                        error: function(xhr) {
                             console.log(xhr)
                             Swal.fire({
                                 toast: true,
@@ -163,6 +141,16 @@
                     });
                 });
             }
+
+            document.querySelectorAll('.select-all').forEach(function(checkbox) {
+                checkbox.addEventListener('change', function() {
+                    let module = this.dataset.module;
+                    let checkboxes = document.querySelectorAll(
+                        `.permission-checkbox[data-module="${module}"]:not([data-action="all"])`
+                        );
+                    checkboxes.forEach(cb => cb.checked = this.checked);
+                });
+            });
         });
     </script>
 @endpush

@@ -4,6 +4,17 @@
     <div class="row">
         <div class="col-sm-12">
             <div class="card">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="m-0">System Role List</h5>
+                    <div>
+                        <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#exampleModalCenter">
+                            Add New
+                        </button>
+                        <button type="button" class="btn btn-primary" onclick="window.location.href='{{ route('admin.settings.roles.seed') }}'">
+                            Seed DB
+                        </button>
+                    </div>
+                </div>
                 <div class="card-body">
                     <div class="row">
                         <div class="col-sm-12 table-responsive">
@@ -21,88 +32,106 @@
                                 </tbody>
                             </table>
                         </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
 
-                        <div class="modal fade" id="editRoleModal" aria-modal="true" role="dialog">
-                            <div class="modal-dialog modal-dialog-centered">
-                                <div class="modal-content">
-                                    <div class="modal-header">
-                                        <h4 class="modal-title">Update Role</h4>
-                                        <button type="button" class="btn-close custom-btn-close" data-bs-dismiss="modal" aria-label="Close">
-                                            <i class="ti ti-x"></i>
-                                        </button>
-                                    </div>
-                                    <form action="" id="form-role-update">
-                                        @csrf
-                                        <div class="modal-body pb-0">
-                                            <div class="row">
-                                                <div class="col-md-12">
-                                                    <div class="mb-3">
-                                                        <label class="form-label">Role Name</label>
-                                                        <input type="text" class="form-control" name="name" id="roleName">
-                                                    </div>
-                                                </div>
-                                                <div class="col-md-12">
-                                                    <div class="mb-3">
-                                                        <label class="form-label">Status</label>
-                                                        <select class="form-control" name="status" id="roleStatus">
-                                                            <option value="">Select</option>
-                                                            <option value="Active">Active</option>
-                                                            <option value="Inactive">Inactive</option>
-                                                        </select>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </div>
-                                        <div class="modal-footer">
-                                            <button type="button" class="btn btn-light me-2" data-bs-dismiss="modal">Cancel</button>
-                                            <button type="submit" class="btn btn-primary">Save Changes</button>
-                                        </div>
-                                    </form>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="modal fade" id="add_role" aria-modal="true" role="dialog">
-                            <div class="modal-dialog modal-dialog-centered">
-                                <div class="modal-content">
-                                    <div class="modal-header">
-                                        <h4 class="modal-title">Add Role</h4>
-                                        <button type="button" class="btn-close custom-btn-close" data-bs-dismiss="modal" aria-label="Close">
-                                            <i class="ti ti-x"></i>
-                                        </button>
-                                    </div>
-                                    <form action="{{ route('admin.settings.roles.store') }}" id="form-role-store">
-                                        @csrf
-                                        <div class="modal-body pb-0">
-                                            <div class="row">
-                                                <div class="col-md-12">
-                                                    <div class="mb-3">
-                                                        <label class="form-label">Role Name</label>
-                                                        <input type="text" class="form-control" name="name">
-                                                    </div>
-                                                </div>
-                                                <div class="col-md-12">
-                                                    <div class="mb-3">
-                                                        <label class="form-label">Status</label>
-                                                        <select class="form-control" name="status">
-                                                            <option value="">Select</option>
-                                                            <option value="Active">Active</option>
-                                                            <option value="Inactive">Inactive</option>
-                                                        </select>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </div>
-                                        <div class="modal-footer">
-                                            <button type="button" class="btn btn-light me-2" data-bs-dismiss="modal">Cancel</button>
-                                            <button type="submit" class="btn btn-primary">Add Role</button>
-                                        </div>
-                                    </form>
+    <div class="modal fade" id="exampleModalCenter" tabindex="-1" aria-labelledby="exampleModalCenterTitle" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="exampleModalCenterTitle">Add New Role</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <form action="{{route('admin.settings.roles.store')}}" method="post">
+                    @csrf
+                    <div class="modal-body">
+                        <div class="row">
+                            <div class="col-12">
+                                <div class="form-group">
+                                    <label for="name">Name</label>
+                                    <input type="text" name="name" class="form-control" id="">
                                 </div>
                             </div>
                         </div>
                     </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                        <button type="submit" class="btn btn-primary">Save changes</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="editRoleModal" aria-modal="true" role="dialog">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h4 class="modal-title">Update Role</h4>
+                    <button type="button" class="btn-close custom-btn-close" data-bs-dismiss="modal" aria-label="Close">
+                        <i class="ti ti-x"></i>
+                    </button>
                 </div>
+                <form action="" id="form-role-update">
+                    @csrf
+                    <div class="modal-body pb-0">
+                        <div class="row">
+                            <div class="col-md-12">
+                                <div class="mb-3">
+                                    <label class="form-label">Role Name</label>
+                                    <input type="text" class="form-control" name="name" id="roleName">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-light me-2" data-bs-dismiss="modal">Cancel</button>
+                        <button type="submit" class="btn btn-primary">Save Changes</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="add_role" aria-modal="true" role="dialog">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h4 class="modal-title">Add Role</h4>
+                    <button type="button" class="btn-close custom-btn-close" data-bs-dismiss="modal" aria-label="Close">
+                        <i class="ti ti-x"></i>
+                    </button>
+                </div>
+                <form action="{{ route('admin.settings.roles.store') }}" id="form-role-store">
+                    @csrf
+                    <div class="modal-body pb-0">
+                        <div class="row">
+                            <div class="col-md-12">
+                                <div class="mb-3">
+                                    <label class="form-label">Role Name</label>
+                                    <input type="text" class="form-control" name="name">
+                                </div>
+                            </div>
+                            <div class="col-md-12">
+                                <div class="mb-3">
+                                    <label class="form-label">Status</label>
+                                    <select class="form-control" name="status">
+                                        <option value="">Select</option>
+                                        <option value="Active">Active</option>
+                                        <option value="Inactive">Inactive</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-light me-2" data-bs-dismiss="modal">Cancel</button>
+                        <button type="submit" class="btn btn-primary">Add Role</button>
+                    </div>
+                </form>
             </div>
         </div>
     </div>
@@ -123,12 +152,6 @@
                     url: '/admin/settings/roles/loader',
                     type: 'GET',
                     dataSrc: 'data',
-                    // success: function(response){
-                    //     console.dir(response)
-                    // },
-                    // error: function(response){
-                    //     console.dir(response)
-                    // },
                 },
                 columns: [
                     { data: 'id', title: 'ID' },
@@ -143,10 +166,19 @@
                         className: "text-center",
                         render: function (data, type, row) {
                             return `
-                                <a class="btn btn-icon btn-sm btn-soft-success rounded-pill" href="${row.viewUrl}"><i class="ti ti-eye"></i></a>
-                                <button class="btn btn-icon btn-sm btn-soft-warning rounded-pill btn-editModal" data-id="${row.id}" data-name="${row.name}" data-status="${row.status}"><i class="ti ti-pencil-check"></i></button>
-                                <button class="btn btn-icon btn-sm btn-soft-danger rounded-pill btn-deleteRole" data-id="${row.id}"><i class="ti ti-trash-filled"></i></button>
+                                <a class="btn btn-icon btn-sm btn-soft-success rounded-pill" href="${row.viewUrl}">
+                                    <i class="fa fa-lock"></i>
+                                </a>
+                                <button class="btn btn-icon btn-sm btn-soft-warning rounded-pill btn-editModal"
+                                    data-id="${row.id}" data-name="${row.name}" data-status="${row.status}">
+                                    <i class="fa fa-edit"></i>
+                                </button>
+                                <button class="btn btn-icon btn-sm btn-soft-danger rounded-pill btn-deleteRole"
+                                    data-id="${row.id}">
+                                    <i class="fa fa-trash"></i>
+                                </button>
                             `;
+
                         }
                     }
                 ]

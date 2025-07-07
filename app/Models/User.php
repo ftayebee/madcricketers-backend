@@ -5,6 +5,7 @@ namespace App\Models;
 use Laravel\Sanctum\HasApiTokens;
 use Spatie\Permission\Models\Role;
 use Spatie\Permission\Traits\HasRoles;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -35,5 +36,19 @@ class User extends Authenticatable
     public function role()
     {
         return $this->belongsTo(Role::class);
+    }
+
+    public function getImageAttribute()
+    {
+        $originalImage = $this->getAttributes()['image'] ?? null;
+
+        $imagePath = 'public/uploads/users/' . $originalImage;
+        $defaultLogo = asset('storage/assets/images/users/dummy-avatar.jpg');
+
+        if ($originalImage && Storage::exists($imagePath)) {
+            return asset('storage/uploads/users/' . $originalImage);
+        }
+
+        return $defaultLogo;
     }
 }

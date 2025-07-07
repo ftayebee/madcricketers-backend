@@ -2,10 +2,416 @@
 
 namespace App\Http\Controllers\Admin;
 
-use App\Http\Controllers\Controller;
+use Exception;
+use App\Models\User;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
+use Spatie\Permission\Models\Role;
+use Illuminate\Support\Facades\Log;
+use App\Http\Controllers\Controller;
+use Illuminate\Support\Facades\Auth;
+use Intervention\Image\Facades\Image;
+use Illuminate\Support\Facades\Validator;
 
 class UserController extends Controller
 {
-    //
+    protected $module = 'users';
+
+    public function index()
+    {
+        try {
+            if (!Auth::user()->can('users-view')) {
+                throw new Exception('Unauthorized Access');
+            }
+
+            session([
+                'title' => 'User Management',
+                'breadcrumbs' => [
+                    'home' => [
+                        'url' => route('admin.dashboard'),
+                        'name' => 'Dashboard'
+                    ],
+                    $this->module => [
+                        'url' => route('admin.settings.users.index'),
+                        'name' => 'User Management'
+                    ]
+                ]
+            ]);
+
+            return view('admin.pages.users.index');
+        } catch (Exception $e) {
+            Log::error("Error Loading User Management", [
+                'line' => $e->getLine(),
+                'file' => $e->getFile(),
+                'message' => $e->getMessage()
+            ]);
+
+            return redirect()->back()->with([
+                'success' => false,
+                'message' => 'Error Loading User Management.'
+            ]);
+        }
+    }
+
+    public function loader(Request $request)
+    {
+        try {
+            if (!Auth::user()->can('users-view')) {
+                throw new Exception('Unauthorized Access');
+            }
+            $users = User::query()
+                ->when(Auth::user()->role->name != 'player', function ($query) {
+                    $query->whereHas('role', function ($q) {
+                        $q->where('name', '!=', 'player');
+                    });
+                })
+                ->get();
+
+            $formattedData =  $users->map(function ($item) {
+                return [
+                    'id' => $item->id,
+                    'image' => $item->image,
+                    'name' => $item->full_name,
+                    'email' => $item->email,
+                    'status' => $item->status,
+                    'gender' => $item->gender,
+                    'national_id' => $item->national_id,
+                    'phone' => $item->phone,
+                    'role' => $item->role->name,
+                    'roleSlug' => $item->role->slug,
+                    'viewUrl' => route('admin.settings.users.show', $item->id),
+                ];
+            });
+
+            return response()->json(['data' => $formattedData]);
+        } catch (Exception $e) {
+            Log::error("Error Loading users table", [
+                'line' => $e->getLine(),
+                'file' => $e->getFile(),
+                'message' => $e->getMessage()
+            ]);
+
+            return redirect()->back()->with([
+                'success' => false,
+                'message' => 'Error Loading users table.'
+            ]);
+        }
+    }
+
+    public function show($id)
+    {
+        try {
+            if (!Auth::user()->can('users-view')) {
+                throw new Exception('Unauthorized Access');
+            }
+
+            $user = User::with(['role'])->findOrFail($id);
+            if ($user) {
+                $roles = Role::all();
+                return view('admin.pages.users.show', compact('user', 'roles'));
+            }
+        } catch (Exception $e) {
+            Log::error("Error showing user", [
+                'line' => $e->getLine(),
+                'file' => $e->getFile(),
+                'message' => $e->getMessage()
+            ]);
+
+            return redirect()->back()->with([
+                'success' => false,
+                'message' => 'Error showing user.'
+            ]);
+        }
+    }
+
+    public function create()
+    {
+        try {
+            if (!Auth::user()->can('users-create')) {
+                throw new Exception('Unauthorized Access');
+            }
+
+            $roles = Role::all();
+            return view('admin.pages.users.create', compact('roles'));
+        } catch (Exception $e) {
+            Log::error("Error loading create view", [
+                'line' => $e->getLine(),
+                'file' => $e->getFile(),
+                'message' => $e->getMessage()
+            ]);
+
+            return redirect()->back()->with([
+                'success' => false,
+                'message' => 'Error loading create view.'
+            ]);
+        }
+    }
+
+    public function store(Request $request)
+    {
+        try {
+            if (!Auth::user()->can('users-create')) {
+                throw new Exception('Unauthorized Access');
+            }
+
+            $validator = Validator::make($request->all(), [
+                'general.profile_picture' => 'nullable|mimes:jpg,jpeg,png|max:1024',
+                'general.full_name'       => 'required|string|max:255',
+                'general.nickname'        => 'nullable|string|max:255',
+                'general.email'           => 'required|email|unique:users,email|max:255',
+                'general.phone'           => 'required|string|max:15',
+                'general.status'          => 'required|in:active,inactive',
+                'general.role_id'         => 'nullable|exists:roles,id',
+                'general.blood_group'     => 'nullable|string|max:3',
+                'general.religion'        => 'nullable|string|max:255',
+                'general.gender'          => 'nullable|in:male,female,other',
+                'general.date_of_birth'   => 'nullable|date|before:today',
+                'general.password'        => 'required|string|min:8',
+                'general.address'         => 'nullable|string|max:500',
+                'general.national_id'     => 'nullable|digits_between:10,17|unique:users,national_id',
+            ]);
+
+            if ($validator->fails()) {
+                return redirect()->back()->withErrors($validator)->withInput();
+            }
+
+            DB::beginTransaction();
+
+            $email = $request->input('general.email');
+            $username = explode('@', $email)[0];
+
+            $user = new User();
+            $user->full_name    = $request->input('general.full_name');
+            $user->nickname     = $request->input('general.nickname');
+            $user->username     = $username;
+            $user->email        = $email;
+            $user->phone        = $request->input('general.phone');
+            $user->blood_group  = $request->input('general.blood_group');
+            $user->status       = $request->input('general.status');
+            $user->password     = bcrypt($request->input('general.password'));
+            $user->visible_pass = $request->input('general.password');
+            $user->national_id  = $request->input('general.national_id');
+            $user->religion     = $request->input('general.religion');
+            $user->gender       = $request->input('general.gender');
+            $user->date_of_birth = $request->input('general.date_of_birth');
+            $user->address      = $request->input('general.address');
+            $user->role_id      = $request->input('general.role_id');
+
+            // Handle profile picture
+            if ($request->hasFile('general.profile_picture')) {
+                $file = $request->file('general.profile_picture');
+                $filename = 'user_' . time() . '.' . $file->getClientOriginalExtension();
+                $image = Image::make($file);
+
+                // Resize if large
+                if ($image->filesize() > 200 * 1024) {
+                    $image->resize(800, null, function ($constraint) {
+                        $constraint->aspectRatio();
+                        $constraint->upsize();
+                    })->encode($file->getClientOriginalExtension(), 75);
+                }
+
+                // Compress
+                $quality = 75;
+                while (strlen((string) $image) > 200 * 1024 && $quality > 10) {
+                    $image->encode($file->getClientOriginalExtension(), $quality);
+                    $quality -= 5;
+                }
+
+                // Save image
+                $uploadPath = storage_path('app/public/uploads/users');
+                if (!file_exists($uploadPath)) {
+                    mkdir($uploadPath, 0775, true);
+                }
+                $image->save($uploadPath . '/' . $filename);
+
+                $user->image = $filename;
+            }
+
+            $user->save();
+            DB::commit();
+
+            return redirect($request->input('redirect') ?? route('admin.settings.users.index'))->with([
+                'success' => true,
+                'message' => 'User created successfully!',
+            ]);
+        } catch (Exception $e) {
+            DB::rollBack();
+            Log::error("Error Saving User", [
+                'line' => $e->getLine(),
+                'file' => $e->getFile(),
+                'message' => $e->getMessage()
+            ]);
+            return redirect()->back()->withInput()->with([
+                'success' => false,
+                'message' => 'An error occurred while saving the user.',
+                'error' => $e->getMessage(),
+            ]);
+        }
+    }
+
+    public function edit($id)
+    {
+        try {
+            if (!Auth::user()->can('users-edit')) {
+                throw new Exception('Unauthorized Access');
+            }
+
+            $roles = Role::all();
+            $user = User::findOrFail($id);
+            return view('admin.pages.users.edit', compact('roles', 'user'));
+        } catch (Exception $e) {
+            Log::error("Error loading create view", [
+                'line' => $e->getLine(),
+                'file' => $e->getFile(),
+                'message' => $e->getMessage()
+            ]);
+
+            return redirect()->back()->with([
+                'success' => false,
+                'message' => 'Error loading create view.'
+            ]);
+        }
+    }
+
+    public function update(Request $request, $id)
+    {
+        try {
+            if (!Auth::user()->can('users-edit')) {
+                throw new Exception('Unauthorized Access');
+            }
+
+            $validator = Validator::make($request->all(), [
+                'general.profile_picture' => 'nullable|mimes:jpg,jpeg,png|max:1024',
+                'general.full_name'       => 'required|string|max:255',
+                'general.nickname'        => 'nullable|string|max:255',
+                'general.email'           => 'required|email|email|max:255',
+                'general.phone'           => 'required|string|max:15',
+                'general.status'          => 'required|in:active,inactive',
+                'general.role_id'         => 'nullable|exists:roles,id',
+                'general.blood_group'     => 'nullable|string|max:3',
+                'general.religion'        => 'nullable|string|max:255',
+                'general.gender'          => 'nullable|in:male,female,other',
+                'general.date_of_birth'   => 'nullable|date|before:today',
+                'general.password'        => 'required|string|min:8',
+                'general.address'         => 'nullable|string|max:500',
+                'general.national_id'     => 'nullable|digits_between:10,17',
+            ]);
+
+            $user = User::findOrFail($id);
+
+            if ($validator->fails()) {
+                return redirect()->back()->withErrors($validator)->withInput();
+            }
+
+            if(!$user){
+                return redirect()->back()->with([
+                    'success' => false,
+                    'message' => 'User not found.',
+                ])->withInput();
+            }
+
+            DB::beginTransaction();
+
+            $email = $request->input('general.email');
+            $username = explode('@', $email)[0];
+
+            $user->full_name    = $request->input('general.full_name');
+            $user->nickname     = $request->input('general.nickname');
+            $user->username     = $username;
+            $user->email        = $email;
+            $user->phone        = $request->input('general.phone');
+            $user->blood_group  = $request->input('general.blood_group');
+            $user->status       = $request->input('general.status');
+            $user->password     = bcrypt($request->input('general.password'));
+            $user->visible_pass = $request->input('general.password');
+            $user->national_id  = $request->input('general.national_id');
+            $user->religion     = $request->input('general.religion');
+            $user->gender       = $request->input('general.gender');
+            $user->date_of_birth = $request->input('general.date_of_birth');
+            $user->address      = $request->input('general.address');
+            $user->role_id      = $request->input('general.role_id');
+
+            // Handle profile picture
+            if ($request->hasFile('general.profile_picture')) {
+                $file = $request->file('general.profile_picture');
+                $filename = 'user_' . time() . '.' . $file->getClientOriginalExtension();
+                $image = Image::make($file);
+
+                // Resize if large
+                if ($image->filesize() > 200 * 1024) {
+                    $image->resize(800, null, function ($constraint) {
+                        $constraint->aspectRatio();
+                        $constraint->upsize();
+                    })->encode($file->getClientOriginalExtension(), 75);
+                }
+
+                // Compress
+                $quality = 75;
+                while (strlen((string) $image) > 200 * 1024 && $quality > 10) {
+                    $image->encode($file->getClientOriginalExtension(), $quality);
+                    $quality -= 5;
+                }
+
+                // Save image
+                $uploadPath = storage_path('app/public/uploads/users');
+                if (!file_exists($uploadPath)) {
+                    mkdir($uploadPath, 0775, true);
+                }
+                $image->save($uploadPath . '/' . $filename);
+
+                $user->image = $filename;
+            }
+
+            $user->update();
+            DB::commit();
+
+            return redirect($request->input('redirect') ?? route('admin.settings.users.index'))->with([
+                'success' => true,
+                'message' => 'User created successfully!',
+            ]);
+        } catch (Exception $e) {
+            DB::rollBack();
+            Log::error("Error Updating User", [
+                'line' => $e->getLine(),
+                'file' => $e->getFile(),
+                'message' => $e->getMessage()
+            ]);
+            return redirect()->back()->withInput()->with([
+                'success' => false,
+                'message' => 'An error occurred while saving the user.',
+                'error' => $e->getMessage(),
+            ]);
+        }
+    }
+
+    public function destroy(Request $request, $id)
+    {
+        try {
+            if (!Auth::user()->can('users-delete')) {
+                throw new Exception('Unauthorized Access');
+            }
+
+            $user = User::findOrFail($id);
+
+            // Soft delete the user
+            $user->delete();
+
+            return redirect()->back()->with([
+                'success' => true,
+                'message' => 'User deleted successfully.',
+            ]);
+        } catch (Exception $e) {
+            Log::error("Error Deleting User.", [
+                "line" => $e->getLine(),
+                "file" => $e->getFile(),
+                "message" => $e->getMessage(),
+            ]);
+            return redirect()->back()->with([
+                'success' => false,
+                'message' => 'An error occurred while deleting the user.',
+                'error'   => $e->getMessage(),
+            ], 500);
+        }
+    }
 }

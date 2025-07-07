@@ -21,13 +21,12 @@ class LoginController extends Controller
 
     protected function redirectTo()
     {
-        $user = Auth::guard($guard)->user();
+        $user = Auth::user();
+
         if ($user->hasRole('admin')) {
             return RouteServiceProvider::ADMIN_DASHBOARD;
         } elseif ($user->hasRole('manager')) {
             return RouteServiceProvider::MANAGER_DASHBOARD;
         }
-
-        return RouteServiceProvider::PLAYER_DASHBOARD;
     }
 }
