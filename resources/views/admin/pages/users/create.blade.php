@@ -120,8 +120,48 @@
                             </div>
                         </div>
 
+                        <div class="row" id="player-info" style="display: none;">
+                            <div class="col-md-3">
+                                <label class="form-label" >Player Type</label>
+                                <select class="select2 form-control" name="player[type]">
+                                    <option value="">Choose</option>
+                                    <option value="registered">Regular</option>
+                                    <option value="guest">Guest</option>
+                                </select>
+                            </div>
+                            <div class="col-md-3">
+                                <label class="form-label" >Player Role</label>
+                                <select class="select2 form-control" name="player[role]">
+                                    <option value="">Choose</option>
+                                    <option value="batsman">Batsman</option>
+                                    <option value="bowler">Bowler</option>
+                                    <option value="all-rounder">All Rounder</option>
+                                    <option value="wicketkeeper">Wicket Keeper</option>
+                                </select>
+                            </div>
+                            <div class="col-md-3">
+                                <label class="form-label" >Batting Style</label>
+                                <select class="select2 form-control" name="player[batting_style]">
+                                    <option value="">Choose</option>
+                                    <option value="right-handed">Right Handed</option>
+                                    <option value="left-handed">Left Handed</option>
+                                    <option value="switch hitter">Switch Hitter</option>
+                                </select>
+                            </div>
+                            <div class="col-md-3">
+                                <label class="form-label" >Bowling Style</label>
+                                <select class="select2 form-control" name="player[bowling_style]">
+                                    <option value="fast">Fast</option>
+                                    <option value="medium">Meidum</option>
+                                    <option value="spin">Spin</option>
+                                    <option value="none">None</option>
+                                </select>
+                            </div>
+                        </div>
+
                         <div class="row mt-3" id="form-btn-container">
                             <div class="col-md-3 m-auto">
+                                <input type="hidden" name="hasPlayerInfo" value="false">
                                 <button type="submit" class="btn btn-success w-100 text-uppercase">save details</button>
                             </div>
                         </div>
@@ -137,9 +177,13 @@
     <script>
         $(document).ready(function(){
             $('#profile_picture').dropify();
-            $('.select2').select2({
-                minimumResultsForSearch: Infinity
-            });
+            const initSelect2 = () => {
+                $('.select2').select2({
+                    minimumResultsForSearch: Infinity
+                });
+            }
+
+            initSelect2();
 
             document.querySelector('#flt-dob').flatpickr({
                 enableTime: false,
@@ -221,6 +265,17 @@
                     input.next('.invalid-feedback').remove();
                 }
             });
+
+            $('select[name="general[role_id]"]').on('change', function(){
+                const selectedValue = $(this).val();
+                $('#player-info').hide();
+                $('input[name="hasPlayerInfo"]').val(false);
+                if(selectedValue == 3){
+                    $('#player-info').show();
+                    $('input[name="hasPlayerInfo"]').val(true);
+                    initSelect2();
+                }
+            })
         });
     </script>
 @endpush

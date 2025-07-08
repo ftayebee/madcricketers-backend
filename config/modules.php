@@ -4,4 +4,5 @@ return [
     'roles' => ['roles-view', 'roles-create', 'roles-edit', 'roles-delete'],
     'permissions' => ['permissions-view', 'permissions-create', 'permissions-edit', 'permissions-delete'],
     'players' => ['players-view', 'players-create', 'players-edit', 'players-delete'],
+    'teams' => ['teams-view', 'teams-create', 'teams-edit', 'teams-delete'],
 ];

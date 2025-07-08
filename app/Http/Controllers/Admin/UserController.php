@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Admin;
 
 use Exception;
 use App\Models\User;
+use App\Models\Player;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Spatie\Permission\Models\Role;
@@ -169,6 +170,7 @@ class UserController extends Controller
                 'general.password'        => 'required|string|min:8',
                 'general.address'         => 'nullable|string|max:500',
                 'general.national_id'     => 'nullable|digits_between:10,17|unique:users,national_id',
+                'hasPlayerInfo'           => 'required'
             ]);
 
             if ($validator->fails()) {
@@ -229,6 +231,21 @@ class UserController extends Controller
             }
 
             $user->save();
+            $role = Role::findOrFail($user->role_id);
+            $user->syncRoles([$role]);
+
+            $hasPlayerInfo = filter_var($request->input('hasPlayerInfo'), FILTER_VALIDATE_BOOLEAN);
+            if($hasPlayerInfo == true) {
+                $player = new Player();
+                $player->user_id        = $user->id;
+                $player->player_type    = $request->input('player.type');
+                $player->player_role    = $request->input('player.role');
+                $player->batting_style  = $request->input('player.batting_style');
+                $player->bowling_style  = $request->input('player.bowling_style');
+                $player->save();
+            }
+
+
             DB::commit();
 
             return redirect($request->input('redirect') ?? route('admin.settings.users.index'))->with([
@@ -394,7 +411,10 @@ class UserController extends Controller
 
             $user = User::findOrFail($id);
 
-            // Soft delete the user
+            if($user->player){
+                $user->player->delete();
+            }
+
             $user->delete();
 
             return redirect()->back()->with([

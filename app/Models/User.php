@@ -51,4 +51,8 @@ class User extends Authenticatable
 
         return $defaultLogo;
     }
+
+    public function player(){
+        return $this->hasOne(Player::class, 'user_id', 'id');
+    }
 }

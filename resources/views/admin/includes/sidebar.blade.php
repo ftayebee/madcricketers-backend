@@ -32,7 +32,30 @@
                 </a>
             </li>
 
+            <li class="menu-title">Main Menu</li>
+            @if(Auth::user()->can('players-view'))
+            <li class="nav-item">
+                <a class="nav-link" href="{{route('admin.players.index')}}">
+                    <span class="nav-icon">
+                        <i class="ri-shield-star-line"></i>
+                    </span>
+                    <span class="nav-text">Players</span>
+                </a>
+            </li>
+            @endif
+            @if(Auth::user()->can('teams-view'))
+            <li class="nav-item">
+                <a class="nav-link" href="{{route('admin.teams.index')}}">
+                    <span class="nav-icon">
+                        <i class="ri-shield-star-line"></i>
+                    </span>
+                    <span class="nav-text">Teams</span>
+                </a>
+            </li>
+            @endif
+
             <li class="menu-title">System Settings</li>
+            @if(Auth::user()->can('roles-view'))
             <li class="nav-item">
                 <a class="nav-link" href="{{route('admin.settings.roles.index')}}">
                     <span class="nav-icon">
@@ -41,6 +64,8 @@
                     <span class="nav-text">Roles</span>
                 </a>
             </li>
+            @endif
+            @if(Auth::user()->can('users-view'))
             <li class="nav-item">
                 <a class="nav-link" href="{{route('admin.settings.users.index')}}">
                     <span class="nav-icon">
@@ -49,6 +74,7 @@
                     <span class="nav-text">Users</span>
                 </a>
             </li>
+            @endif
         </ul>
     </div>
 </div>

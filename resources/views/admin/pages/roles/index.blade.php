@@ -7,12 +7,14 @@
                 <div class="card-header d-flex justify-content-between align-items-center">
                     <h5 class="m-0">System Role List</h5>
                     <div>
+                        @if(Auth::user()->can('roles-create'))
                         <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#exampleModalCenter">
                             Add New
                         </button>
                         <button type="button" class="btn btn-primary" onclick="window.location.href='{{ route('admin.settings.roles.seed') }}'">
                             Seed DB
                         </button>
+                        @endif
                     </div>
                 </div>
                 <div class="card-body">
