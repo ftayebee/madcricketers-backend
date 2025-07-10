@@ -97,7 +97,7 @@ class TeamController extends Controller
                 throw new Exception('Unauthorized Access');
             }
 
-            $team = Team::with('players')->findOrFail($id);
+            $team = Team::with('players')->where('slug',$id)->first();
             if ($team) {
                 return view('admin.pages.teams.show', compact('team'));
             }

@@ -33,7 +33,7 @@
             </li>
 
             <li class="menu-title">Main Menu</li>
-            @if(Auth::user()->can('players-view'))
+            @if(Auth::check() && Auth::user()->can('players-view'))
             <li class="nav-item">
                 <a class="nav-link" href="{{route('admin.players.index')}}">
                     <span class="nav-icon">
@@ -43,7 +43,7 @@
                 </a>
             </li>
             @endif
-            @if(Auth::user()->can('teams-view'))
+            @if(Auth::check() && Auth::user()->can('teams-view'))
             <li class="nav-item">
                 <a class="nav-link" href="{{route('admin.teams.index')}}">
                     <span class="nav-icon">
@@ -55,7 +55,7 @@
             @endif
 
             <li class="menu-title">System Settings</li>
-            @if(Auth::user()->can('roles-view'))
+            @if(Auth::check() && Auth::user()->can('roles-view'))
             <li class="nav-item">
                 <a class="nav-link" href="{{route('admin.settings.roles.index')}}">
                     <span class="nav-icon">
@@ -65,7 +65,8 @@
                 </a>
             </li>
             @endif
-            @if(Auth::user()->can('users-view'))
+
+            @if(Auth::check() && Auth::user()->can('users-view'))
             <li class="nav-item">
                 <a class="nav-link" href="{{route('admin.settings.users.index')}}">
                     <span class="nav-icon">

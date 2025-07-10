@@ -161,7 +161,7 @@
                 }).then((result) => {
                     if (result.isConfirmed) {
                         $.ajax({
-                            url: '{{ route("admin.settings.users.destroy", ':selectedId') }}'.replace(':selectedId', selectedId),
+                            url: '{{ route("admin.teams.destroy", ':selectedId') }}'.replace(':selectedId', selectedId),
                             type: 'POST',
                             headers: {
                                 'X-CSRF-TOKEN': "{{csrf_token()}}"
@@ -169,7 +169,7 @@
                             success: function (response) {
                                 Swal.fire(
                                     'Deleted!',
-                                    'The user has been deleted.',
+                                    'The team has been deleted.',
                                     'success'
                                 );
                                 $('#tbl-players').DataTable().ajax.reload();
@@ -178,7 +178,7 @@
                                 console.log(response)
                                 Swal.fire(
                                     'Error!',
-                                    'There was a problem deleting the user.',
+                                    'There was a problem deleting the team.',
                                     'error'
                                 );
                             }
