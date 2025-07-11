@@ -7,6 +7,7 @@ use App\Http\Controllers\Admin\RoleController;
 use App\Http\Controllers\Admin\TeamController;
 use App\Http\Controllers\Admin\UserController;
 use App\Http\Controllers\Admin\PlayerController;
+use App\Http\Controllers\Admin\TournamentController;
 
 Route::get('/', function () {
     return redirect('/login');
@@ -52,11 +53,22 @@ Route::prefix('admin')->name('admin.')->group(function(){
     });
 
     Route::prefix('teams')->name('teams.')->group(function(){
-        Route::get('/', [TeamController::class, 'index'])->name('index');
-        Route::get('/loader', [TeamController::class, 'tableLoader'])->name('loader');
-        Route::get('/show/{id}', [TeamController::class, 'show'])->name('show');
-        Route::post('/store', [TeamController::class, 'store'])->name('store');
+        Route::get('/', [TeamController::class, 'index'])->name('index');  // working
+        Route::get('/loader', [TeamController::class, 'tableLoader'])->name('loader');  // working
+        Route::get('/show/{id}', [TeamController::class, 'show'])->name('show');  // working
+        Route::post('/store', [TeamController::class, 'store'])->name('store');  // working
         Route::post('/update/{id}', [TeamController::class, 'update'])->name('update');
         Route::post('/destroy/{id}', [TeamController::class, 'destroy'])->name('destroy');
+    });
+
+    Route::prefix('tournaments')->name('tournaments.')->group(function(){
+        Route::get('/', [TournamentController::class, 'index'])->name('index');
+        Route::get('/loader', [TournamentController::class, 'tableLoader'])->name('loader');
+        Route::get('/create', [TournamentController::class, 'create'])->name('create');
+        Route::get('/show/{id}', [TournamentController::class, 'show'])->name('show');
+        Route::get('/edit', [TournamentController::class, 'edit'])->name('edit');
+        Route::post('/store', [TournamentController::class, 'store'])->name('store');
+        Route::post('/update/{id}', [TournamentController::class, 'update'])->name('update');
+        Route::post('/destroy/{id}', [TournamentController::class, 'destroy'])->name('destroy');
     });
 });
