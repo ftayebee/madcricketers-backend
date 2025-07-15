@@ -16,14 +16,6 @@ class Tournament extends Model
         return $this->hasMany(TournamentGroup::class);
     }
 
-    public function teams()
-    {
-        return $this->belongsToMany(Team::class, 'tournament_group_teams', 'group_id', 'team_id')
-            ->whereHas('tournamentGroups', function ($query) {
-                $query->where('tournament_id', $this->id);
-            });
-    }
-
     public function matches()
     {
         return $this->hasMany(CricketMatch::class);

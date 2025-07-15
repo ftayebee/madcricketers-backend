@@ -5,7 +5,7 @@ return [
     'permissions' => ['permissions-view', 'permissions-create', 'permissions-edit', 'permissions-delete'],
     'players' => ['players-view', 'players-create', 'players-edit', 'players-delete'],
     'teams' => ['teams-view', 'teams-create', 'teams-edit', 'teams-delete'],
-    'tournaments' => ['tournaments-view', 'tournaments-create', 'tournaments-edit', 'tournaments-delete'],
+    'tournaments' => ['tournaments-view', 'tournaments-create', 'tournaments-edit', 'tournaments-delete', 'tournaments-assign-teams', 'tournaments-generate-fixtures'],
     'tournament-groups' => ['tournament-groups-view', 'tournament-groups-create', 'tournament-groups-edit', 'tournament-groups-delete'],
     'cricket-matches' => ['cricket-matches-view', 'cricket-matches-create', 'cricket-matches-edit', 'cricket-matches-delete'],
     'scoreboard' => ['scoreboard-view', 'scoreboard-create', 'scoreboard-edit', 'scoreboard-delete'],

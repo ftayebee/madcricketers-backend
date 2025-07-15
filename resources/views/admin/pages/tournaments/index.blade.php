@@ -55,11 +55,6 @@
                             </div>
 
                             <div class="col-md-6">
-                                <label for="slug" class="form-label">Slug (URL friendly)</label>
-                                <input type="text" name="slug" class="form-control" placeholder="Optional - Auto Generated if Empty">
-                            </div>
-
-                            <div class="col-md-6">
                                 <label for="location" class="form-label">Location</label>
                                 <input type="text" name="location" class="form-control" placeholder="Enter venue or city">
                             </div>
@@ -84,21 +79,18 @@
                             </div>
 
                             <div class="col-md-6">
-                                <div class="mb-3">
-                                    <label for="format" class="form-label">Format</label>
-                                    <select name="format" class="form-select" id="format">
-                                        <option value=""></option>
-                                        <option value="group">Group</option>
-                                        <option value="round-robin">Round Robin</option>
-                                        <option value="knockout">Knockout</option>
-                                    </select>
-                                </div>
+                                <label for="format" class="form-label">Format</label>
+                                <select name="format" class="form-select" id="format">
+                                    <option value=""></option>
+                                    <option value="group">Group</option>
+                                    <option value="round-robin">Round Robin</option>
+                                    <option value="knockout">Knockout</option>
+                                </select>
+                            </div>
 
-                                {{-- Group Specific --}}
-                                <div class="mb-3 format-dependent" id="group-fields" style="display: none;">
-                                    <label for="number_of_groups">Number of Groups</label>
-                                    <input type="number" name="number_of_groups" class="form-control" min="2" step="2">
-                                </div>
+                            <div class="col-md-6 format-dependent" id="group-fields" style="display: none;">
+                                <label for="number_of_groups" class="form-label">Number of Groups</label>
+                                <input type="number" name="group_count" class="form-control" min="2" step="2">
                             </div>
 
                             <div class="col-md-6">
@@ -114,6 +106,45 @@
                             <div class="col-12">
                                 <label for="description" class="form-label">Description</label>
                                 <textarea name="description" rows="3" class="form-control" placeholder="Write tournament description..."></textarea>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-light" data-bs-dismiss="modal">Close</button>
+                        <button type="submit" class="btn btn-primary">Save Tournament</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="assign-tournament-teams" tabindex="-1" aria-labelledby="add-tournamentTitle" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="add-tournamentTitle">Add Teams To Tournament</h5>
+                    <p class="modal-title" id="add-tournamentSubTitle"></p>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+
+                <form action="{{ route('admin.tournaments.assign-teams') }}" method="POST" enctype="multipart/form-data">
+                    @csrf
+                    <div class="modal-body">
+                        <div class="row g-3">
+                            <div class="col-md-12">
+                                <label for="status" class="form-label">Team List</label>
+                                <select name="team_id[]" class="form-select form-control" multiple>
+                                    @foreach ($validTeams as $teamInfo)
+                                    <option value="{{$teamInfo->id}}">{{$teamInfo->name}}</option>
+                                    @endforeach
+                                </select>
+                                <input type="hidden" name="tournament_id" value="">
+
+                                <div class="form-check form-switch mt-2">
+                                    <input class="form-check-input checkbox-md" type="checkbox" role="switch" id="flexSwitchCheckChecked" checked="" name="seperate_teams">
+                                    <label class="form-check-label" for="flexSwitchCheckChecked">Seperate Teams to Groups</label>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -154,26 +185,28 @@
                         data: 'name',
                         title: 'Name',
                         render: function (data, type, row) {
-                            const imageUrl = row.logo ? row.logo : '/path/to/default/image.jpg';
+                            const imageUrl = row.logo ? row.logo : null;
                             return `
                                 <div class="d-flex align-items-center">
+                                    ${imageUrl ? `
                                     <a href="${row.viewUrl}" class="avatar avatar-md avatar-rounded" style="background: #edefff; border-radius: 5px;">
                                         <img src="${imageUrl}" class="img-fluid" alt="img">
-                                    </a>
+                                    </a>` : ''}
                                     <div class="ms-2">
-                                        <h6 class="fw-medium mb-0">
+                                        <h5 class="fw-medium mb-0">
                                             <a href="${row.viewUrl}">${data}</a>
-                                        </h6>
+                                        </h5>
                                     </div>
                                 </div>`;
                         }
                     },
                     { data: 'location', title: 'Location' },
-                    { data: 'start_date', title: 'Start Date' },
-                    { data: 'end_date', title: 'End Date' },
+                    { data: 'start_date', title: 'Start Date', className: 'text-center', },
+                    { data: 'end_date', title: 'End Date',className: 'text-center', },
                     {
-                        data: 'players_count',
+                        data: 'playing_teams',
                         title: 'Playing Teams',
+                        className: 'text-center',
                         render: function(data) {
                             return data ?? 0;
                         }
@@ -181,6 +214,7 @@
                     {
                         data: 'status',
                         title: 'Status',
+                        className: 'text-center',
                         render: function (data) {
                             const badgeClass = {
                                 upcoming: 'bg-primary',
@@ -192,28 +226,49 @@
                         }
                     },
                     {
-                        data: null,
+                        data: 'actions',
                         title: 'Actions',
                         orderable: false,
                         searchable: false,
                         className: "text-center",
                         render: function (data, type, row) {
                             return `
-                                <a class="btn btn-icon btn-sm btn-soft-success rounded-pill" href="${row.viewUrl}">
+                                ${row.canView ? `<a class="btn btn-icon btn-sm btn-soft-success rounded-pill" href="${row.viewUrl}">
                                     <i class="fa fa-eye"></i>
-                                </a>
-                                <button class="btn btn-icon btn-sm btn-soft-danger rounded-pill btn-delete" data-id="${row.id}">
+                                </a>` : ''}
+                                ${row.canDelete ? `<button class="btn btn-icon btn-sm btn-soft-danger rounded-pill btn-delete" data-id="${row.id}">
                                     <i class="fa fa-trash"></i>
-                                </button>
-                                <button class="btn btn-icon btn-sm btn-soft-warning rounded-pill btn-assign-players" data-id="${row.id}" data-bs-toggle="tooltip" data-bs-title="Assign Teams">
+                                </button>` : ''}
+                                ${row.canAssignTeam ? `<button class="btn btn-icon btn-sm btn-soft-warning rounded-pill btn-assign-players" data-id="${row.id}">
+                                    <span data-bs-toggle="tooltip" data-bs-title="Assign Teams">
                                     <i class="fa fa-users"></i>
-                                </button>
+                                    </span>
+                                </button>` : ''}
                             `;
                         }
                     }
-                ]
+                ],
+                // drawCallback: function(settings) {
+                //     console.log("IN DRAW CALLBACK")
+                //     $('select[name="team_id"]').select2({
+                //         dropdownParent: $('#assign-tournament-teams'),
+                //         width: "100%"
+                //     });
+                //     console.log("After DRAW CALLBACK")
+                // }
             });
 
+            $('select[name="team_id[]"]').select2({
+                dropdownParent: $('#assign-tournament-teams'),
+                width: "100%",
+                closeOnSelect: false
+            });
+
+            $(document).on('click', '.btn-assign-players', function () {
+                const tournamentId = $(this).data('id');
+                $('input[name="tournament_id"]').val(tournamentId);
+                $('#assign-tournament-teams').modal('show');
+            });
 
             document.querySelectorAll('[data-bs-toggle="tooltip"]').forEach(el => {
                 new bootstrap.Tooltip(el);

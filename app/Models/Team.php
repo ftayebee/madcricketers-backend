@@ -30,4 +30,14 @@ class Team extends Model
 
         return $defaultLogo;
     }
+
+    public function groups()
+    {
+        return $this->belongsToMany(
+            TournamentGroup::class,
+            'tournament_group_teams', // pivot table
+            'team_id',                // foreign key on pivot table pointing to this model
+            'group_id'                // foreign key on pivot table pointing to related model
+        )->withTimestamps();
+    }
 }

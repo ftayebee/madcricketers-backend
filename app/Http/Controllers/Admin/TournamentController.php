@@ -3,9 +3,14 @@
 namespace App\Http\Controllers\Admin;
 
 use Exception;
+use Carbon\Carbon;
+use App\Models\Team;
 use App\Models\Tournament;
 use Illuminate\Support\Str;
+use App\Models\CricketMatch;
 use Illuminate\Http\Request;
+use App\Models\TournamentGroup;
+use App\Models\TournamentGroupTeam;
 use Illuminate\Support\Facades\Log;
 use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\Auth;
@@ -37,7 +42,13 @@ class TournamentController extends Controller
                 ]
             ]);
 
-            return view('admin.pages.tournaments.index');
+            $today = Carbon::today();
+            $teamsInFutureTournaments = TournamentGroupTeam::whereHas('group.tournament', function ($query) use ($today) {
+                $query->where('start_date', '>', $today);
+            })->pluck('team_id')->toArray();
+            $validTeams = Team::whereNotIn('id', $teamsInFutureTournaments)->get();
+
+            return view('admin.pages.tournaments.index', compact('validTeams'));
         } catch (Exception $e) {
             Log::error("Error Loading tournaments Management", [
                 'line' => $e->getLine(),
@@ -62,19 +73,25 @@ class TournamentController extends Controller
             $teams = Tournament::orderBy('created_at', 'desc')->get();
 
             $formattedData =  $teams->map(function ($item) {
+                $viewUrl = route('admin.tournaments.show', $item->slug);
+
                 return [
                     'id' => $item->id,
                     'name' => $item->name,
                     'slug' => $item->slug,
                     'location' => $item->location,
                     'description' => $item->description,
-                    'start_date' => $item->start_date,
-                    'end_date' => $item->end_date,
+                    'start_date' => Carbon::parse($item->start_date)->format('d M, Y'),
+                    'end_date' => Carbon::parse($item->end_date)->format('d M, Y'),
                     'status' => $item->status,
                     'trophy_image' => $item->trophy_image,
+                    'playing_teams' => $item->groups->flatMap->teams->unique('id')->count(),
                     'logo' => $item->logo,
                     'format' => $item->format,
-                    'viewUrl' => route('admin.tournaments.show', $item->slug),
+                    'viewUrl' => $viewUrl,
+                    'canView' => !Auth::user()->can($this->module . '-view') ? false : true,
+                    'canDelete' => !Auth::user()->can($this->module . '-delete') ? false : true,
+                    'canAssignTeam' => !Auth::user()->can($this->module . '-assign-teams') ? false : true,
                 ];
             });
 
@@ -111,6 +128,7 @@ class TournamentController extends Controller
                 'logo'          => 'nullable|image|mimes:jpg,jpeg,png|max:2048',
                 'trophy_image'  => 'nullable|image|mimes:jpg,jpeg,png|max:2048',
                 'format'        => 'required|in:group,round-robin,knockout',
+                'group_count'   => 'nullable|numeric',
             ]);
 
             $tournament = new Tournament();
@@ -121,7 +139,8 @@ class TournamentController extends Controller
             $tournament->start_date  = $validated['start_date'] ?? null;
             $tournament->end_date    = $validated['end_date'] ?? null;
             $tournament->status      = $validated['status'];
-            $tournament->format      = $validated['format']; // group or regular
+            $tournament->format      = $validated['format'];
+            $tournament->group_count = $validated['format'] == 'group' ? $validated['group_count'] : null;
 
             // Handle logo upload
             if ($request->hasFile('logo')) {
@@ -184,6 +203,104 @@ class TournamentController extends Controller
         }
     }
 
+    public function assignTeams(Request $request)
+    {
+        try {
+            if (!Auth::user()->can($this->module . '-assign-teams')) {
+                throw new Exception('Unauthorized Access');
+            }
+
+            $validated = $request->validate([
+                'tournament_id' => 'required|exists:tournaments,id',
+                'team_id'       => 'required|array|min:1',
+                'team_id.*'     => 'exists:teams,id',
+                'seperate_teams' => 'nullable|in:on',
+            ]);
+
+            $tournament = Tournament::with('groups')->findOrFail($validated['tournament_id']);
+            $teams = $validated['team_id'];
+            $separate = $request->has('seperate_teams');
+
+            // Clear existing group teams & groups if any before assigning new
+            if ($tournament->groups()->count() > 0 && Carbon::now() < Carbon::parse($tournament->start_date)) {
+                foreach ($tournament->groups as $group) {
+                    $group->teams()->detach();
+                }
+                if ($separate) {
+                    $tournament->groups()->delete();
+                }
+            }
+
+            if ($separate && $tournament->format == 'group' && !empty($tournament->group_count)) {
+                if ($tournament->groups()->count() === 0) {
+                    for ($i = 0; $i < $tournament->group_count; $i++) {
+                        $groupName = 'Group ' . chr(65 + $i); // Group A, B, ...
+                        $tournament->groups()->create(['name' => $groupName]);
+                    }
+                    $tournament->load('groups');
+                }
+
+                shuffle($teams);
+
+                $groupCount = $tournament->groups->count();
+                $groups = $tournament->groups;
+
+                foreach ($teams as $index => $teamId) {
+                    $groupIndex = $index % $groupCount;
+
+                    TournamentGroupTeam::create([
+                        'group_id' => $groups[$groupIndex]->id,
+                        'team_id' => $teamId,
+                        'tournament_id' => $tournament->id,
+                    ]);
+                }
+            } else {
+                $group = TournamentGroup::create([
+                    'tournament_id' => $tournament->id,
+                    'name' => 'Group A',
+                ]);
+
+                // Attach all selected teams to the default group
+                foreach ($teams as $teamId) {
+                    TournamentGroupTeam::create([
+                        'group_id' => $group->id,
+                        'team_id' => $teamId,
+                        'tournament_id' => $tournament->id,
+                    ]);
+                }
+            }
+
+            return redirect()->back()->with([
+                'success' => true,
+                'message' => 'Teams assigned to tournament successfully.',
+            ]);
+        } catch (ValidationException $e) {
+            Log::error('Validation failed in assignTeams', [
+                'errors' => $e->validator->errors()->toArray(),
+                'input' => $request->all(),
+            ]);
+
+            return redirect()->back()
+                ->withErrors($e->validator)
+                ->withInput()
+                ->with([
+                    'success' => false,
+                    'message' => 'Invalid data submitted.',
+                ]);
+        } catch (Exception $e) {
+            Log::error('Error assigning teams to tournament', [
+                'line' => $e->getLine(),
+                'file' => $e->getFile(),
+                'message' => $e->getMessage(),
+            ]);
+
+            return redirect()->back()->with([
+                'success' => false,
+                'message' => 'Error assigning teams to tournament.',
+            ]);
+        }
+    }
+
     public function show($slug)
     {
         try {
@@ -205,6 +322,123 @@ class TournamentController extends Controller
             return redirect()->back()->with([
                 'success' => false,
                 'message' => 'Error showing team data.'
+            ]);
+        }
+    }
+
+    public function generateFixtures(Request $request)
+    {
+        try {
+            if (!Auth::user()->can($this->module . '-generate-fixtures')) {
+                throw new Exception('Unauthorized Access');
+            }
+
+            $validated = $request->validate([
+                'tournament_id' => 'required|exists:tournaments,id',
+                'match_stage'   => 'required|in:group,playoffs',
+            ]);
+
+            $tournament = Tournament::with('groups.teams')->findOrFail($validated['tournament_id']);
+            $stage = $validated['match_stage'];
+            $matches = [];
+
+            if ($stage === 'group') {
+                foreach ($tournament->groups as $group) {
+                    $teams = $group->teams;
+
+                    for ($i = 0; $i < count($teams); $i++) {
+                        for ($j = $i + 1; $j < count($teams); $j++) {
+                            $teamA = $teams[$i];
+                            $teamB = $teams[$j];
+
+                            $matches[] = [
+                                'title' => "{$teamA->name} vs {$teamB->name}",
+                                'team_a_id' => $teamA->id,
+                                'team_b_id' => $teamB->id,
+                                'tournament_id' => $tournament->id,
+                                'match_date' => now()->addDays(rand(1, 10)), // Optional: you can assign a proper schedule
+                                'venue' => null,
+                                'match_type' => 'tournament',
+                                'status' => 'upcoming',
+                                'stage' => 'group',
+                                'created_at' => now(),
+                                'updated_at' => now(),
+                            ];
+                        }
+                    }
+                }
+            } elseif ($stage === 'playoffs') {
+                // Get top 2 from each group based on TournamentTeamStat
+                $qualifiedTeams = collect();
+
+                foreach ($tournament->groups as $group) {
+                    $topTeams = \App\Models\TournamentTeamStat::where('tournament_id', $tournament->id)
+                        ->whereIn('team_id', $group->teams->pluck('id'))
+                        ->orderByDesc('points')
+                        ->orderByDesc('net_run_rate')
+                        ->take(2)
+                        ->pluck('team_id');
+
+                    $qualifiedTeams = $qualifiedTeams->merge($topTeams);
+                }
+
+                $qualifiedTeams = $qualifiedTeams->unique()->values();
+
+                // For simplicity: pairing 1v2, 3v4...
+                for ($i = 0; $i < count($qualifiedTeams); $i += 2) {
+                    if (isset($qualifiedTeams[$i + 1])) {
+                        $teamAId = $qualifiedTeams[$i];
+                        $teamBId = $qualifiedTeams[$i + 1];
+                        $teamA = \App\Models\Team::find($teamAId);
+                        $teamB = \App\Models\Team::find($teamBId);
+
+                        $matches[] = [
+                            'title' => "{$teamA->name} vs {$teamB->name}",
+                            'team_a_id' => $teamA->id,
+                            'team_b_id' => $teamB->id,
+                            'tournament_id' => $tournament->id,
+                            'match_date' => now()->addDays(rand(11, 15)), // later date
+                            'venue' => null,
+                            'match_type' => 'tournament',
+                            'status' => 'upcoming',
+                            'stage' => 'playoffs',
+                            'created_at' => now(),
+                            'updated_at' => now(),
+                        ];
+                    }
+                }
+            }
+
+            // Insert all matches in one go
+            CricketMatch::insert($matches);
+
+            return redirect()->back()->with([
+                'success' => true,
+                'message' => ucfirst($stage) . ' fixtures generated successfully.',
+            ]);
+        } catch (ValidationException $e) {
+            Log::error('Validation failed in generateFixtures', [
+                'errors' => $e->validator->errors()->toArray(),
+                'input'  => $request->all(),
+            ]);
+
+            return redirect()->back()
+                ->withErrors($e->validator)
+                ->withInput()
+                ->with([
+                    'success' => false,
+                    'message' => 'Invalid data submitted.',
+                ]);
+        } catch (Exception $e) {
+            Log::error('Error generating fixtures', [
+                'line' => $e->getLine(),
+                'file' => $e->getFile(),
+                'message' => $e->getMessage(),
+            ]);
+
+            return redirect()->back()->with([
+                'success' => false,
+                'message' => 'Error generating fixtures.',
             ]);
         }
     }

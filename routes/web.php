@@ -70,5 +70,8 @@ Route::prefix('admin')->name('admin.')->group(function(){
         Route::post('/store', [TournamentController::class, 'store'])->name('store');
         Route::post('/update/{id}', [TournamentController::class, 'update'])->name('update');
         Route::post('/destroy/{id}', [TournamentController::class, 'destroy'])->name('destroy');
+
+        Route::post('/assign-teams', [TournamentController::class, 'assignTeams'])->name('assign-teams');
+        Route::post('/generate-fixtures', [TournamentController::class, 'generateFixtures'])->name('generate-fixtures');
     });
 });

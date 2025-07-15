@@ -19,14 +19,14 @@ class CricketMatch extends Model
         return $this->belongsTo(Tournament::class);
     }
 
-    public function team1()
+    public function teamA()
     {
-        return $this->belongsTo(Team::class, 'team1_id');
+        return $this->belongsTo(Team::class, 'team_a_id', 'id');
     }
 
-    public function team2()
+    public function teamB()
     {
-        return $this->belongsTo(Team::class, 'team2_id');
+        return $this->belongsTo(Team::class, 'team_b_id', 'id');
     }
 
     public function winningTeam()

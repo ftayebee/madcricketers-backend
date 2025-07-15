@@ -9,11 +9,11 @@ class TournamentGroupTeam extends Model
 {
     use HasFactory;
 
-    protected $fillable = ['tournament_group_id', 'tournament_id', 'team_id'];
+    protected $fillable = ['group_id', 'tournament_id', 'team_id'];
 
     public function group()
     {
-        return $this->belongsTo(TournamentGroup::class, 'tournament_group_id');
+        return $this->belongsTo(TournamentGroup::class, 'group_id');
     }
 
     public function team()

@@ -15,3 +15,17 @@
     <script src="{{ asset('storage/assets/js/pages/dashboard.js') }}"></script>
 @endif
 @stack('scripts')
+
+<script>
+    @if(session()->has('message'))
+        Swal.fire({
+            toast: true,
+            position: 'top-end',
+            icon: '{{ session('success') ? 'success' : 'error' }}',
+            title: '{{ session('message') }}',
+            showConfirmButton: false,
+            timer: 3000,
+            timerProgressBar: true,
+        });
+    @endif
+</script>
