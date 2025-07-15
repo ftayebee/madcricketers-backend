@@ -63,7 +63,6 @@ class TeamController extends Controller
             $teams = Team::orderBy('created_at', 'desc')->get();
 
             $formattedData =  $teams->map(function ($item) {
-                Log::info('Logo: ' . $item->logo);
                 return [
                     'id' => $item->id,
                     'logo' => $item->logo,

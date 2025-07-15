@@ -54,6 +54,17 @@
             </li>
             @endif
 
+            @if(Auth::check() && Auth::user()->can('tournaments-view'))
+            <li class="nav-item">
+                <a class="nav-link" href="{{route('admin.tournaments.index')}}">
+                    <span class="nav-icon">
+                        <i class="ri-shield-star-line"></i>
+                    </span>
+                    <span class="nav-text">Tournaments</span>
+                </a>
+            </li>
+            @endif
+
             <li class="menu-title">System Settings</li>
             @if(Auth::check() && Auth::user()->can('roles-view'))
             <li class="nav-item">

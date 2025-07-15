@@ -9,15 +9,6 @@
                             <i class="ri-menu-2-line fs-24"></i>
                         </button>
                     </div>
-
-                    <!-- App Search-->
-                    <form class="app-search d-none d-md-block me-auto">
-                        <div class="position-relative">
-                            <input type="search" class="form-control border-0" placeholder="Search..."
-                                autocomplete="off" value="">
-                            <i class="ri-search-line search-widget-icon"></i>
-                        </div>
-                    </form>
                 </div>
 
                 <div class="d-flex align-items-center gap-1">
@@ -57,11 +48,15 @@
                             </a>
                             <div class="dropdown-divider my-1"></div>
 
-                            <a class="dropdown-item text-danger" href="auth-signin.html">
+                            <a class="dropdown-item text-danger" type="button" onclick="document.querySelector('#logout-form').submit();">
                                 <iconify-icon icon="solar:logout-3-broken"
                                     class="align-middle me-2 fs-18"></iconify-icon><span
                                     class="align-middle">Logout</span>
                             </a>
+
+                            <form action="{{route('logout')}}" method="post" id="logout-form">
+                                @csrf
+                            </form>
                         </div>
                     </div>
                 </div>

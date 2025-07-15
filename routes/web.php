@@ -65,7 +65,7 @@ Route::prefix('admin')->name('admin.')->group(function(){
         Route::get('/', [TournamentController::class, 'index'])->name('index');
         Route::get('/loader', [TournamentController::class, 'tableLoader'])->name('loader');
         Route::get('/create', [TournamentController::class, 'create'])->name('create');
-        Route::get('/show/{id}', [TournamentController::class, 'show'])->name('show');
+        Route::get('/show/{slug}', [TournamentController::class, 'show'])->name('show');
         Route::get('/edit', [TournamentController::class, 'edit'])->name('edit');
         Route::post('/store', [TournamentController::class, 'store'])->name('store');
         Route::post('/update/{id}', [TournamentController::class, 'update'])->name('update');

@@ -18,6 +18,6 @@ class TournamentGroup extends Model
 
     public function teams()
     {
-        return $this->hasMany(TournamentGroupTeam::class);
+        return $this->belongsToMany(Team::class, 'tournament_group_teams', 'group_id', 'team_id');
     }
 }

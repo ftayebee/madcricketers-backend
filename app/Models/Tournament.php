@@ -9,7 +9,7 @@ class Tournament extends Model
 {
     use HasFactory;
 
-    protected $fillable = ['name', 'format', 'description', 'start_date', 'end_date'];
+    protected $fillable = ['name','slug','location','description','start_date','end_date','status','trophy_image','logo', 'format', 'has_knockout'];
 
     public function groups()
     {
@@ -18,11 +18,18 @@ class Tournament extends Model
 
     public function teams()
     {
-        return $this->hasManyThrough(Team::class, TournamentGroupTeam::class, 'tournament_id', 'id', 'id', 'team_id');
+        return $this->belongsToMany(Team::class, 'tournament_group_teams', 'group_id', 'team_id')
+            ->whereHas('tournamentGroups', function ($query) {
+                $query->where('tournament_id', $this->id);
+            });
     }
 
     public function matches()
     {
         return $this->hasMany(CricketMatch::class);
+    }
+
+    public function standings() {
+        return $this->hasMany(TournamentTeamStat::class, 'tournament_id', 'id');
     }
 }
