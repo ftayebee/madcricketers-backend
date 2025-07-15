@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Admin;
 use Exception;
 use Carbon\Carbon;
 use App\Models\Team;
+use Carbon\CarbonPeriod;
 use App\Models\Tournament;
 use Illuminate\Support\Str;
 use App\Models\CricketMatch;
@@ -341,6 +342,11 @@ class TournamentController extends Controller
             $tournament = Tournament::with('groups.teams')->findOrFail($validated['tournament_id']);
             $stage = $validated['match_stage'];
             $matches = [];
+            $startDate = Carbon::parse($tournament->start_date);
+            $endDate = Carbon::parse($tournament->end_date);
+            $reservedDays = 4;
+            $groupStageEnd = $endDate->copy()->subDays($reservedDays);
+            $period = CarbonPeriod::create($startDate, $groupStageEnd);
 
             if ($stage === 'group') {
                 foreach ($tournament->groups as $group) {
@@ -350,13 +356,15 @@ class TournamentController extends Controller
                         for ($j = $i + 1; $j < count($teams); $j++) {
                             $teamA = $teams[$i];
                             $teamB = $teams[$j];
+                            $dates = iterator_to_array($period);
+                            $matchDate = $dates[array_rand($dates)];
 
                             $matches[] = [
                                 'title' => "{$teamA->name} vs {$teamB->name}",
                                 'team_a_id' => $teamA->id,
                                 'team_b_id' => $teamB->id,
                                 'tournament_id' => $tournament->id,
-                                'match_date' => now()->addDays(rand(1, 10)), // Optional: you can assign a proper schedule
+                                'match_date' => $matchDate->setTime(rand(9, 18), rand(0, 30)),
                                 'venue' => null,
                                 'match_type' => 'tournament',
                                 'status' => 'upcoming',

@@ -1,6 +1,42 @@
 @extends('admin.layouts.theme')
 
 @section('content')
+    @push('styles')
+        <style>
+            .stage-title {
+                padding: 12px 20px;
+                text-align: center;
+                font-weight: bold;
+                border-radius: 5px;
+                background: rgb(120 243 255 / 15%);
+                /* translucent background */
+                backdrop-filter: blur(10px);
+                /* glass effect */
+                -webkit-backdrop-filter: blur(10px);
+                border: 2px solid transparent;
+                background-clip: padding-box;
+                position: relative;
+                z-index: 1;
+                color: #111;
+            }
+
+            .stage-title::before {
+                content: "";
+                position: absolute;
+                inset: 0;
+                border-radius: 5px;
+                padding: 2px;
+                background: linear-gradient(135deg, #89f7fe, #66a6ff);
+                /* attractive gradient border */
+                -webkit-mask:
+                    linear-gradient(#fff 0 0) content-box,
+                    linear-gradient(#fff 0 0);
+                -webkit-mask-composite: xor;
+                mask-composite: exclude;
+                z-index: -1;
+            }
+        </style>
+    @endpush
     <div class="row">
         <div class="col-sm-12">
             <div class="card">
@@ -141,7 +177,7 @@
                                 {{-- Group Stage --}}
                                 @if (isset($matchesByStage['group']))
                                     <div class="mb-4">
-                                        <h5 class="fw-bold mb-3">Group Stage Matches</h5>
+                                        <h5 class="fw-bold mb-3 stage-title">Group Stage Matches</h5>
                                         <div class="list-group">
                                             @foreach (collect($matchesByStage['group'])->sortBy('match_date') as $match)
                                                 @php
@@ -187,7 +223,8 @@
                                                         <small class="text-muted">{{ $matchTime }} @
                                                             {{ $match->venue ?? 'TBD' }}</small>
                                                     </div>
-                                                    <a href="#" class="btn btn-sm btn-outline-primary">Edit</a>
+                                                    <a href="{{ route('admin.cricket-matches.edit', ['cricket-match' => $match->id]) }}"
+                                                        class="btn btn-sm btn-outline-primary">Edit</a>
                                                 </div>
                                             @endforeach
                                         </div>
@@ -198,7 +235,7 @@
                                 {{-- Playoffs --}}
                                 @if (isset($matchesByStage['playoffs']) && count($matchesByStage['playoffs']) > 0)
                                     <div class="mb-4">
-                                        <h5 class="fw-bold mb-3">Playoff Matches (Quarter Finals)</h5>
+                                        <h5 class="fw-bold mb-3 stage-title">Playoff Matches (Quarter Finals)</h5>
                                         <div class="list-group">
                                             @foreach ($matchesByStage['playoffs'] as $match)
                                                 @php
@@ -219,7 +256,8 @@
                                                             {{ $matchTime }} @ {{ $match->venue ?? 'TBD' }}
                                                         </small>
                                                     </div>
-                                                    <a href="#" class="btn btn-sm btn-outline-primary">Edit</a>
+                                                    <a href="{{ route('admin.cricket-matches.edit', $match->id) }}"
+                                                        class="btn btn-sm btn-outline-primary">Edit</a>
                                                 </div>
                                             @endforeach
                                         </div>
@@ -227,7 +265,7 @@
                                 @else
                                     {{-- Placeholder for 4 Quarter Finals --}}
                                     <div class="mb-4">
-                                        <h5 class="fw-bold mb-3">Playoff Matches (Quarter Finals)</h5>
+                                        <h5 class="fw-bold mb-3 stage-title">Playoff Matches (Quarter Finals)</h5>
                                         <div class="list-group">
                                             @for ($i = 1; $i <= 4; $i++)
                                                 <div class="list-group-item">
@@ -246,7 +284,7 @@
                                 {{-- Semi Final --}}
                                 @if (isset($matchesByStage['semi-final']) && count($matchesByStage['semi-final']) > 0)
                                     <div class="mb-4">
-                                        <h5 class="fw-bold mb-3">Semi-Finals</h5>
+                                        <h5 class="fw-bold mb-3 stage-title">Semi-Finals</h5>
                                         <div class="list-group">
                                             @foreach ($matchesByStage['semi-final'] as $match)
                                                 @php
@@ -267,14 +305,15 @@
                                                             {{ $matchTime }} @ {{ $match->venue ?? 'TBD' }}
                                                         </small>
                                                     </div>
-                                                    <a href="#" class="btn btn-sm btn-outline-primary">Edit</a>
+                                                    <a href="{{ route('admin.cricket-matches.edit', $match->id) }}"
+                                                        class="btn btn-sm btn-outline-primary">Edit</a>
                                                 </div>
                                             @endforeach
                                         </div>
                                     </div>
                                 @else
                                     <div class="mb-4">
-                                        <h5 class="fw-bold mb-3">Semi-Finals</h5>
+                                        <h5 class="fw-bold mb-3 stage-title">Semi-Finals</h5>
                                         <div class="list-group">
                                             {{-- Static placeholders for planned semi-final matches --}}
                                             <div class="list-group-item">
@@ -294,7 +333,7 @@
 
                                 {{-- Final --}}
                                 <div class="mb-4">
-                                    <h5 class="fw-bold mb-3">Final Match</h5>
+                                    <h5 class="fw-bold mb-3 stage-title">Final Match</h5>
                                     @if (isset($matchesByStage['final']) && $matchesByStage['final']->isNotEmpty())
                                         @php
                                             $final = $matchesByStage['final']->first();
@@ -311,8 +350,8 @@
                                                 <small class="text-muted">{{ $matchTime }} @
                                                     {{ $final->venue ?? 'TBD' }}</small>
                                             </div>
-                                            {{-- <a href="{{ route('admin.matches.edit', $final->id) }}" class="btn btn-sm btn-outline-primary">Edit</a> --}}
-                                            <a href="#" class="btn btn-sm btn-outline-primary">Edit</a>
+                                            <a href="{{ route('admin.cricket-matches.edit', $final->id) }}"
+                                                class="btn btn-sm btn-outline-primary">Edit</a>
                                         </div>
                                     @else
                                         <strong>TBA</strong>

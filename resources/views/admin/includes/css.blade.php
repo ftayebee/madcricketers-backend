@@ -16,3 +16,4 @@
 
 <!-- Theme Config js (Require in all Page) -->
 <script src="{{asset('storage/assets/js/config.min.js')}}"></script>
+@stack('styles')
