@@ -330,7 +330,6 @@
                                     </div>
                                 @endif
 
-
                                 {{-- Final --}}
                                 <div class="mb-4">
                                     <h5 class="fw-bold mb-3 stage-title">Final Match</h5>
@@ -354,7 +353,14 @@
                                                 class="btn btn-sm btn-outline-primary">Edit</a>
                                         </div>
                                     @else
-                                        <strong>TBA</strong>
+                                        <div class="list-group">
+                                            {{-- Static placeholders for planned semi-final matches --}}
+                                            <div class="list-group-item">
+                                                <strong>TBA</strong><br>
+                                                <strong>TBC vs TBC</strong>, Grand Final<br>
+                                                <small class="text-muted">Match starts at TBA</small>
+                                            </div>
+                                        </div>
                                     @endif
                                 </div>
                             @else
@@ -362,7 +368,6 @@
                                     <h5 class="m-0">No Matches Available Yet! Please create Fixtures first!</h5>
                                 </div>
                             @endif
-
                         </div>
                     </div>
                 </div>

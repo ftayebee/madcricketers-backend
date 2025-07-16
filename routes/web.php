@@ -9,6 +9,7 @@ use App\Http\Controllers\Admin\TeamController;
 use App\Http\Controllers\Admin\UserController;
 use App\Http\Controllers\Admin\PlayerController;
 use App\Http\Controllers\Admin\TournamentController;
+use App\Http\Controllers\Frontend\PageController as FrontendPageController;
 
 Route::get('/', function () {
     return redirect('/login');
@@ -87,3 +88,6 @@ Route::prefix('admin')->name('admin.')->group(function(){
         Route::post('/destroy/{id}', [CricketMatchController::class, 'destroy'])->name('destroy');
     });
 });
+
+// FRONTEND ROUTES
+Route::get('/', [FrontendPageController::class, 'index'])->name('frontend.home'); // working
