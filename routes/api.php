@@ -2,18 +2,9 @@
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\API\TournamentController;
+use App\Http\Controllers\API\CricketMatchController;
 
-/*
-|--------------------------------------------------------------------------
-| API Routes
-|--------------------------------------------------------------------------
-|
-| Here is where you can register API routes for your application. These
-| routes are loaded by the RouteServiceProvider within a group which
-| is assigned the "api" middleware group. Enjoy building your API!
-|
-*/
-
-Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
-    return $request->user();
-});
+Route::get('/recent-matches', [CricketMatchController::class, 'recentMatches'])->name('api.recent-matches');
+Route::get('/completed-matches', [CricketMatchController::class, 'completedMatches'])->name('api.completed-matches');
+Route::get('/tournaments', [TournamentController::class, 'getTournaments'])->name('api.tournaments');
