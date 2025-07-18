@@ -19,7 +19,7 @@ class CricketMatchController extends Controller
                 'teamA:id,name,logo',
                 'teamB:id,name,logo',
                 'winningTeam:id,name',
-                'tournament:id,name',
+                'tournament:id,name,slug,start_date,end_date,status',
             ])
                 ->whereIn('status', ['upcoming', 'live'])
                 ->orderByDesc('match_date')
@@ -43,7 +43,14 @@ class CricketMatchController extends Controller
                     'venue' => $match->venue,
                     'result_summary' => $match->result_summary,
                     'status' => $match->status,
-                    'tournament' => $match->tournament->name ?? null,
+                    'tournament' => [
+                        'slug' => $match->tournament->slug ?? null,
+                        'name' => $match->tournament->name ?? null,
+                        'id' => $match->tournament->id ?? null,
+                        'start_date' => Carbon::parse($match->tournament->start_date)->format('Y-m-d'),
+                        'end_date' => Carbon::parse($match->tournament->end_date)->format('Y-m-d'),
+                        'status' => $match->tournament->status ?? null,
+                    ],
                     'team_a' => [
                         'id' => $match->teamA->id,
                         'name' => $match->teamA->name,

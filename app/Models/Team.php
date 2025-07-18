@@ -40,4 +40,10 @@ class Team extends Model
             'group_id'                // foreign key on pivot table pointing to related model
         )->withTimestamps();
     }
+
+    public function getTournamentStats($tournamentId)
+    {
+        return $this->hasMany(TournamentTeamStat::class, 'team_id')
+            ->where('tournament_id', $tournamentId);
+    }
 }
