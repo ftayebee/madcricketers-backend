@@ -36,6 +36,7 @@ return array(
     'App\\Http\\Middleware\\TrustProxies' => $baseDir . '/app/Http/Middleware/TrustProxies.php',
     'App\\Http\\Middleware\\VerifyCsrfToken' => $baseDir . '/app/Http/Middleware/VerifyCsrfToken.php',
     'App\\Models\\CricketMatch' => $baseDir . '/app/Models/CricketMatch.php',
+    'App\\Models\\CricketMatchToss' => $baseDir . '/app/Models/CricketMatchToss.php',
     'App\\Models\\FallOfWicket' => $baseDir . '/app/Models/FallOfWicket.php',
     'App\\Models\\MatchDelivery' => $baseDir . '/app/Models/MatchDelivery.php',
     'App\\Models\\MatchPlayer' => $baseDir . '/app/Models/MatchPlayer.php',

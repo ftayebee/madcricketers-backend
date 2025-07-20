@@ -81,11 +81,13 @@ Route::prefix('admin')->name('admin.')->group(function(){
         Route::get('/', [CricketMatchController::class, 'index'])->name('index');
         Route::get('/loader', [CricketMatchController::class, 'tableLoader'])->name('loader');
         Route::get('/create', [CricketMatchController::class, 'create'])->name('create');
-        Route::get('/show/{slug}', [CricketMatchController::class, 'show'])->name('show');
+        Route::get('/show/{id}', [CricketMatchController::class, 'show'])->name('show');
         Route::get('/edit', [CricketMatchController::class, 'edit'])->name('edit');
         Route::post('/store', [CricketMatchController::class, 'store'])->name('store');
         Route::post('/update/{id}', [CricketMatchController::class, 'update'])->name('update');
         Route::post('/destroy/{id}', [CricketMatchController::class, 'destroy'])->name('destroy');
+
+        Route::get('/start/{id}', [CricketMatchController::class, 'startCricketMatch'])->name('start');
     });
 });
 

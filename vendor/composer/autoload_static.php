@@ -552,6 +552,7 @@ class ComposerStaticInitc61ff82cbf0142a401a48a8161e1595a
         'App\\Http\\Middleware\\TrustProxies' => __DIR__ . '/../..' . '/app/Http/Middleware/TrustProxies.php',
         'App\\Http\\Middleware\\VerifyCsrfToken' => __DIR__ . '/../..' . '/app/Http/Middleware/VerifyCsrfToken.php',
         'App\\Models\\CricketMatch' => __DIR__ . '/../..' . '/app/Models/CricketMatch.php',
+        'App\\Models\\CricketMatchToss' => __DIR__ . '/../..' . '/app/Models/CricketMatchToss.php',
         'App\\Models\\FallOfWicket' => __DIR__ . '/../..' . '/app/Models/FallOfWicket.php',
         'App\\Models\\MatchDelivery' => __DIR__ . '/../..' . '/app/Models/MatchDelivery.php',
         'App\\Models\\MatchPlayer' => __DIR__ . '/../..' . '/app/Models/MatchPlayer.php',

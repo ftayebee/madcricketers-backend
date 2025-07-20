@@ -89,20 +89,20 @@
                 <div class="card-body">
                     <ul class="nav nav-pills nav-justified p-1">
                         <li class="nav-item">
-                            <a href="#homePillJustified" data-bs-toggle="tab" aria-expanded="false" class="nav-link active">
-                                <span class="d-block d-sm-none"><i class="bx bx-home"></i></span>
-                                <span class="d-none d-sm-block">Standings</span>
-                            </a>
-                        </li>
-                        <li class="nav-item">
-                            <a href="#profilePillJustified" data-bs-toggle="tab" aria-expanded="true" class="nav-link">
+                            <a href="#profilePillJustified" data-bs-toggle="tab" aria-expanded="true" class="nav-link active">
                                 <span class="d-block d-sm-none"><i class="bx bx-user"></i></span>
                                 <span class="d-none d-sm-block">Fixtures</span>
                             </a>
                         </li>
+                        <li class="nav-item">
+                            <a href="#homePillJustified" data-bs-toggle="tab" aria-expanded="false" class="nav-link">
+                                <span class="d-block d-sm-none"><i class="bx bx-home"></i></span>
+                                <span class="d-none d-sm-block">Standings</span>
+                            </a>
+                        </li>
                     </ul>
                     <div class="tab-content pt-2 text-muted">
-                        <div class="tab-pane show active" id="homePillJustified">
+                        <div class="tab-pane" id="homePillJustified">
                             @forelse ($tournament->groups as $group)
                                 <h6 class="mb-3">{{ $group->name }}</h6>
 
@@ -168,7 +168,7 @@
                                 <p>No group standings available yet.</p>
                             @endforelse
                         </div>
-                        <div class="tab-pane" id="profilePillJustified">
+                        <div class="tab-pane show active" id="profilePillJustified">
                             @if ($tournament->matches->count() > 0)
                                 @php
                                     $matchesByStage = $tournament->matches->groupBy('stage');
@@ -223,14 +223,27 @@
                                                         <small class="text-muted">{{ $matchTime }} @
                                                             {{ $match->venue ?? 'TBD' }}</small>
                                                     </div>
-                                                    <a href="{{ route('admin.cricket-matches.edit', ['cricket-match' => $match->id]) }}"
-                                                        class="btn btn-sm btn-outline-primary">Edit</a>
+                                                    <div>
+                                                        @if (Auth::user()->can('cricket-matches-start') && $match->status == 'upcoming')
+                                                            <a href="{{ route('admin.cricket-matches.start', ['id' => $match->id]) }}"
+                                                                class="btn btn-sm btn-info">Start Match</a>
+                                                        @endif
+
+                                                        @if (Auth::user()->can('cricket-matches-view'))
+                                                            <a href="{{ route('admin.cricket-matches.show', ['id' => $match->id]) }}"
+                                                                class="btn btn-sm btn-warning">View Stats</a>
+                                                        @endif
+
+                                                        @if (Auth::user()->can('cricket-matches-edit'))
+                                                        <a href="{{ route('admin.cricket-matches.edit', ['id' => $match->id]) }}"
+                                                            class="btn btn-sm btn-primary">Edit</a>
+                                                        @endif
+                                                    </div>
                                                 </div>
                                             @endforeach
                                         </div>
                                     </div>
                                 @endif
-
 
                                 {{-- Playoffs --}}
                                 @if (isset($matchesByStage['playoffs']) && count($matchesByStage['playoffs']) > 0)
@@ -263,7 +276,6 @@
                                         </div>
                                     </div>
                                 @else
-                                    {{-- Placeholder for 4 Quarter Finals --}}
                                     <div class="mb-4">
                                         <h5 class="fw-bold mb-3 stage-title">Playoff Matches (Quarter Finals)</h5>
                                         <div class="list-group">
@@ -279,7 +291,6 @@
                                         </div>
                                     </div>
                                 @endif
-
 
                                 {{-- Semi Final --}}
                                 @if (isset($matchesByStage['semi-final']) && count($matchesByStage['semi-final']) > 0)

@@ -36,26 +36,26 @@ class CricketMatch extends Model
 
     public function players()
     {
-        return $this->hasMany(MatchPlayer::class);
+        return $this->hasMany(MatchPlayer::class, 'match_id', 'id');
     }
 
     public function deliveries()
     {
-        return $this->hasMany(MatchDelivery::class);
+        return $this->hasMany(MatchDelivery::class, 'match_id', 'id');
     }
 
     public function wickets()
     {
-        return $this->hasMany(FallOfWicket::class);
+        return $this->hasMany(FallOfWicket::class, 'match_id', 'id');
     }
 
     public function partnerships()
     {
-        return $this->hasMany(Partnership::class);
+        return $this->hasMany(Partnership::class, 'match_id', 'id');
     }
 
     public function scoreboard()
     {
-        return $this->hasMany(MatchScoreBoard::class);
+        return $this->hasMany(MatchScoreBoard::class, 'match_id', 'id');
     }
 }

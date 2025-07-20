@@ -4,10 +4,8 @@
             <div class="col-12 text-center">
                 <script>
                     document.write(new Date().getFullYear())
-                </script> &copy; Lahomes. Crafted by <iconify-icon
-                    icon="solar:hearts-bold-duotone" class="fs-18 align-middle text-danger"></iconify-icon> <a
-                    href="https://1.envato.market/techzaa" class="fw-bold footer-text"
-                    target="_blank">Techzaa</a>
+                </script> &copy; ScoreRiot. Developed by
+                <a href="https://algohivebd.com" class="fw-bold footer-text" target="_blank">AlgoHive IT</a>
             </div>
         </div>
     </div>

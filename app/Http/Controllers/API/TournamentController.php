@@ -130,20 +130,35 @@ class TournamentController extends Controller
                     'points_table' => $pointsTable,
                     'key_stats' => [
                         'most_runs' => $topRunScorer ? [
+                            'label' => 'Most Runs',
                             'player' => $topRunScorer->player->name,
-                            'runs' => $topRunScorer->total_runs,
+                            'image' => $topRunScorer->player->image,
+                            'team' => $topRunScorer->team->name,
+                            'value' => $topRunScorer->total_runs,
                         ] : null,
+
                         'most_wickets' => $topWicketTaker ? [
+                            'label' => 'Most Wickets',
                             'player' => $topWicketTaker->player->name,
-                            'wickets' => $topWicketTaker->wickets,
+                            'image' => $topWicketTaker->player->image,
+                            'team' => $topWicketTaker->team->name,
+                            'value' => $topWicketTaker->wickets . " X",
                         ] : null,
+
                         'most_sixes' => $mostSixes ? [
+                            'label' => 'Most Sixes',
                             'player' => $mostSixes->player->name,
-                            'sixes' => $mostSixes->sixes,
+                            'image' => $mostSixes->player->image,
+                            'team' => $mostSixes->team->name,
+                            'value' => $mostSixes->sixes,
                         ] : null,
+
                         'best_strike_rate' => $bestStrikeRate ? [
+                            'label' => 'Best Strike Rate',
                             'player' => $bestStrikeRate->player->name,
-                            'strike_rate' => $bestStrikeRate->strike_rate,
+                            'image' => $bestStrikeRate->player ->image,
+                            'team' => $bestStrikeRate->team->name,
+                            'value' => $bestStrikeRate->strike_rate,
                         ] : null,
                     ],
                     'teams' => $tournament->teams->map(function ($team) {

@@ -9,6 +9,7 @@ use App\Models\CricketMatch;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 use App\Http\Controllers\Controller;
+use Illuminate\Database\Eloquent\ModelNotFoundException;
 
 class CricketMatchController extends Controller
 {
@@ -16,15 +17,22 @@ class CricketMatchController extends Controller
     {
         try {
             $matches = CricketMatch::with([
-                'teamA:id,name,logo',
-                'teamB:id,name,logo',
-                'winningTeam:id,name',
-                'tournament:id,name,slug,start_date,end_date,status',
-            ])
-                ->whereIn('status', ['upcoming', 'live'])
-                ->orderByDesc('match_date')
-                ->limit(10)
-                ->get();
+                                    'teamA:id,name,logo',
+                                    'teamB:id,name,logo',
+                                    'winningTeam:id,name',
+                                    'tournament:id,name,slug,start_date,end_date,status',
+                                ])
+                                    ->whereIn('status', ['upcoming', 'live'])
+                                    ->orderByRaw("
+                            CASE
+                                WHEN status = 'live' THEN 1
+                                WHEN status = 'upcoming' THEN 2
+                                ELSE 3
+                            END
+                        ")
+                        ->orderByDesc('match_date')
+                        ->limit(10)
+                        ->get();
 
             $data = $matches->map(function ($match) {
                 $groupA = optional($match->teamA->groups()
@@ -149,6 +157,64 @@ class CricketMatchController extends Controller
             return response()->json([
                 'success' => false,
                 'message' => 'Failed to fetch recent matches.',
+            ], 500);
+        }
+    }
+
+    public function getMatchDetailBySlug(Request $request, $id)
+    {
+        try {
+            $match = CricketMatch::with([
+                'teamA:id,name,logo',
+                'teamB:id,name,logo',
+                'winningTeam:id,name',
+                'tournament:id,name,slug,start_date,end_date,status',
+
+                'players.player:id,name,role,team_id',
+                'players.battingStats',
+                'players.bowlingStats',
+
+                // Deliveries (ball by ball)
+                'deliveries.batsman:id,name',
+                'deliveries.bowler:id,name',
+                'deliveries.fielder:id,name',
+
+                // Fall of wickets
+                'wickets.player:id,name',
+                'wickets.bowler:id,name',
+
+                // Partnerships
+                'partnerships.batsman1:id,name',
+                'partnerships.batsman2:id,name',
+
+                'scoreboard.team:id,name,logo',
+            ])
+                ->where('id', $id)
+                ->firstOrFail();
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Match details fetched successfully.',
+                'data' => $match,
+            ]);
+        } catch (ModelNotFoundException $e) {
+            Log::error("Cricket match not found", [
+                'message' => $e->getMessage(),
+                'slug' => $slug,
+            ]);
+            return response()->json([
+                'success' => false,
+                'message' => 'Match details not found.',
+            ]);
+        } catch (Exception $e) {
+            Log::error("Error fetching match details", [
+                'line' => $e->getLine(),
+                'file' => $e->getFile(),
+                'message' => $e->getMessage(),
+            ]);
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to fetch match details.',
             ], 500);
         }
     }

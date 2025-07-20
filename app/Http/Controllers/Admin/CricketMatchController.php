@@ -105,4 +105,73 @@ class CricketMatchController extends Controller
             ]);
         }
     }
+
+    public function startCricketMatch($id)
+    {
+        try {
+            if (!Auth::user()->can($this->module . '-start')) {
+                throw new Exception('Unauthorized Access');
+            }
+
+            $match = CricketMatch::findOrFail($id);
+            $match->status = 'live';
+            $match->save();
+            $match->load(['teamA', 'teamB', 'tournament']);
+            return view('admin.pages.cricket-matches.scoreboard', compact('match'))->with([
+                'success' => true,
+                'message' => 'Match started successfully.',
+            ]);
+        } catch (ModelNotFoundException $e) {
+            Log::error("Cricket match not found", [
+                'message' => $e->getMessage(),
+                'match_id' => $id,
+            ]);
+            return redirect()->back()->with([
+                'success' => false,
+                'message' => 'Match not found.',
+            ]);
+        } catch (Exception $e) {
+            Log::error("Error starting cricket match", [
+                'line' => $e->getLine(),
+                'file' => $e->getFile(),
+                'message' => $e->getMessage(),
+            ]);
+            return redirect()->back()->with([
+                'success' => false,
+                'message' => 'Failed to start match.',
+            ]);
+        }
+    }
+
+    public function show($id)
+    {
+        try {
+            if (!Auth::user()->can($this->module . '-view')) {
+                throw new Exception('Unauthorized Access');
+            }
+
+            $match = CricketMatch::with(['teamA', 'teamB', 'tournament'])->findOrFail($id);
+
+            return view('admin.pages.cricket-matches.show', compact('match'));
+        } catch (ModelNotFoundException $e) {
+            Log::error("Cricket match not found", [
+                'message' => $e->getMessage(),
+                'match_id' => $id,
+            ]);
+            return redirect()->back()->with([
+                'success' => false,
+                'message' => 'Match not found.',
+            ]);
+        } catch (Exception $e) {
+            Log::error("Error loading cricket match details", [
+                'line' => $e->getLine(),
+                'file' => $e->getFile(),
+                'message' => $e->getMessage(),
+            ]);
+            return redirect()->back()->with([
+                'success' => false,
+                'message' => 'Failed to load match details.',
+            ]);
+        }
+    }
 }
