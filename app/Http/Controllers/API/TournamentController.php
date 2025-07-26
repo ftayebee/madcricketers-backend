@@ -55,6 +55,9 @@ class TournamentController extends Controller
                 'matches.teamA:id,name,logo',
                 'matches.teamB:id,name,logo',
                 'matches.winningTeam:id,name',
+                'matches' => function ($q) {
+                    $q->orderBy('match_date', 'asc');
+                },
                 'groups.teams:id,name',
                 'standings.team:id,name',
                 'playerStats.player:id,name',
@@ -92,7 +95,10 @@ class TournamentController extends Controller
                 ->filter(fn($s) => $s->balls_faced > 30)
                 ->sortByDesc('strike_rate')
                 ->first();
-
+            $sortedMatches = $tournament->matches->sortBy(function ($match) {
+                return Carbon::parse($match->match_date);
+            });
+            
             return response()->json([
                 'success' => true,
                 'message' => 'Tournament fetched successfully.',
@@ -105,7 +111,7 @@ class TournamentController extends Controller
                     'status' => $tournament->status,
                     'matches_count' => $tournament->matches->count(),
                     'stage' => implode(", ", array_filter(array_unique($tournament->matches->pluck('stage')->toArray()))),
-                    'matches' => $tournament->matches->map(function ($match) {
+                    'matches' => $sortedMatches->map(function ($match) {
                         return [
                             'id' => $match->id,
                             'title' => $match->title,

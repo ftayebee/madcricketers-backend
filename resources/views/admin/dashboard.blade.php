@@ -1,7 +1,7 @@
 @extends('admin.layouts.theme')
 
 @section('content')
-    <div class="row">
+    {{-- <div class="row">
         <div class="col-md-6 col-xl-3">
             <div class="card">
                 <div class="card-body">
@@ -76,7 +76,6 @@
                 </div>
             </div>
         </div>
-
     </div>
 
     <div class="row">
@@ -663,7 +662,5 @@
                 </div>
             </div>
         </div>
-    </div>
-
-    </div>
+    </div> --}}
 @endsection

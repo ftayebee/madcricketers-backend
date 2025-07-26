@@ -4,9 +4,15 @@ namespace App\Http\Controllers\API;
 
 use Exception;
 use Carbon\Carbon;
+use App\Models\User;
+use App\Models\Player;
 use App\Models\Tournament;
+use App\Models\MatchPlayer;
 use App\Models\CricketMatch;
 use Illuminate\Http\Request;
+use App\Models\MatchScoreBoard;
+use App\Models\CricketMatchToss;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use App\Http\Controllers\Controller;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
@@ -30,7 +36,7 @@ class CricketMatchController extends Controller
                                 ELSE 3
                             END
                         ")
-                        ->orderByDesc('match_date')
+                        ->orderBy('match_date', 'asc')
                         ->limit(10)
                         ->get();
 
@@ -217,5 +223,174 @@ class CricketMatchController extends Controller
                 'message' => 'Failed to fetch match details.',
             ], 500);
         }
+    }
+
+    public function getShortName($fullName)
+    {
+        $parts = explode(' ', trim($fullName));
+        $initials = '';
+
+        // Take initials from all parts except the last
+        for ($i = 0; $i < count($parts) - 1; $i++) {
+            if (!empty($parts[$i])) {
+                $initials .= strtoupper(substr($parts[$i], 0, 1)) . '.';
+            }
+        }
+
+        // Add the last part as full
+        $lastName = $parts[count($parts) - 1] ?? '';
+
+        return $initials . ' ' . $lastName;
+    }
+
+    public function getMatchInfo(Request $request, $id)
+    {
+        try {
+            $match = CricketMatch::with(['teamA', 'teamB', 'teamA.players', 'teamB.players'])->findOrFail($id);
+            $matchDate = Carbon::parse($match->match_date);
+
+            $teams = [
+                ['team' => $match->teamA, 'id' => $match->team_a_id],
+                ['team' => $match->teamB, 'id' => $match->team_b_id],
+            ];
+
+            $teamForms = [];
+
+            foreach ($teams as $entry) {
+                $team = $entry['team'];
+                $teamId = $entry['id'];
+
+                // Get last 5 completed matches before this match date
+                $lastMatches = CricketMatch::where(function ($q) use ($teamId) {
+                        $q->where('team_a_id', $teamId)->orWhere('team_b_id', $teamId);
+                    })
+                    ->where('match_date', '<', $matchDate)
+                    ->whereNotNull('winning_team_id')
+                    ->orderBy('match_date', 'desc')
+                    ->take(5)
+                    ->get();
+
+                $form = [];
+
+                if ($lastMatches->count() > 0) {
+                    foreach ($lastMatches as $m) {
+                        if ($m->winner_team_id == $teamId) {
+                            $form[] = 'W';
+                        } else {
+                            $form[] = 'L';
+                        }
+                    }
+                } else {
+                    for ($i = 0; $i < 5; $i++) {
+                        $form[] = '-';
+                    }
+                }
+
+                // Prepare player list with ID, name, image
+                $players = [];
+                if ($team && $team->players) {
+                    foreach ($team->players as $player) {
+                        $players[] = [
+                            'id' => $player->id,
+                            'name' => $this->getShortName($player->user->full_name),
+                            'image' => $player->user->image,
+                            'role' => $player->player_role,
+                        ];
+                    }
+                }
+
+                $teamForms[] = [
+                    'team_id' => $teamId,
+                    'team_name' => $team->name ?? '',
+                    'team_logo' => $team->logo ?? '',
+                    'form' => array_reverse($form),
+                    'players' => $players,
+                ];
+            }
+
+            return response()->json($teamForms);
+        } catch (Exception $e) {
+            Log::error("Error fetching team form", [
+                'line' => $e->getLine(),
+                'file' => $e->getFile(),
+                'message' => $e->getMessage(),
+            ]);
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to fetch team form.',
+            ], 500);
+        }
+    }
+
+    public function getYetToBat(Request $request, $matchId)
+    {
+        try {
+            // 1. Get latest innings scoreboard
+            $scoreboard = MatchScoreBoard::where('match_id', $matchId)
+                ->orderByDesc('innings')
+                ->first();
+
+            if (!$scoreboard) {
+                return response()->json(['message' => 'No scoreboard found for this match', 'success' => false], 404);
+            }
+
+            $battingTeamId = $scoreboard->team_id;
+
+            // 2. Get all players of the batting team
+            $teamPlayerIds = DB::table('player_team')
+                ->where('team_id', $battingTeamId)
+                ->pluck('player_id');
+
+            // 3. Get players from match_players who have batted (i.e., runs_scored or balls_faced not null)
+            $battedPlayerIds = DB::table('match_players')
+                ->where('match_id', $matchId)
+                ->where('team_id', $battingTeamId)
+                ->where(function ($query) {
+                    $query->whereNotNull('runs_scored')
+                        ->orWhereNotNull('balls_faced');
+                })
+                ->pluck('player_id');
+
+            // 4. Get players who are in the team but have not batted yet
+            $yetToBatPlayers = Player::with('user')
+                                ->whereIn('id', $teamPlayerIds)
+                                ->whereNotIn('id', $battedPlayerIds)
+                                ->get()
+                                ->map(function ($player) {
+                                    $fullName = $player->user->full_name;
+                                    $nameParts = explode(' ', trim($fullName));
+                                    $lastName = array_pop($nameParts);
+                                    $initials = implode('.', array_map(function ($n) {
+                                        return mb_substr($n, 0, 1);
+                                    }, $nameParts));
+
+                                    return [
+                                        'id' => $player->id,
+                                        'short_name' => $initials ? $initials . '. ' . $lastName : $lastName,
+                                        'role' => ucwords(str_replace('-', ' ', $player->player_role)),
+                                        'image' => $player->image ?? asset('images/default-user.png'),
+                                    ];
+                                });
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Player Found.',
+                'players' => $yetToBatPlayers
+            ]);
+        } catch (\Exception $e) {
+            Log::error('Error fetching yet to bat players', [
+                'message' => $e->getMessage(),
+                'line' => $e->getLine(),
+            ]);
+
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to retrieve data.'
+            ]);
+        }
+    }
+
+    public function getLiveScore(Request $request, $id){
+        
     }
 }

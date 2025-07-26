@@ -88,6 +88,7 @@ Route::prefix('admin')->name('admin.')->group(function(){
         Route::post('/destroy/{id}', [CricketMatchController::class, 'destroy'])->name('destroy');
 
         Route::get('/start/{id}', [CricketMatchController::class, 'startCricketMatch'])->name('start');
+        Route::post('/toss/store', [CricketMatchController::class, 'storeToss'])->name('toss.store');
     });
 });
 

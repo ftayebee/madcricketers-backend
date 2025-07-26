@@ -19,6 +19,10 @@ class CricketMatch extends Model
         return $this->belongsTo(Tournament::class);
     }
 
+    public function toss(){
+        return $this->hasOne(CricketMatchToss::class, 'cricket_match_id', 'id');
+    }
+
     public function teamA()
     {
         return $this->belongsTo(Team::class, 'team_a_id', 'id');

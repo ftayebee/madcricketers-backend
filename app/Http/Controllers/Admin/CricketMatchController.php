@@ -11,8 +11,11 @@ use Illuminate\Http\Request;
 use App\Models\TournamentGroupTeam;
 use Illuminate\Support\Facades\Log;
 use App\Http\Controllers\Controller;
+use App\Models\CricketMatchToss;
+use App\Models\MatchScoreBoard;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
+use Illuminate\Support\Facades\Validator;
 
 class CricketMatchController extends Controller
 {
@@ -103,6 +106,92 @@ class CricketMatchController extends Controller
                 'success' => false,
                 'message' => 'Failed to load match for editing.',
             ]);
+        }
+    }
+
+    public function storeToss(Request $request)
+    {
+        try {
+            $validation = Validator::make($request->all(), [
+                'match_id' => 'required|exists:cricket_matches,id',
+                'toss_winner_team_id' => 'required|exists:teams,id',
+                'toss_decision' => 'required|in:bat,bowl,BAT,BOWL',
+            ]);
+
+            if ($validation->fails()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Validation failed',
+                    'errors' => $validation->errors(),
+                ], 422);
+            }
+
+            $matchId = $request->input('match_id');
+
+            // Update or create toss data
+            $tossData = CricketMatchToss::updateOrCreate(
+                ['cricket_match_id' => $matchId],
+                [
+                    'toss_winner_team_id' => $request->input('toss_winner_team_id'),
+                    'decision' => strtolower($request->input('toss_decision')), // 'bat' or 'bowl'
+                ]
+            );
+
+            // Get match to identify both teams
+            $match = CricketMatch::findOrFail($matchId);
+            $teamA = $match->team_a_id;
+            $teamB = $match->team_b_id;
+
+            $tossWinner = (int) $request->input('toss_winner_team_id');
+            $tossDecision = strtolower($request->input('toss_decision'));
+
+            // Determine 1st innings batting team
+            if ($tossDecision === 'bat') {
+                $battingFirstTeam = $tossWinner;
+            } else {
+                $battingFirstTeam = ($tossWinner === $teamA) ? $teamB : $teamA;
+            }
+
+            $bowlingFirstTeam = ($battingFirstTeam === $teamA) ? $teamB : $teamA;
+
+            MatchScoreBoard::where('match_id', $matchId)->delete();
+
+            // Create 1st innings
+            MatchScoreBoard::create([
+                'match_id' => $matchId,
+                'team_id' => $battingFirstTeam,
+                'innings' => 1,
+                'runs' => 0,
+                'wickets' => 0,
+                'overs' => 0,
+            ]);
+
+            // Create 2nd innings (to be used later)
+            MatchScoreBoard::create([
+                'match_id' => $matchId,
+                'team_id' => $bowlingFirstTeam,
+                'innings' => 2,
+                'runs' => 0,
+                'wickets' => 0,
+                'overs' => 0,
+            ]);
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Toss data stored successfully.',
+                'data' => $tossData
+            ]);
+        } catch (\Exception $e) {
+            Log::error("Error storing toss data", [
+                'line' => $e->getLine(),
+                'file' => $e->getFile(),
+                'message' => $e->getMessage(),
+            ]);
+
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to store toss data.',
+            ], 500);
         }
     }
 
