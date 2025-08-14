@@ -30,8 +30,7 @@
                                                 <div class="profile-uploader d-flex align-items-center">
                                                     <div class="drag-upload-btn btn btn-sm btn-inf me-2">
                                                         Upload
-                                                        <input type="file" class="form-control image-sign"
-                                                            multiple="">
+                                                        <input type="file" class="form-control image-sign" multiple="" name="general[profile_picture]">
                                                     </div>
                                                     <a href="javascript:void(0);" class="btn btn-light btn-sm">Cancel</a>
                                                 </div>

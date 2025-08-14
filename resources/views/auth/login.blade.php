@@ -7,7 +7,7 @@
             <div class="card-body px-3 py-5">
                 <div class="mx-auto mb-4 text-center auth-logo">
                     <a href="index.html" class="logo-dark">
-                        <img src="{{ asset('storage/assets/images/logo-dark.png') }}" height="32" alt="logo dark">
+                        <img src="{{ asset('storage/assets/images/logo-dark.png') }}" height="42" alt="logo dark">
                     </a>
 
                     <a href="index.html" class="logo-light">
@@ -56,7 +56,7 @@
                         </div>
 
                         <div class="mb-1 text-center d-grid">
-                            <button type="submit" class="btn btn-danger py-2 fw-medium">
+                            <button type="submit" class="btn btn-info py-2 fw-medium">
                                 {{ __('Login') }}
                             </button>
                         </div>
@@ -64,10 +64,6 @@
                 </div> <!-- end col -->
             </div> <!-- end card-body -->
         </div> <!-- end card -->
-
-        <p class="mb-0 text-center text-white">New here? <a href="auth-signup.html"
-                class="text-reset text-unline-dashed fw-bold ms-1">Sign Up</a></p>
-
     </div> <!-- end col -->
 </div> <!-- end row -->
 @endsection

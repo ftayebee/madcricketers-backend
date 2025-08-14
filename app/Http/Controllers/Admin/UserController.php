@@ -232,7 +232,6 @@ class UserController extends Controller
                     mkdir($uploadPath, 0775, true);
                 }
                 $image->save($uploadPath . '/' . $filename);
-
                 $user->image = $filename;
             }
 
@@ -256,7 +255,7 @@ class UserController extends Controller
 
             return redirect($request->input('redirect') ?? route('admin.settings.users.index'))->with([
                 'success' => true,
-                'message' => 'User created successfully!',
+                'message' => 'User Updated successfully!',
             ]);
         } catch (Exception $e) {
             DB::rollBack();
