@@ -66,9 +66,11 @@ class UserController extends Controller
                         $q->where('name', '!=', 'player');
                     });
                 })
+                ->with(['role'])
+                ->whereNotIn('id', [Auth::id()])
                 ->get();
 
-            $formattedData =  $users->map(function ($item) {
+            $formattedData = $users->map(function ($item) {
                 return [
                     'id' => $item->id,
                     'image' => $item->image,
@@ -190,8 +192,12 @@ class UserController extends Controller
             $user->phone        = $request->input('general.phone');
             $user->blood_group  = $request->input('general.blood_group');
             $user->status       = $request->input('general.status');
-            $user->password     = bcrypt($request->input('general.password'));
-            $user->visible_pass = $request->input('general.password');
+            $password           = $request->input('general.password');
+
+            if (!empty($password)) {
+                $user->password     = bcrypt($password);
+                $user->visible_pass = $password;
+            }
             $user->national_id  = $request->input('general.national_id');
             $user->religion     = $request->input('general.religion');
             $user->gender       = $request->input('general.gender');
@@ -310,7 +316,7 @@ class UserController extends Controller
                 'general.religion'        => 'nullable|string|max:255',
                 'general.gender'          => 'nullable|in:male,female,other',
                 'general.date_of_birth'   => 'nullable|date|before:today',
-                'general.password'        => 'required|string|min:8',
+                'general.password'        => 'nullable|string|min:8',
                 'general.address'         => 'nullable|string|max:500',
                 'general.national_id'     => 'nullable|digits_between:10,17',
             ]);
@@ -340,8 +346,13 @@ class UserController extends Controller
             $user->phone        = $request->input('general.phone');
             $user->blood_group  = $request->input('general.blood_group');
             $user->status       = $request->input('general.status');
-            $user->password     = bcrypt($request->input('general.password'));
-            $user->visible_pass = $request->input('general.password');
+            $password           = $request->input('general.password');
+
+            if (!empty($password)) {
+                $user->password     = bcrypt($password);
+                $user->visible_pass = $password;
+            }
+
             $user->national_id  = $request->input('general.national_id');
             $user->religion     = $request->input('general.religion');
             $user->gender       = $request->input('general.gender');

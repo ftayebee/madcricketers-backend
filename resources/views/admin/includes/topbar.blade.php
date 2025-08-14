@@ -39,9 +39,9 @@
                         </a>
                         <div class="dropdown-menu dropdown-menu-end">
                             <!-- item-->
-                            <h6 class="dropdown-header">Welcome Gaston!</h6>
+                            <h6 class="dropdown-header">Welcome {{Auth::user()->nickname}}!</h6>
 
-                            <a class="dropdown-item" href="pages-faqs.html">
+                            <a class="dropdown-item" href="{{route('admin.profile')}}">
                                 <iconify-icon icon="solar:help-broken"
                                     class="align-middle me-2 fs-18"></iconify-icon><span
                                     class="align-middle">Profile</span>

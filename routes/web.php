@@ -19,6 +19,7 @@ Auth::routes();
 // Route::get('/home', [App\Http\Controllers\HomeController::class, 'index'])->name('home');
 Route::prefix('admin')->name('admin.')->group(function(){
     Route::get('/dashboard', [PageController::class, 'dashboard'])->name('dashboard'); // working
+    Route::get('/profile', [PageController::class, 'profile'])->name('profile'); // working
 
     Route::prefix('settings')->name('settings.')->group(function(){
         Route::prefix('roles')->name('roles.')->group(function(){
@@ -93,4 +94,4 @@ Route::prefix('admin')->name('admin.')->group(function(){
 });
 
 // FRONTEND ROUTES
-Route::get('/', [FrontendPageController::class, 'index'])->name('frontend.home'); // working
+// Route::get('/', [FrontendPageController::class, 'index'])->name('frontend.home'); // working

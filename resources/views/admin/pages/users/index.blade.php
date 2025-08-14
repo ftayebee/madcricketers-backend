@@ -69,7 +69,7 @@
                             const imageUrl = row.image ? row.image : '/path/to/default/image.jpg';
                             return `<div class="d-flex align-items-center file-name-icon">
 												<a href="${row.viewUrl}" class="avatar avatar-md avatar-rounded" style="background: #FAD59A;">
-													<img src="${imageUrl}" class="img-fluid" alt="img">
+													<img src="${imageUrl}" class="img-fluid" alt="img" style="height: 55px!important; width: 100%!important;">
 												</a>
 												<div class="ms-2">
 													<h6 class="fw-medium">
