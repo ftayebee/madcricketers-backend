@@ -4,6 +4,9 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\API\TournamentController;
 use App\Http\Controllers\API\CricketMatchController;
+use App\Http\Controllers\API\PlayerController;
+
+Route::post('/registration', [PlayerController::class, 'register'])->name('api.register');
 
 Route::prefix('matches')->group(function(){
     Route::get('/upcoming', [CricketMatchController::class, 'recentMatches'])->name('api.recent-matches');
@@ -17,4 +20,11 @@ Route::prefix('matches')->group(function(){
 Route::prefix('tournaments')->group(function(){
     Route::get('/', [TournamentController::class, 'getTournaments'])->name('api.tournaments');
     Route::get('/{slug}', [TournamentController::class, 'getTournamentBySlug'])->name('api.tournaments.show');
+});
+
+
+Route::prefix('players')->group(function(){
+    Route::get('/', [PlayerController::class, 'getAllPlayers'])->name('api.players.list');
+    Route::get('/{id}', [PlayerController::class, 'getPlayerById'])->name('api.players.show');
+    Route::get('/search', [PlayerController::class, 'searchPlayers'])->name('api.players.search');
 });

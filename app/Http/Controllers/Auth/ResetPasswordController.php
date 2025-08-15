@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Auth;
 
+use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\Auth;
 use App\Providers\RouteServiceProvider;
@@ -11,11 +12,10 @@ class ResetPasswordController extends Controller
 {
     use ResetsPasswords;
 
-    protected $redirectTo;
-
     protected function redirectTo()
     {
-        $user = Auth::guard($guard)->user();
+        $user = Auth::user(); // default guard
+
         if ($user->hasRole('admin')) {
             return RouteServiceProvider::ADMIN_DASHBOARD;
         } elseif ($user->hasRole('manager')) {
@@ -23,5 +23,17 @@ class ResetPasswordController extends Controller
         }
 
         return RouteServiceProvider::PLAYER_DASHBOARD;
+    }
+
+    protected function sendResetResponse(Request $request, $response)
+    {
+        return redirect($this->redirectPath())
+            ->with('toast_success', 'Password reset successfully!');
+    }
+
+    protected function sendResetFailedResponse(Request $request, $response)
+    {
+        return redirect()->back()
+            ->with('toast_error', 'Failed to reset password. Please try again.');
     }
 }

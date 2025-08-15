@@ -3,9 +3,55 @@
 @section('content')
     @push('styles')
         <style>
-            .text-right{
-                text-align: right!important;
+            .over-display {
+                display: flex;
+                align-items: center;
+                gap: 10px;
             }
+
+            .ball {
+                width: 35px;
+                height: 35px;
+                border-radius: 50%;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                font-weight: bold;
+                font-size: 16px;
+                color: white;
+                box-shadow: 0 3px 6px rgba(0, 0, 0, 0.15);
+                transition: transform 0.2s ease, box-shadow 0.2s ease;
+            }
+
+            .ball:hover {
+                transform: scale(1.15);
+                box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+            }
+
+            .dot-ball {
+                background-color: #b0b0b0;
+            }
+
+            .run-ball {
+                background-color: #28a745;
+            }
+
+            .boundary-ball {
+                background-color: #ff9800;
+            }
+
+            .six-ball {
+                background-color: #e91e63;
+            }
+
+            .wicket-ball {
+                background-color: #dc3545;
+            }
+
+            .text-right {
+                text-align: right !important;
+            }
+
             .radio-inputs {
                 display: flex;
                 flex-direction: row;
@@ -136,6 +182,7 @@
             }
         </style>
     @endpush
+
     <div class="row">
         <div class="col-sm-12">
             <div class="card mb-4">
@@ -143,20 +190,18 @@
                     <div class="row">
                         <div class="col-8">
                             <div class="row g-4 align-items-center">
-                                <div class="col-md-2 text-center">
-                                    <div class="rounded border p-2 bg-light">
-                                        @if ($match->tournament && $match->tournament->logo)
+                                @if ($match->tournament && $match->tournament->logo)
+                                    <div class="col-md-2 text-center">
+                                        <div class="rounded border p-2 bg-light">
                                             <img src="{{ asset('storage/uploads/tournaments/' . $match->tournament->logo) }}"
                                                 class="img-fluid rounded" style="max-height: 100px;"
                                                 alt="{{ $match->tournament->name }}">
-                                        @else
-                                            <div class="text-muted small">No Logo</div>
-                                        @endif
+                                        </div>
                                     </div>
-                                </div>
+                                @endif
 
                                 {{-- Match Info --}}
-                                <div class="col-md-10">
+                                <div class="col-md-{{ $match->tournament && $match->tournament->logo ? '10' : '12' }}">
                                     <h4 class="fw-bold mb-2">
                                         {{ $match->teamA->name ?? 'Team A' }}
                                         <span class="text-muted">vs</span>
@@ -194,7 +239,6 @@
                             <h4 class="text-center"
                                 style="font-weight: bold; border-bottom: 2px solid #3f3f3f;border-top: 2px solid #3f3f3f; padding: 6px 20px;border-radius: 5px;margin-bottom: 15px;">
                                 Match Toss</h4>
-
                             <table>
                                 <tr>
                                     <td>
@@ -255,20 +299,18 @@
                 <div class="card-header d-flex justify-content-between align-items-center">
                     <div>
                         <h5 class="mb-0">
-                            {{-- Show currently batting team depending on the toss --}}
                             <span id="battingTeamName">Team A</span>
                         </h5>
                         <small>
-                            Score: <span id="currentScore">72/2</span> |
-                            Overs: <span id="currentOvers">8.3</span> |
-                            CRR: <span id="currentCRR">8.47</span> |
-                            Projected: <span id="projectedScore">160</span>
+                            Score: <span id="currentScore">0 / 0</span> |
+                            Overs: <span id="currentOvers">0.0</span> |
+                            CRR: <span id="currentCRR">0.0</span> |
+                            Projected: <span id="projectedScore">00</span>
                         </small>
                     </div>
                 </div>
 
                 <div class="card-body row">
-                    {{-- Left Side: Batting players and scoring buttons --}}
                     <div class="col-md-8">
                         <div class="row">
                             {{-- Player 1 --}}
@@ -276,7 +318,7 @@
                                 <div class="card mb-3">
                                     <div class="card-body d-flex justify-content-between">
                                         <div class="d-flex align-items-center justify-content-start">
-                                            <img src="" alt="" >
+                                            <img src="" alt="">
                                             <div>
                                                 <h5 id="strikerName">Choose Player</h5>
                                                 <p>Runs: <span id="strikerRuns">00</span> (0 balls)</p>
@@ -310,15 +352,23 @@
                                 </div>
 
                                 {{-- Over display --}}
-                                <div class="mt-3">
-                                    <strong>Current Over:</strong>
-                                    <span id="currentOverDetails">1 0 4 . 6</span>
+                                <div class="mt-3 fs-16 d-flex align-items-center">
+                                    <p class="m-0"><strong>Current Over:</strong></p>
+                                    <div id="currentOverDetails" class="over-display" style="margin-left: 15px;">
+                                        <span class="ball run-ball">1</span>
+                                        <span class="ball dot-ball">0</span>
+                                        <span class="ball boundary-ball">4</span>
+                                        <span class="ball run-ball">2</span>
+                                        <span class="ball run-ball">1</span>
+                                        <span class="ball dot-ball">0</span>
+                                    </div>
                                 </div>
                             </div>
                         </div>
 
                         <div class="row mt-4">
-                            <h4 style="font-weight: bold; border-radius: 5px;" class="bg-soft-info py-2 text-uppercase">Batting</h4>
+                            <h4 style="font-weight: bold; border-radius: 5px;" class="bg-soft-info py-2 text-uppercase">
+                                Batting</h4>
 
                             <table class="table">
                                 <thead>
@@ -333,11 +383,13 @@
                                 </thead>
                                 <tbody id="batting-stats">
                                     @php
-                                        $players = \App\Models\Team::with('players')->where('id', $match->team_a_id)->first()->players;
+                                        $players = \App\Models\Team::with('players')
+                                            ->where('id', $match->team_a_id)
+                                            ->first()->players;
                                     @endphp
                                     @foreach ($players as $player)
                                         <tr>
-                                            <th>{{$player->user->full_name}}</th>
+                                            <th>{{ $player->user->full_name }}</th>
                                             <td class="text-center">0</td>
                                             <td class="text-center">0</td>
                                             <td class="text-center">0</td>
@@ -350,7 +402,8 @@
                         </div>
 
                         <div class="row mt-4">
-                            <h4 style="font-weight: bold; border-radius: 5px;" class="bg-soft-info py-2 text-uppercase">Bowling</h4>
+                            <h4 style="font-weight: bold; border-radius: 5px;" class="bg-soft-info py-2 text-uppercase">
+                                Bowling</h4>
 
                             <table class="table">
                                 <thead>
@@ -365,11 +418,13 @@
                                 </thead>
                                 <tbody id="batting-stats">
                                     @php
-                                        $players = \App\Models\Team::with('players')->where('id', $match->team_b_id)->first()->players;
+                                        $players = \App\Models\Team::with('players')
+                                            ->where('id', $match->team_b_id)
+                                            ->first()->players;
                                     @endphp
                                     @foreach ($players as $player)
                                         <tr>
-                                            <th>{{$player->user->full_name}}</th>
+                                            <th>{{ $player->user->full_name }}</th>
                                             <td class="text-center">0</td>
                                             <td class="text-center">0</td>
                                             <td class="text-center">0</td>
@@ -382,7 +437,8 @@
                         </div>
 
                         <div class="row mt-4">
-                            <h4 style="font-weight: bold; border-radius: 5px;" class="bg-soft-info py-2">FALL OF WICKETS</h4>
+                            <h4 style="font-weight: bold; border-radius: 5px;" class="bg-soft-info py-2">FALL OF WICKETS
+                            </h4>
 
                             <table class="table">
                                 <thead>
@@ -394,11 +450,13 @@
                                 </thead>
                                 <tbody id="batting-stats">
                                     @php
-                                        $players = \App\Models\Team::with('players')->where('id', $match->team_a_id)->first()->players;
+                                        $players = \App\Models\Team::with('players')
+                                            ->where('id', $match->team_a_id)
+                                            ->first()->players;
                                     @endphp
                                     @foreach ($players as $player)
                                         <tr>
-                                            <th>{{$player->user->full_name}}</th>
+                                            <th>{{ $player->user->full_name }}</th>
                                             <td class="text-center">0-0</td>
                                             <td class="text-center">0.0</td>
                                         </tr>
@@ -419,16 +477,20 @@
                                 </thead>
                                 <tbody id="batting-stats">
                                     @php
-                                        $players = \App\Models\Team::with('players')->where('id', $match->team_a_id)->first()->players;
+                                        $players = \App\Models\Team::with('players')
+                                            ->where('id', $match->team_a_id)
+                                            ->first()->players;
                                     @endphp
                                     @foreach ($players as $player)
                                         <tr>
                                             <th>
                                                 <div class="d-flex align-items-center p-2">
-                                                    <img src="{{$player->image}}" alt="{{$player->user->full_name}}" class="rounded-circle me-3" width="48" height="48" style="object-fit: cover;">
+                                                    <img src="{{ $player->image }}" alt="{{ $player->user->full_name }}"
+                                                        class="rounded-circle me-3" width="48" height="48"
+                                                        style="object-fit: cover;">
                                                     <div class="flex-grow-1">
-                                                        <h6 class="mb-0">{{$player->user->full_name}}</h6>
-                                                        <small class="text-muted">{{$player->player_role}}</small>
+                                                        <h6 class="mb-0">{{ $player->user->full_name }}</h6>
+                                                        <small class="text-muted">{{ $player->player_role }}</small>
                                                     </div>
                                                 </div>
                                             </th>
@@ -441,24 +503,28 @@
                                                 <div class="mb-1">
                                                     <small>0 (0 balls)</small>
                                                 </div>
-                                                
+
                                                 <!-- Dual color progress bar -->
                                                 <div class="progress" style="height: 10px;">
                                                     <div class="progress-bar bg-success" role="progressbar"
-                                                        style="width: {{$player1Percent}}%" 
-                                                        aria-valuenow="{{$player1Percent}}" aria-valuemin="0" aria-valuemax="100"></div>
+                                                        style="width: {{ $player1Percent }}%"
+                                                        aria-valuenow="{{ $player1Percent }}" aria-valuemin="0"
+                                                        aria-valuemax="100"></div>
                                                     <div class="progress-bar bg-primary" role="progressbar"
-                                                        style="width: {{$player2Percent}}%" 
-                                                        aria-valuenow="{{$player2Percent}}" aria-valuemin="0" aria-valuemax="100"></div>
+                                                        style="width: {{ $player2Percent }}%"
+                                                        aria-valuenow="{{ $player2Percent }}" aria-valuemin="0"
+                                                        aria-valuemax="100"></div>
                                                 </div>
                                             </td>
                                             <td class="text-right">
                                                 <div class="d-flex align-items-center p-2">
                                                     <div class="flex-grow-1 mr-2">
-                                                        <h6 class="mb-0">{{$player->user->full_name}}</h6>
-                                                        <small class="text-muted">{{$player->player_role}}</small>
+                                                        <h6 class="mb-0">{{ $player->user->full_name }}</h6>
+                                                        <small class="text-muted">{{ $player->player_role }}</small>
                                                     </div>
-                                                    <img src="{{$player->image}}" alt="{{$player->user->full_name}}" class="rounded-circle" width="48" height="48" style="object-fit: cover; margin-left: 15px;">
+                                                    <img src="{{ $player->image }}" alt="{{ $player->user->full_name }}"
+                                                        class="rounded-circle" width="48" height="48"
+                                                        style="object-fit: cover; margin-left: 15px;">
                                                 </div>
                                             </td>
                                         </tr>
@@ -510,12 +576,43 @@
                             toss_decision: selectedDecision
                         },
                         success: function(response) {
-                            console.log("Toss data stored:", response);
-                            // Optional: Show success message or disable inputs
+                            if (response.success) {
+                                Swal.fire({
+                                    toast: true,
+                                    position: 'top-end',
+                                    icon: 'success',
+                                    title: response.message,
+                                    showConfirmButton: false,
+                                    timer: 3000,
+                                    timerProgressBar: true,
+                                });
+
+                                console.log(response);
+
+                                // Update the UI with the toss result
+                                $('#battingTeamName').text(response.toss_winner_team_name);
+                            } else {
+                                Swal.fire({
+                                    toast: true,
+                                    position: 'top-end',
+                                    icon: 'error',
+                                    title: response.message || 'Something went wrong',
+                                    showConfirmButton: false,
+                                    timer: 3000,
+                                    timerProgressBar: true,
+                                });
+                            }
                         },
                         error: function(xhr) {
-                            console.error("Toss store failed", xhr.responseText);
-                            // Optional: Show error alert
+                            Swal.fire({
+                                toast: true,
+                                position: 'top-end',
+                                icon: 'error',
+                                title: xhr.responseJSON.message || 'Something went wrong',
+                                showConfirmButton: false,
+                                timer: 3000,
+                                timerProgressBar: true,
+                            });
                         }
                     });
                 }
@@ -531,10 +628,10 @@
 
             // Example: Real-time loading of Yet to Bat players
             function loadYetToBatPlayers() {
-                fetch('/api/matches/yet-to-bat/'+matchId)
+                fetch('/api/matches/yet-to-bat/' + matchId)
                     .then(res => res.json())
                     .then(data => {
-                        if(!data.success) return;
+                        if (!data.success) return;
 
                         if (data.players.length) {
                             const list = document.getElementById('yetToBatList');

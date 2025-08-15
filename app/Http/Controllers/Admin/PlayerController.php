@@ -121,4 +121,35 @@ class PlayerController extends Controller
             ]);
         }
     }
+
+    public function approve(Request $request, $id)
+    {
+        try {
+            $user = User::findOrFail($id);
+            $isApproved = $request->has('approve') && $request->input('approve') == 'on';
+
+            if ($user->player) {
+                $user->player->update([
+                    'player_type' => $isApproved ? 'registered' : 'guest'
+                ]);
+            }
+
+            return redirect()->route('admin.players.show', $id)->with([
+                'success' => true,
+                'message' => 'Player status updated successfully.'
+            ]);
+
+        } catch (Exception $e) {
+            Log::error("Error updating player status", [
+                'line' => $e->getLine(),
+                'file' => $e->getFile(),
+                'message' => $e->getMessage()
+            ]);
+
+            return redirect()->back()->with([
+                'success' => false,
+                'message' => 'Error updating player status.'
+            ]);
+        }
+    }
 }

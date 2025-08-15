@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Laravel\Sanctum\HasApiTokens;
 use Spatie\Permission\Models\Role;
+use Illuminate\Support\Facades\Log;
 use Spatie\Permission\Traits\HasRoles;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Notifications\Notifiable;
@@ -42,13 +43,16 @@ class User extends Authenticatable
     {
         $originalImage = $this->getAttributes()['image'] ?? null;
 
-        $imagePath = 'public/uploads/users/' . $originalImage;
+        $imagePath = 'uploads/users/' . $originalImage;
         $defaultLogo = asset('storage/assets/images/users/dummy-avatar.jpg');
 
         if ($originalImage && Storage::exists($imagePath)) {
             return asset('storage/uploads/users/' . $originalImage);
         }
-
+        Log::warning("User image not found", [
+            'user_id' => $this->id,
+            'image_path' => $imagePath,
+        ]);
         return $defaultLogo;
     }
 

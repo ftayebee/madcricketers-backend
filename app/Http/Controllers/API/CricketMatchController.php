@@ -368,7 +368,7 @@ class CricketMatchController extends Controller
                                         'id' => $player->id,
                                         'short_name' => $initials ? $initials . '. ' . $lastName : $lastName,
                                         'role' => ucwords(str_replace('-', ' ', $player->player_role)),
-                                        'image' => $player->image ?? asset('images/default-user.png'),
+                                        'image' => $player->image ?? asset('storage/assets/images/users/dummy-avatar.jpg'),
                                     ];
                                 });
 

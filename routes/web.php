@@ -53,6 +53,7 @@ Route::prefix('admin')->name('admin.')->group(function(){
         Route::get('/loader', [PlayerController::class, 'tableLoader'])->name('loader'); // working
         Route::get('/show/{id}', [PlayerController::class, 'show'])->name('show'); // working
         Route::post('/destroy', [PlayerController::class, 'destroy'])->name('destroy'); // working
+        Route::post('/approve/{id}', [PlayerController::class, 'approve'])->name('approve'); // working
     });
 
     Route::prefix('teams')->name('teams.')->group(function(){

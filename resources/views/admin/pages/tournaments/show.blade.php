@@ -229,6 +229,11 @@
                                                                 class="btn btn-sm btn-info">Start Match</a>
                                                         @endif
 
+                                                        @if ($match->status == 'live')
+                                                            <a href="{{ route('admin.cricket-matches.start', ['id' => $match->id]) }}"
+                                                                class="btn btn-sm btn-info">Scoreboard</a>
+                                                        @endif
+
                                                         @if (Auth::user()->can('cricket-matches-view'))
                                                             <a href="{{ route('admin.cricket-matches.show', ['id' => $match->id]) }}"
                                                                 class="btn btn-sm btn-warning">View Stats</a>
@@ -365,7 +370,6 @@
                                         </div>
                                     @else
                                         <div class="list-group">
-                                            {{-- Static placeholders for planned semi-final matches --}}
                                             <div class="list-group-item">
                                                 <strong>TBA</strong><br>
                                                 <strong>TBC vs TBC</strong>, Grand Final<br>

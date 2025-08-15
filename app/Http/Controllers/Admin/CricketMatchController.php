@@ -137,7 +137,6 @@ class CricketMatchController extends Controller
                 ]
             );
 
-            // Get match to identify both teams
             $match = CricketMatch::findOrFail($matchId);
             $teamA = $match->team_a_id;
             $teamB = $match->team_b_id;
@@ -145,7 +144,6 @@ class CricketMatchController extends Controller
             $tossWinner = (int) $request->input('toss_winner_team_id');
             $tossDecision = strtolower($request->input('toss_decision'));
 
-            // Determine 1st innings batting team
             if ($tossDecision === 'bat') {
                 $battingFirstTeam = $tossWinner;
             } else {
@@ -156,7 +154,6 @@ class CricketMatchController extends Controller
 
             MatchScoreBoard::where('match_id', $matchId)->delete();
 
-            // Create 1st innings
             MatchScoreBoard::create([
                 'match_id' => $matchId,
                 'team_id' => $battingFirstTeam,
@@ -166,7 +163,6 @@ class CricketMatchController extends Controller
                 'overs' => 0,
             ]);
 
-            // Create 2nd innings (to be used later)
             MatchScoreBoard::create([
                 'match_id' => $matchId,
                 'team_id' => $bowlingFirstTeam,
@@ -179,7 +175,9 @@ class CricketMatchController extends Controller
             return response()->json([
                 'success' => true,
                 'message' => 'Toss data stored successfully.',
-                'data' => $tossData
+                'data' => $tossData,
+                'matchScoreBoard' => MatchScoreBoard::where('match_id', $matchId)->get(),
+                'toss_winner_team_name' => $tossWinner === $teamA ? $match->teamA->name : $match->teamB->name,
             ]);
         } catch (\Exception $e) {
             Log::error("Error storing toss data", [

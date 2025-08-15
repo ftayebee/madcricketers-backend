@@ -48,7 +48,7 @@
                         </div> <!-- end col -->
                     </div> <!-- end card-body -->
                 </div> <!-- end card -->
-                <p class="mb-0 text-center text-white">Back to <a href="auth-signin.html"
+                <p class="mb-0 text-center text-dark">Back to <a href="auth-signin.html"
                         class="text-reset text-unline-dashed fw-bold ms-1">Sign In</a></p>
             </div> <!-- end col -->
         </div>
