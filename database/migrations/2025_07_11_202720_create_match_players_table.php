@@ -25,6 +25,7 @@ class CreateMatchPlayersTable extends Migration
             $table->enum('status', ['batting', 'on-strike', 'bowled', 'caught'])->default('batting');
 
             $table->foreign('match_id')->references('id')->on('cricket_matches')->onDelete('cascade');
+            $table->foreign('team_id')->references('id')->on('teams')->onDelete('cascade');
             $table->foreign('player_id')->references('id')->on('players')->onDelete('cascade');
             $table->timestamps();
         });

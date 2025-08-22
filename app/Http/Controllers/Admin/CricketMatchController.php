@@ -261,4 +261,20 @@ class CricketMatchController extends Controller
             ]);
         }
     }
+
+    public function selectBatsman(Request $request){
+        try{
+
+        } catch(Exception $e) {
+            Log::error("Error selecting batsman", [
+                'line' => $e->getLine(),
+                'file' => $e->getFile(),
+                'message' => $e->getMessage(),
+            ]);
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to select batsman.',
+            ], 500);
+        }
+    }
 }

@@ -337,7 +337,10 @@
                                             <h5 id="nonStrikerName">Choose Player</h5>
                                             <p>Runs: <span id="nonStrikerRuns">00</span> (0 balls)</p>
                                         </div>
-                                        <button class="btn btn-danger btn-sm" onclick="markAsOut('striker')">Out</button>
+                                        <div>
+                                            <button class="btn btn-info btn-sm h-100" onclick="markAsOut('striker')">On Strike</button>
+                                            <button class="btn btn-danger btn-sm h-100">Out</button>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
@@ -537,7 +540,11 @@
                     {{-- Right Sidebar: Yet to Bat --}}
                     <div class="col-md-4">
                         <h4 style="font-weight: bold;">Yet to Bat</h4>
-                        <div id="yetToBatList" style="display: grid; grid-template-columns: repeat(1, 1fr); gap: 1rem;">
+                        <div class="form-group mb-3">
+                            <input type="text" name="filter-player" id="flt-player"
+                                placeholder="Search by player name" class="form-control">
+                        </div>
+                        <div id="yetToBatList" style="display: flex; flex-direction: column;">
                             <p class="list-group-item alert alert-info">Loading...</p>
                         </div>
                     </div>
@@ -623,10 +630,13 @@
             }
 
             function recordRun(run) {
-                alert('Run scored: ' + run); // Replace with actual logic
+                alert('Run scored: ' + run);
             }
 
-            // Example: Real-time loading of Yet to Bat players
+            window.selectBatsman = function(playerId) {
+
+            };
+
             function loadYetToBatPlayers() {
                 fetch('/api/matches/yet-to-bat/' + matchId)
                     .then(res => res.json())
@@ -639,11 +649,11 @@
 
                             data.players.forEach(player => {
                                 const card = document.createElement('div');
-                                card.className = 'card mb-2';
+                                card.className = 'card mb-2 player-card';
 
                                 card.innerHTML = `
-                                    <div class="d-flex align-items-center p-2 border">
-                                        <img src="${player.image}" alt="${player.short_name}" class="rounded-circle me-3" width="48" height="48" style="object-fit: cover;">
+                                    <div class="align-items-center p-2 border flt-attribute" data-player-name="${player.full_name}" style="display: flex;">
+                                        <img src="${player.image}" alt="${player.full_name}" class="rounded-circle me-3" width="48" height="48" style="object-fit: cover;">
                                         <div class="flex-grow-1">
                                             <h6 class="mb-0">${player.short_name}</h6>
                                             <small class="text-muted">${player.role}</small>
@@ -660,8 +670,22 @@
                     });
             }
 
-            // setInterval(loadYetToBatPlayers, 5000); // Update every 5 sec (optional)
-            loadYetToBatPlayers(); // Initial load
+            // setInterval(loadYetToBatPlayers, 5000);
+            loadYetToBatPlayers();
+            $('#flt-player').on('input', function() {
+                const searchTerm = this.value.toLowerCase();
+                const cards = document.querySelectorAll('#yetToBatList .player-card');
+
+                cards.forEach(card => {
+                    const playerName = card.querySelector('.flt-attribute').getAttribute('data-player-name').toLowerCase();
+                    if (playerName.includes(searchTerm)) {
+                        card.style.display = 'flex';
+                    } else {
+                        card.style.display = 'none';
+                    }
+
+                });
+            });
         });
     </script>
 @endpush

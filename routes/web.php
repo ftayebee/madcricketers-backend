@@ -91,6 +91,8 @@ Route::prefix('admin')->name('admin.')->group(function(){
 
         Route::get('/start/{id}', [CricketMatchController::class, 'startCricketMatch'])->name('start');
         Route::post('/toss/store', [CricketMatchController::class, 'storeToss'])->name('toss.store');
+
+        Route::post('/select-batsman', [CricketMatchController::class, 'selectBatsman'])->name('select-batsman');
     });
 });
 

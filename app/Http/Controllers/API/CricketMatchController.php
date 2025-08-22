@@ -366,6 +366,7 @@ class CricketMatchController extends Controller
 
                                     return [
                                         'id' => $player->id,
+                                        'full_name' => $fullName,
                                         'short_name' => $initials ? $initials . '. ' . $lastName : $lastName,
                                         'role' => ucwords(str_replace('-', ' ', $player->player_role)),
                                         'image' => $player->image ?? asset('storage/assets/images/users/dummy-avatar.jpg'),
@@ -391,6 +392,6 @@ class CricketMatchController extends Controller
     }
 
     public function getLiveScore(Request $request, $id){
-        
+
     }
 }
