@@ -9,6 +9,7 @@ return array(
     'App\\Console\\Kernel' => $baseDir . '/app/Console/Kernel.php',
     'App\\Exceptions\\Handler' => $baseDir . '/app/Exceptions/Handler.php',
     'App\\Http\\Controllers\\API\\CricketMatchController' => $baseDir . '/app/Http/Controllers/API/CricketMatchController.php',
+    'App\\Http\\Controllers\\API\\PlayerController' => $baseDir . '/app/Http/Controllers/API/PlayerController.php',
     'App\\Http\\Controllers\\API\\TournamentController' => $baseDir . '/app/Http/Controllers/API/TournamentController.php',
     'App\\Http\\Controllers\\Admin\\CricketMatchController' => $baseDir . '/app/Http/Controllers/Admin/CricketMatchController.php',
     'App\\Http\\Controllers\\Admin\\PageController' => $baseDir . '/app/Http/Controllers/Admin/PageController.php',

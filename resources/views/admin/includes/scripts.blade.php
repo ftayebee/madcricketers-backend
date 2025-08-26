@@ -1,4 +1,3 @@
-<!-- Vendor Javascript (Require in all Page) -->
 <script src="https://code.jquery.com/jquery-3.7.0.min.js"></script>
 <script src="{{asset('storage/assets/js/vendor.js') }}"></script>
 
@@ -14,6 +13,10 @@
 
 @if (Route::is('admin.dashboard'))
     <script src="{{ asset('storage/assets/js/pages/dashboard.js') }}"></script>
+@endif
+
+@if(Route::is('admin.cricket-matches.start'))
+<script src="{{asset('storage/backend/js/scoreboard.js')}}"></script>
 @endif
 
 @stack('scripts')

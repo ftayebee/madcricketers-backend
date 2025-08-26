@@ -10,8 +10,22 @@ class MatchDelivery extends Model
     use HasFactory;
 
     protected $fillable = [
-        'match_id', 'over', 'ball_number', 'bowler_id', 'batsman_id',
-        'runs', 'extras', 'wicket_type', 'is_wicket', 'fielder_id'
+        'match_id',
+        'innings',
+        'over_number',
+        'ball_in_over',
+        'bowler_id',
+        'batsman_id',
+        'non_striker_id',
+        'batting_team_id',
+        'bowling_team_id',
+        'runs_batsman',
+        'runs_extras',
+        'delivery_type',
+        'is_wicket',
+        'wicket_type',
+        'wicket_player_id',
+        'fielder_id'
     ];
 
     public function match()

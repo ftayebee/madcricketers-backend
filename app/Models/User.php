@@ -43,16 +43,25 @@ class User extends Authenticatable
     {
         $originalImage = $this->getAttributes()['image'] ?? null;
 
-        $imagePath = 'uploads/users/' . $originalImage;
+        // Determine folder based on role
+        if ($this->hasRole('player')) {
+            $folder = 'uploads/players/';
+        } else {
+            $folder = 'uploads/users/';
+        }
+
+        $imagePath = $folder . $originalImage;
         $defaultLogo = asset('storage/assets/images/users/dummy-avatar.jpg');
 
-        if ($originalImage && Storage::exists($imagePath)) {
-            return asset('storage/uploads/users/' . $originalImage);
+        if ($originalImage && Storage::exists('public/' . $imagePath)) {
+            return asset('storage/' . $imagePath);
         }
+
         Log::warning("User image not found", [
             'user_id' => $this->id,
             'image_path' => $imagePath,
         ]);
+
         return $defaultLogo;
     }
 

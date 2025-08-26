@@ -25,8 +25,15 @@ class FallOfWicket extends Model
         return $this->belongsTo(Team::class);
     }
 
-    public function batter()
-    {
-        return $this->belongsTo(Player::class, 'batter_id');
+    public function batter() {
+        return $this->belongsTo(MatchPlayer::class, 'batter_id');
+    }
+
+    public function bowler() {
+        return $this->belongsTo(MatchPlayer::class, 'bowler_id');
+    }
+
+    public function fielder() {
+        return $this->belongsTo(MatchPlayer::class, 'fielder_id');
     }
 }

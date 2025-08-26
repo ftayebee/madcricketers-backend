@@ -17,7 +17,7 @@ class CreateMatchScoreBoardsTable extends Migration
             $table->bigIncrements('id');
             $table->unsignedBigInteger('match_id');
             $table->unsignedBigInteger('team_id');
-            $table->unsignedTinyInteger('innings')->default(1); // 1 or 2 for 2nd innings (if applicable)
+            $table->unsignedTinyInteger('innings')->default(1);
             $table->unsignedInteger('runs')->default(0);
             $table->unsignedInteger('wickets')->default(0);
             $table->float('overs')->default(0);

@@ -327,8 +327,8 @@ class CricketMatchController extends Controller
         try {
             // 1. Get latest innings scoreboard
             $scoreboard = MatchScoreBoard::where('match_id', $matchId)
-                ->orderByDesc('innings')
-                ->first();
+                            ->where('innings', 1)
+                            ->first();
 
             if (!$scoreboard) {
                 return response()->json(['message' => 'No scoreboard found for this match', 'success' => false], 404);
@@ -376,7 +376,8 @@ class CricketMatchController extends Controller
             return response()->json([
                 'success' => true,
                 'message' => 'Player Found.',
-                'players' => $yetToBatPlayers
+                'players' => $yetToBatPlayers,
+                'battingTeamId' => $battingTeamId
             ]);
         } catch (\Exception $e) {
             Log::error('Error fetching yet to bat players', [

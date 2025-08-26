@@ -92,7 +92,18 @@ Route::prefix('admin')->name('admin.')->group(function(){
         Route::get('/start/{id}', [CricketMatchController::class, 'startCricketMatch'])->name('start');
         Route::post('/toss/store', [CricketMatchController::class, 'storeToss'])->name('toss.store');
 
-        Route::post('/select-batsman', [CricketMatchController::class, 'selectBatsman'])->name('select-batsman');
+        Route::prefix('scoreboard')->name('scoreboard.')->group(function(){
+            Route::post('/select-batsman', [CricketMatchController::class, 'selectBatsman'])->name('select-batsman');
+            Route::post('/set-striker', [CricketMatchController::class, 'setStriker'])->name('set-striker');
+            Route::get('/load-current-stats', [CricketMatchController::class, 'loadCurrentStats'])->name('load-current-stats');
+            Route::get('/match-info', [CricketMatchController::class, 'getMatchInfo'])->name('match-info');
+            Route::get('/switch-strike', [CricketMatchController::class, 'switchStrike'])->name('switch-strike');
+            Route::get('/change-bowler', [CricketMatchController::class, 'changeBowler'])->name('change-bowler');
+            Route::post('/store-runs', [CricketMatchController::class, 'storeRuns'])->name('store-runs');
+            Route::post('/store-wickets', [CricketMatchController::class, 'storeWickets'])->name('store-wickets');
+            Route::get('/{match}/team-b-players', [CricketMatchController::class, 'getTeamBPlayers']);
+            Route::post('/{match}/add-bowler', [CricketMatchController::class, 'chooseBowler'])->name('choose-bowler');
+        });
     });
 });
 

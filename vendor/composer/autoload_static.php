@@ -525,6 +525,7 @@ class ComposerStaticInitc61ff82cbf0142a401a48a8161e1595a
         'App\\Console\\Kernel' => __DIR__ . '/../..' . '/app/Console/Kernel.php',
         'App\\Exceptions\\Handler' => __DIR__ . '/../..' . '/app/Exceptions/Handler.php',
         'App\\Http\\Controllers\\API\\CricketMatchController' => __DIR__ . '/../..' . '/app/Http/Controllers/API/CricketMatchController.php',
+        'App\\Http\\Controllers\\API\\PlayerController' => __DIR__ . '/../..' . '/app/Http/Controllers/API/PlayerController.php',
         'App\\Http\\Controllers\\API\\TournamentController' => __DIR__ . '/../..' . '/app/Http/Controllers/API/TournamentController.php',
         'App\\Http\\Controllers\\Admin\\CricketMatchController' => __DIR__ . '/../..' . '/app/Http/Controllers/Admin/CricketMatchController.php',
         'App\\Http\\Controllers\\Admin\\PageController' => __DIR__ . '/../..' . '/app/Http/Controllers/Admin/PageController.php',
