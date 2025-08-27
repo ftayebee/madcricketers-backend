@@ -9,7 +9,7 @@ class MatchPlayer extends Model
 {
     use HasFactory;
 
-    protected $fillable = ['match_id', 'player_id', 'team_id', 'is_captain', 'is_keeper'];
+    protected $fillable = ['match_id', 'player_id', 'team_id', 'status', 'overs_bowled', 'runs_conceded', 'wickets_taken', 'runs_scored', 'balls_faced'];
 
     public function match()
     {

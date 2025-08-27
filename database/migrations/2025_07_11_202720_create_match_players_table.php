@@ -22,6 +22,7 @@ class CreateMatchPlayersTable extends Migration
             $table->unsignedInteger('balls_faced')->nullable();
             $table->unsignedInteger('wickets_taken')->nullable();
             $table->unsignedInteger('overs_bowled')->nullable();
+            $table->unsignedInteger('runs_conceded')->nullable();
             $table->enum('status', ['batting', 'on-strike', 'bowled', 'caught', 'bowling'])->default('batting')->nullable();
 
             $table->foreign('match_id')->references('id')->on('cricket_matches')->onDelete('cascade');

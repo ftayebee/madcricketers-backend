@@ -67,6 +67,17 @@
                 </li>
             @endif
 
+            @if (Auth::check() && Auth::user()->can('cricket-matches-view'))
+                <li class="nav-item">
+                    <a class="nav-link" href="{{ route('admin.cricket-matches.index') }}">
+                        <span class="nav-icon">
+                            <i class="ri-shield-star-line"></i>
+                        </span>
+                        <span class="nav-text">Matches</span>
+                    </a>
+                </li>
+            @endif
+
             @if (Auth::check() && Auth::user()->can('tournaments-view'))
                 <li class="nav-item">
                     <a class="nav-link" href="{{ route('admin.tournaments.index') }}">

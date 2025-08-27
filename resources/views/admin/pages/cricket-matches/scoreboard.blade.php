@@ -240,7 +240,7 @@
                             <h4 class="text-center"
                                 style="font-weight: bold; border-bottom: 2px solid #3f3f3f;border-top: 2px solid #3f3f3f; padding: 6px 20px;border-radius: 5px;margin-bottom: 15px;">
                                 Match Toss</h4>
-                            
+
                             <table>
                                 <tr>
                                     <td>
@@ -250,7 +250,7 @@
                                         <div class="radio-inputs d-flex">
                                             <input type="hidden" name="toss_match_id" value="{{ $match->id }}">
                                             <input type="hidden" name="innings" value="">
-                                            <input type="hidden" name="max_overs" value="{{$match->max_overs}}">
+                                            <input type="hidden" name="max_overs" value="{{ $match->max_overs }}">
                                             <input type="hidden" id="bowling_team_id">
                                             <input type="hidden" name="battingTeamId">
 
@@ -362,8 +362,8 @@
                                     <div>
                                         <h5>Runs</h5>
                                         @foreach (['0', '1', '2', '3', '4', '6'] as $run)
-                                            <button class="btn btn-outline-primary"
-                                                onclick="recordRun('{{ $run }}')">{{ $run }}</button>
+                                            <button class="btn btn-outline-primary btn-run"
+                                                data-run="{{ $run }}">{{ $run }}</button>
                                         @endforeach
                                     </div>
 
@@ -371,8 +371,8 @@
                                     <div>
                                         <h5>Extras</h5>
                                         @foreach (['NB', 'WD', 'LB1', 'LB2', 'LB3'] as $extra)
-                                            <button class="btn btn-outline-warning"
-                                                onclick="recordRun('{{ $extra }}')">{{ $extra }}</button>
+                                            <button class="btn btn-outline-warning btn-extra"
+                                                data-extra="{{ $extra }}">{{ $extra }}</button>
                                         @endforeach
 
                                         <div class="modal fade" id="extraModal" tabindex="-1" aria-hidden="true">
@@ -386,18 +386,10 @@
                                                     <div class="modal-body">
                                                         <p>Runs scored on this extra:</p>
                                                         <div id="extraRunButtons" class="d-flex gap-2">
-                                                            <button class="btn btn-outline-primary"
-                                                                onclick="submitExtraRun(0)">0</button>
-                                                            <button class="btn btn-outline-primary"
-                                                                onclick="submitExtraRun(1)">1</button>
-                                                            <button class="btn btn-outline-primary"
-                                                                onclick="submitExtraRun(2)">2</button>
-                                                            <button class="btn btn-outline-primary"
-                                                                onclick="submitExtraRun(3)">3</button>
-                                                            <button class="btn btn-outline-primary"
-                                                                onclick="submitExtraRun(4)">4</button>
-                                                            <button class="btn btn-outline-primary"
-                                                                onclick="submitExtraRun(6)">6</button>
+                                                            @foreach (['0', '1', '2', '3', '4', '6'] as $run)
+                                                                <button class="btn btn-outline-primary btn-extra-run"
+                                                                    data-run="{{ $run }}">{{ $run }}</button>
+                                                            @endforeach
                                                         </div>
                                                     </div>
                                                 </div>
@@ -409,8 +401,8 @@
                                     <div>
                                         <h5>Wickets</h5>
                                         @foreach (['W', 'Run Out', 'Bowled', 'Caught', 'LBW', 'Stumped'] as $wicket)
-                                            <button class="btn btn-outline-danger"
-                                                onclick="recordWicket('{{ $wicket }}')">{{ $wicket }}</button>
+                                            <button class="btn btn-outline-danger btn-wicket"
+                                                data-wicket="{{ $wicket }}">{{ $wicket }}</button>
                                         @endforeach
                                     </div>
 
@@ -453,8 +445,15 @@
                         </div>
 
                         <div class="row mt-4">
-                            <h4 style="font-weight: bold; border-radius: 5px;" class="bg-soft-info py-2 text-uppercase">
-                                Bowling</h4>
+                            <div class="d-flex justify-content-between align-items-center bg-soft-info py-2"
+                                style="border-radius: 5px;">
+                                <h4 style="font-weight: bold; border-radius: 5px;" class="text-uppercase m-0">Bowling</h4>
+                                <div id="add-bowler-row" class="w-25">
+                                    <select id="bowler-select" style="width: 300px;">
+                                        <option value="">Select Bowler</option>
+                                    </select>
+                                </div>
+                            </div>
 
                             <table class="table">
                                 <thead>
@@ -468,15 +467,6 @@
                                     </tr>
                                 </thead>
                                 <tbody id="bowling-stats">
-                                    <tr id="add-bowler-row">
-                                        <td colspan="1">
-                                            <select id="bowler-select" style="width: 300px;">
-                                                <option value="">Select Bowler</option>
-                                            </select>
-                                        </td>
-                                        <td colspan="5">
-                                        </td>
-                                    </tr>
                                 </tbody>
                             </table>
                         </div>
@@ -858,58 +848,77 @@
             // ------------------------
             let currentExtra = null;
 
-            window.recordRun = function(value) {
-                // Check if extra requires modal
-                if (['NB', 'WD'].includes(value)) {
-                    currentExtra = value;
-                    const modal = new bootstrap.Modal(document.getElementById('extraModal'));
-                    modal.show();
-                    return; // wait for user to select runs
-                }
-
-                // Determine runs & extra type for normal/leg byes
-                let runs = 0;
-                let extraType = null;
-                let legalBall = true;
-
-                if (['0', '1', '2', '3', '4', '6'].includes(value)) {
-                    runs = parseInt(value);
-                } else if (value.startsWith('LB')) {
-                    extraType = 'LB';
-                    runs = parseInt(value.replace('LB', '')); // LB1, LB2, etc.
-                }
-
-                storeBall({
+            function addDelivery({
+                runs = 0,
+                extra = null,
+                wicket = null,
+                legalBall = true
+            }) {
+                const delivery = {
                     runs,
-                    extraType,
-                    legalBall
-                });
+                    extras: extra ? [extra] : [],
+                    wicket,
+                    legalBall,
+                    strikerId,
+                    nonStrikerId
+                };
+
+                sendDeliveryToServer(delivery);
             }
 
-            // Called from modal for NB/WD
-            window.submitExtraRun = function(runsScored) {
-                let runs = runsScored;
-                let extraType = currentExtra; // NB or WD
-                let legalBall = false; // NB/WD do not count toward over
-
-                storeBall({
-                    runs,
-                    extraType,
-                    legalBall
+            // Runs buttons
+            document.querySelectorAll('.btn-run').forEach(btn => {
+                btn.addEventListener('click', e => {
+                    const run = parseInt(e.target.dataset.run);
+                    addDelivery({
+                        runs: run
+                    });
                 });
+            });
 
+            // Extras
+            document.querySelectorAll('.btn-extra').forEach(btn => {
+                btn.addEventListener('click', e => {
+                    const extra = e.target.dataset.extra; // 'NB', 'WD', 'LB1'...
+
+                    // If NB/WD, show modal to add runs scored on it
+                    if (['NB', 'WD'].includes(extra)) {
+                        currentExtra = extra;
+                        const modal = new bootstrap.Modal(document.getElementById('extraModal'));
+                        modal.show();
+                    } else {
+                        const runs = parseInt(extra.replace('LB', '')) || 0;
+                        addDelivery({
+                            runs,
+                            extra
+                        });
+                    }
+                });
+            });
+
+            // Wickets
+            document.querySelectorAll('.btn-wicket').forEach(btn => {
+                btn.addEventListener('click', e => {
+                    const wicketType = e.target.dataset.wicket; // 'Run Out', 'Bowled'...
+                    addDelivery({
+                        wicket: wicketType
+                    });
+                });
+            });
+
+            window.submitExtraRun = function(runsScored) {
+                addDelivery({
+                    runs: runsScored,
+                    extra: currentExtra,
+                    legalBall: false
+                });
                 const modal = bootstrap.Modal.getInstance(document.getElementById('extraModal'));
                 modal.hide();
                 currentExtra = null;
             }
 
-            // Store ball to server
-            function storeBall({
-                runs,
-                extraType,
-                legalBall
-            }) {
-                fetch("{{ route('admin.cricket-matches.scoreboard.store-runs') }}", {
+            function sendDeliveryToServer(delivery) {
+                fetch("{{ route('admin.cricket-matches.scoreboard.store-delivery') }}", {
                         method: "POST",
                         headers: {
                             "Content-Type": "application/json",
@@ -917,22 +926,28 @@
                         },
                         body: JSON.stringify({
                             match_id: matchId,
-                            striker_id: strikerId,
-                            non_striker_id: nonStrikerId,
-                            runs: runs,
-                            extra_type: extraType,
-                            legal_ball: legalBall
+                            ...delivery
                         })
                     })
                     .then(res => res.json())
                     .then(data => {
                         if (data.success) {
-                            updateScoreUI(data.updated_state);
+                            // updateScoreUI(data.updated_state);
+                            loadCurrentStats();
+                            Swal.fire({
+                                toast: true,
+                                position: 'top-end',
+                                icon: 'success',
+                                title: data.message || 'Delivery Stored and current stats updated.',
+                                showConfirmButton: false,
+                                timer: 2500,
+                                timerProgressBar: true
+                            });
                         } else {
-                            Swal.fire('Error', data.message || 'Failed to record run', 'error');
+                            Swal.fire('Error', data.message || 'Failed to record delivery', 'error');
                         }
                     })
-                    .catch(err => console.error("Error recording run:", err));
+                    .catch(err => console.error("Error recording delivery:", err));
             }
 
 
@@ -1015,7 +1030,7 @@
                 $.ajax({
                     url: `/admin/cricket-matches/scoreboard/${matchId}/team-b-players`,
                     type: "GET",
-                    success: function (players) {
+                    success: function(players) {
                         const options = players.map(p => ({
                             id: p.id,
                             text: `${p.name} - ${p.style}`
@@ -1032,10 +1047,11 @@
             }
 
             // When a bowler is selected
-            $('#bowler-select').on('select2:select', function (e) {
+            $('#bowler-select').on('select2:select', function(e) {
                 const bowlerId = e.params.data.id;
                 const teamId = $('#bowling_team_id').val();
-                let chooseBowlerRoute = "{{ route('admin.cricket-matches.scoreboard.choose-bowler', ['match' => '__MATCH__']) }}";
+                let chooseBowlerRoute =
+                    "{{ route('admin.cricket-matches.scoreboard.choose-bowler', ['match' => '__MATCH__']) }}";
                 const url = chooseBowlerRoute.replace('__MATCH__', matchId);
                 $.ajax({
                     url: url,
@@ -1049,11 +1065,10 @@
                         bowler_id: bowlerId,
                         team_id: teamId
                     }),
-                    success: function (res) {
+                    success: function(res) {
                         if (res.success) {
                             const bowlingTbody = document.querySelector('#bowling-stats');
-                            const rows = bowlingTbody.querySelectorAll('tr');
-                            rows.forEach((row, index) => { if (index > 0) row.remove(); });
+                            bowlingTbody.innerHTML = ""; // Clear all previous rows
 
                             // Append updated bowling stats
                             res.bowling.forEach(player => {
@@ -1061,19 +1076,21 @@
                                 tr.innerHTML = `
                                     <td>${player.name} - <small>${player.style}</small></td>
                                     <td class="text-center">${player.overs}</td>
-                                    <td class="text-center">0</td>
+                                    <td class="text-center">${player.maidens ?? 0}</td>
                                     <td class="text-center">${player.runs_conceded}</td>
                                     <td class="text-center">${player.wickets}</td>
                                     <td class="text-center">${player.economy_rate}</td>
                                 `;
                                 bowlingTbody.appendChild(tr);
                             });
-                            alert("Bowler Selected"); // getting alert
+
+                            alert("Bowler Selected");
+                            console.log(res)
                         } else {
                             alert(res.message || "Something went wrong!");
                         }
                     },
-                    error: function (xhr) {
+                    error: function(xhr) {
                         console.error(xhr.responseText);
                         alert("Error saving bowler.");
                     }
@@ -1125,19 +1142,37 @@
                             });
 
                             // 🏏 Update bowling table
-                            // const bowlingTbody = document.querySelector('#bowling-stats');
-                            // bowlingTbody.innerHTML = '';
-                            // data.bowling.forEach(player => {
-                            //     const tr = document.createElement('tr');
-                            //     tr.innerHTML = `
-                            //         <td>${player.name}</td>
-                            //         <td>${player.overs}</td>
-                            //         <td>${player.runs_conceded}</td>
-                            //         <td>${player.wickets}</td>
-                            //         <td>${player.economy_rate}</td>
-                            //     `;
-                            //     bowlingTbody.appendChild(tr);
-                            // });
+                            const bowlingTbody = document.querySelector('#bowling-stats');
+                            bowlingTbody.innerHTML = '';
+
+                            data.bowling.forEach((player, index) => {
+                                const tr = document.createElement('tr');
+                                tr.innerHTML = `
+                                    <td style="vertical-align: middle;display: flex;align-items: center;">
+                                        ${player.name}
+                                        <div class="form-check">
+                                            <input class="form-check-input" type="radio" data-playerid="${player.id}" name="current-bowler" style="margin-left: 10px;" ${player.is_current ? 'checked' : ''}>
+                                        </div>
+                                    </td>
+                                    <td class='text-center'>${player.overs}</td>
+                                    <td class='text-center'>${player.maidens ?? 0}</td>
+                                    <td class='text-center'>${player.runs_conceded}</td>
+                                    <td class='text-center'>${player.wickets}</td>
+                                    <td class='text-center'>${player.economy_rate}</td>
+                                `;
+                                bowlingTbody.appendChild(tr);
+                            });
+
+                            // Listen for current bowler selection
+                            bowlingTbody.addEventListener('change', (e) => {
+                                if (e.target.name === 'current-bowler') {
+                                    const currentBowlerId = e.target.value;
+                                    console.log("🎯 Current bowler set:", currentBowlerId);
+
+                                    // 👉 Call your API here to update current bowler in DB
+                                    // fetch('/set-current-bowler', { method: 'POST', body: JSON.stringify({ id: currentBowlerId }) })
+                                }
+                            });
 
                             // Update partnerships
                             const partnershipList = document.querySelector('#partnership-stats');

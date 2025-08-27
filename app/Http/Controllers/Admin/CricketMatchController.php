@@ -29,6 +29,105 @@ class CricketMatchController extends Controller
 {
     protected $module = 'cricket-matches';
 
+    public function index()
+    {
+        try {
+            if (!Auth::user()->can($this->module . '-view')) {
+                throw new Exception('Unauthorized Access');
+            }
+
+            session([
+                'title' => 'Daily Cricket Matches',
+                'breadcrumbs' => [
+                    'home' => [
+                        'url' => route('admin.dashboard'),
+                        'name' => 'Dashboard'
+                    ],
+                    $this->module => [
+                        'url' => route('admin.tournaments.index'),
+                        'name' => 'Daily Cricket Matches Management'
+                    ]
+                ]
+            ]);
+
+            $today = Carbon::today();
+            $validTeams = Team::all();
+            $cricketMatchesList = CricketMatch::orderBy('created_at', 'desc')->get();
+            return view('admin.pages.cricket-matches.index', compact('cricketMatchesList', 'validTeams'));
+        } catch (Exception $e) {
+            Log::error("Error Loading cricket-matches Management", [
+                'line' => $e->getLine(),
+                'file' => $e->getFile(),
+                'message' => $e->getMessage()
+            ]);
+
+            return redirect()->back()->with([
+                'success' => false,
+                'message' => 'Error Loading cricket-matches Management.'
+            ]);
+        }
+    }
+
+    public function tableLoader(Request $request)
+    {
+        try {
+            if (!Auth::user()->can($this->module . '-view')) {
+                throw new Exception('Unauthorized Access');
+            }
+
+            $matches = CricketMatch::with(['teamA', 'teamB', 'tournament', 'winningTeam'])
+                ->orderBy('created_at', 'desc')
+                ->get();
+
+            $formattedData = $matches->map(function ($item) {
+                $viewUrl   = route('admin.cricket-matches.show', $item->id);
+                $editUrl   = route('admin.cricket-matches.edit', $item->id);
+                $startUrl  = route('admin.cricket-matches.start', $item->id);
+                $deleteUrl = route('admin.cricket-matches.destroy', $item->id);
+
+                return [
+                    'id'             => $item->id,
+                    'title'          => $item->title,
+                    'team_a'         => $item->teamA ? $item->teamA->name : null,
+                    'team_b'         => $item->teamB ? $item->teamB->name : null,
+                    'tournament'     => $item->tournament ? $item->tournament->name : null,
+                    'match_date'     => Carbon::parse($item->match_date)->format('d M, Y'),
+                    'venue'          => $item->venue,
+                    'match_type'     => ucfirst($item->match_type),
+                    'status'         => ucfirst($item->status),
+                    'max_overs'      => $item->max_overs,
+                    'winning_team'   => $item->winningTeam ? $item->winningTeam->name : null,
+                    'result_summary' => $item->result_summary,
+
+                    // Permissions
+                    'canView'   => Auth::user()->can($this->module . '-view'),
+                    'canScore'  => Auth::user()->can($this->module . '-edit'),
+                    'canEdit'   => Auth::user()->can($this->module . '-edit'),
+                    'canDelete' => Auth::user()->can($this->module . '-delete'),
+
+                    // URLs
+                    'viewUrl'   => $viewUrl,
+                    'startUrl'  => $startUrl,
+                    'editUrl'   => $editUrl,
+                    'deleteUrl' => $deleteUrl,
+                ];
+            });
+
+            return response()->json(['data' => $formattedData]);
+        } catch (Exception $e) {
+            Log::error("Error Loading cricket matches table", [
+                'line' => $e->getLine(),
+                'file' => $e->getFile(),
+                'message' => $e->getMessage()
+            ]);
+
+            return redirect()->back()->with([
+                'success' => false,
+                'message' => 'Error Loading matches table.'
+            ]);
+        }
+    }
+
     public function edit(Request $request)
     {
         try {
@@ -489,7 +588,8 @@ class CricketMatchController extends Controller
             // 2️⃣ Current bowling players
             $bowling = MatchPlayer::with('player.user')
                 ->where('match_id', $matchId)
-                ->where('overs_bowled', '>', 0)
+                ->where('team_id', $bowling_team_id)
+                ->where('overs_bowled', '>=', 0)
                 ->get()
                 ->map(function ($mp) {
                     return [
@@ -556,7 +656,7 @@ class CricketMatchController extends Controller
                     ];
                 });
 
-            
+
 
             return response()->json([
                 'success' => true,
@@ -598,7 +698,7 @@ class CricketMatchController extends Controller
     public function chooseBowler(Request $request)
     {
         try {
-            Log::info("Request Received: ", ['request'=> $request->all()]);
+            Log::info("Request Received: ", ['request' => $request->all()]);
             $validator = Validator::make($request->all(), [
                 'match_id' => 'required|exists:cricket_matches,id',
                 'bowler_id' => 'required|exists:players,id',
@@ -617,10 +717,13 @@ class CricketMatchController extends Controller
             $matchId = $request->match_id;
             $bowlerId = $request->bowler_id;
             $teamId = $request->team_id;
-            
+
             // Check if bowler already exists in this match
-            $bowler = MatchPlayer::firstOrCreate(
-                ['match_id' => $matchId, 'player_id' => $bowlerId],
+            $bowler = MatchPlayer::updateOrCreate(
+                [
+                    'match_id' => $matchId,
+                    'player_id' => $bowlerId
+                ],
                 [
                     'team_id' => $teamId,
                     'status' => 'bowling',
@@ -631,18 +734,19 @@ class CricketMatchController extends Controller
             );
 
             // Return current bowling list for this match
-            $bowling = MatchPlayer::with('player.user')
+            $bowling = MatchPlayer::with(['player.user'])
                 ->where('match_id', $matchId)
                 ->where('status', 'bowling')
                 ->get()
                 ->map(function ($mp) {
                     return [
                         'id' => $mp->player_id,
-                        'name' => $mp->player->user->full_name,
-                        'overs' => $mp->overs_bowled,
-                        'runs_conceded' => $mp->runs_conceded,
-                        'wickets' => $mp->wickets_taken,
-                        'economy_rate' => $mp->overs_bowled ? round($mp->runs_conceded / $mp->overs_bowled, 2) : 0,
+                        'name' => optional(optional($mp->player)->user)->full_name ?? 'Unknown',
+                        'style' => optional($mp->player)->bowling_style ?? 'Unknown',
+                        'overs' => $mp->overs_bowled ?? 0,
+                        'runs_conceded' => $mp->runs_conceded ?? 0,
+                        'wickets' => $mp->wickets_taken ?? 0,
+                        'economy_rate' => $mp->overs_bowled > 0 ? round($mp->runs_conceded / $mp->overs_bowled, 2) : 0,
                         'maidens' => $mp->maidens ?? 0
                     ];
                 });
@@ -806,16 +910,19 @@ class CricketMatchController extends Controller
         }
     }
 
-    public function storeRuns(Request $request)
+    public function storeDelivery(Request $request)
     {
         try {
             $validator = Validator::make($request->all(), [
-                'match_id'      => 'required|exists:cricket_matches,id',
-                'striker_id'    => 'required|exists:players,id',
+                'match_id'       => 'required|exists:cricket_matches,id',
+                'striker_id'     => 'required|exists:players,id',
                 'non_striker_id' => 'required|exists:players,id',
-                'runs'          => 'required|integer|min:0',
-                'extra_type'    => 'nullable|string',
-                'bowler_id'     => 'required|exists:players,id',
+                'bowler_id'      => 'required|exists:players,id',
+                'runs'           => 'required|integer|min:0',
+                'extras'         => 'nullable|array', // e.g., ['NB', 'LB1']
+                'extras.*'       => 'string',
+                'wicket'         => 'nullable|string', // e.g., 'Bowled', 'Run Out'
+                'legal_ball'     => 'nullable|boolean'
             ]);
 
             if ($validator->fails()) {
@@ -833,7 +940,9 @@ class CricketMatchController extends Controller
             $nonStrikerId = $request->non_striker_id;
             $bowlerId     = $request->bowler_id;
             $runs         = $request->runs;
-            $extra        = $request->extra_type;
+            $extras       = $request->extras ?? [];
+            $wicketType   = $request->wicket ?? null;
+            $legalBall    = $request->has('legal_ball') ? $request->legal_ball : true;
 
             // 🔹 Fetch/Create striker & non-striker
             $striker = MatchPlayer::firstOrCreate(
@@ -846,10 +955,13 @@ class CricketMatchController extends Controller
                 ['runs_scored' => 0, 'balls_faced' => 0, 'status' => 'batting']
             );
 
-            // 🔹 Determine if this is a legal ball
-            $legalBall = true;
-            if ($extra && in_array($extra, ['NB', 'WD'])) {
-                $legalBall = false;
+            // 🔹 Determine delivery type
+            $deliveryType = 'normal';
+            if (!empty($extras)) {
+                $deliveryType = implode(',', $extras); // e.g., "NB,LB1"
+                if (in_array('NB', $extras) || in_array('WD', $extras)) {
+                    $legalBall = false;
+                }
             }
 
             // 🔹 Get last delivery
@@ -857,22 +969,16 @@ class CricketMatchController extends Controller
                 ->latest('id')
                 ->first();
 
-            if (!$lastDelivery) {
-                $over = 1;
-                $ball = 1;
-            } else {
-                $over = $lastDelivery->over_number;
-                $ball = $lastDelivery->ball_in_over;
+            $over = $lastDelivery?->over_number ?? 1;
+            $ball = $lastDelivery?->ball_in_over ?? 0;
 
-                if ($legalBall) {
-                    if ($ball == 6) {
-                        $over++;
-                        $ball = 1;
-                    } else {
-                        $ball++;
-                    }
+            if ($legalBall) {
+                if ($ball == 6) {
+                    $over++;
+                    $ball = 1;
+                } else {
+                    $ball++;
                 }
-                // Extras: keep same over and ball
             }
 
             // 🔹 Insert delivery
@@ -885,23 +991,21 @@ class CricketMatchController extends Controller
                 'batsman_id'      => $strikerId,
                 'non_striker_id'  => $nonStrikerId,
                 'batting_team_id' => $striker->team_id,
-                'bowling_team_id' => $bowlerId ? Player::find($bowlerId)->team_id : null,
+                'bowling_team_id' => Player::find($bowlerId)?->team_id,
                 'runs_batsman'    => $runs,
                 'runs_extras'     => $legalBall ? 0 : $runs,
-                'delivery_type'   => $extra ?? 'normal',
-                'is_wicket'       => $extra === 'W',
-                'wicket_type'     => $extra === 'W' ? 'bowled' : null,
-                'wicket_player_id' => $extra === 'W' ? $strikerId : null,
+                'delivery_type'   => $deliveryType,
+                'is_wicket'       => $wicketType ? true : false,
+                'wicket_type'     => $wicketType,
+                'wicket_player_id' => $wicketType ? $strikerId : null,
             ]);
 
             // 🔹 Update striker stats
-            if ($legalBall) {
-                $striker->balls_faced += 1;
-            }
+            if ($legalBall) $striker->balls_faced += 1;
             $striker->runs_scored += $runs;
             $striker->save();
 
-            // 🔹 Update scoreboard (calculate overs & runs fresh)
+            // 🔹 Update scoreboard
             $totalRuns = MatchDelivery::where('match_id', $matchId)
                 ->sum(DB::raw('runs_batsman + runs_extras'));
 
@@ -917,26 +1021,26 @@ class CricketMatchController extends Controller
             );
 
             // 🔹 Handle wicket
-            if ($extra === 'W') {
+            if ($wicketType) {
                 $scoreboard->wickets += 1;
                 $scoreboard->save();
 
                 FallOfWicket::create([
-                    'match_id' => $matchId,
-                    'team_id'  => $striker->team_id,
+                    'match_id'      => $matchId,
+                    'team_id'       => $striker->team_id,
                     'wicket_number' => $scoreboard->wickets,
-                    'runs' => $scoreboard->runs,
-                    'overs' => $scoreboard->overs,
-                    'batter_id' => $strikerId,
-                    'bowler_id' => $bowlerId,
-                    'dismissal_type' => 'bowled', // TODO: make dynamic
+                    'runs'          => $scoreboard->runs,
+                    'overs'         => $scoreboard->overs,
+                    'batter_id'     => $strikerId,
+                    'bowler_id'     => $bowlerId,
+                    'dismissal_type' => $wicketType
                 ]);
 
                 $striker->status = 'out';
                 $striker->save();
             }
 
-            // 🔹 Partnership
+            // 🔹 Update partnership
             $partnership = Partnership::where('match_id', $matchId)
                 ->where('team_id', $striker->team_id)
                 ->latest('id')
@@ -948,40 +1052,24 @@ class CricketMatchController extends Controller
                 $partnership->save();
             } else {
                 Partnership::create([
-                    'match_id' => $matchId,
-                    'team_id'  => $striker->team_id,
-                    'batter_1_id' => $strikerId,
-                    'batter_2_id' => $nonStrikerId,
-                    'runs' => $runs,
-                    'balls' => $legalBall ? 1 : 0,
-                    'start_over' => $over,
-                    'end_over' => $over,
+                    'match_id'     => $matchId,
+                    'team_id'      => $striker->team_id,
+                    'batter_1_id'  => $strikerId,
+                    'batter_2_id'  => $nonStrikerId,
+                    'runs'         => $runs,
+                    'balls'        => $legalBall ? 1 : 0,
+                    'start_over'   => $over,
+                    'end_over'     => $over,
                 ]);
             }
 
-            // 🔹 Update PlayerStat
+            // 🔹 Update player stats
             $playerStat = PlayerStat::firstOrCreate(['player_id' => $strikerId]);
             $playerStat->total_runs += $runs;
             $playerStat->balls_faced += $legalBall ? 1 : 0;
             $playerStat->save();
 
-            // 🔹 TournamentPlayerStat
-            $tournamentPlayerStat = TournamentPlayerStat::firstOrCreate([
-                'tournament_id' => $striker->tournament_id ?? 1,
-                'player_id' => $strikerId
-            ]);
-            $tournamentPlayerStat->total_runs += $runs;
-            $tournamentPlayerStat->balls_faced += $legalBall ? 1 : 0;
-            $tournamentPlayerStat->save();
-
-            // 🔹 TournamentTeamStat
-            $teamStat = TournamentTeamStat::firstOrCreate([
-                'tournament_id' => $striker->tournament_id ?? 1,
-                'team_id' => $striker->team_id
-            ]);
-            $teamStat->save();
-
-            // 🔹 Swap strike if odd runs (legal balls only)
+            // 🔹 Swap strike if needed
             if ($legalBall && $runs % 2 !== 0) {
                 $striker->status = 'batting';
                 $nonStriker->status = 'on-strike';
@@ -993,7 +1081,7 @@ class CricketMatchController extends Controller
 
             return response()->json([
                 'success' => true,
-                'message' => 'Run recorded successfully',
+                'message' => 'Delivery recorded successfully',
                 'updated_state' => [
                     'striker' => [
                         'id' => $striker->player_id,
@@ -1016,14 +1104,14 @@ class CricketMatchController extends Controller
             ]);
         } catch (\Exception $e) {
             DB::rollBack();
-            Log::error('Error storing run', [
+            Log::error('Error storing delivery', [
                 'message' => $e->getMessage(),
                 'line' => $e->getLine()
             ]);
 
             return response()->json([
                 'success' => false,
-                'message' => 'Failed to record run'
+                'message' => 'Failed to record delivery'
             ], 500);
         }
     }
