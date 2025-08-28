@@ -97,12 +97,13 @@ Route::prefix('admin')->name('admin.')->group(function(){
             Route::post('/set-striker', [CricketMatchController::class, 'setStriker'])->name('set-striker');
             Route::get('/load-current-stats', [CricketMatchController::class, 'loadCurrentStats'])->name('load-current-stats');
             Route::get('/match-info', [CricketMatchController::class, 'getMatchInfo'])->name('match-info');
-            Route::get('/switch-strike', [CricketMatchController::class, 'switchStrike'])->name('switch-strike');
+            Route::post('/switch-strike', [CricketMatchController::class, 'switchStrike'])->name('switch-strike');
             Route::get('/change-bowler', [CricketMatchController::class, 'changeBowler'])->name('change-bowler');
             Route::post('/store-delivery', [CricketMatchController::class, 'storeDelivery'])->name('store-delivery');
             Route::post('/store-wickets', [CricketMatchController::class, 'storeWickets'])->name('store-wickets');
             Route::get('/{match}/team-b-players', [CricketMatchController::class, 'getTeamBPlayers']);
             Route::post('/{match}/add-bowler', [CricketMatchController::class, 'chooseBowler'])->name('choose-bowler');
+            Route::get('/{match}/current-over', [CricketMatchController::class, 'getCurrentOver'])->name('current-over');
         });
     });
 });

@@ -303,17 +303,25 @@
             </div>
 
             <div class="card">
-                <div class="card-header d-flex justify-content-between align-items-center">
-                    <div>
-                        <h5 class="mb-0">
-                            <span id="battingTeamName">Team A</span>
+                <div class="card shadow-sm mb-3 border-0">
+                    <div class="card-body p-3">
+                        <h5 class="mb-2 fw-bold text-info fs-20">
+                            <i class="ri-trophy-line me-1"></i> <span id="battingTeamName">Team A</span>
                         </h5>
-                        <small>
-                            Score: <span id="currentScore">0 / 0</span> |
-                            Overs: <span id="currentOvers">0.0</span> |
-                            CRR: <span id="currentCRR">0.0</span> |
-                            Projected: <span id="projectedScore">00</span>
-                        </small>
+                        <div class="d-flex flex-wrap gap-2">
+                            <span class="fs-16 badge bg-soft-success text-dark">
+                                <strong>Score:</strong> <span id="currentScore">0 / 0</span>
+                            </span>
+                            <span class="fs-16 badge bg-soft-info text-dark">
+                                <strong>Overs:</strong> <span id="currentOvers">0.0</span>
+                            </span>
+                            <span class="fs-16 badge bg-soft-warning text-dark">
+                                <strong>CRR:</strong> <span id="currentCRR">0.0</span>
+                            </span>
+                            <span class="fs-16 badge bg-soft-secondary text-dark">
+                                <strong>Projected:</strong> <span id="projectedScore">00</span>
+                            </span>
+                        </div>
                     </div>
                 </div>
 
@@ -327,7 +335,8 @@
                                         <div class="d-flex align-items-center">
                                             <div>
                                                 <h5 id="strikerName">Choose Player</h5>
-                                                <p class="m-0">Runs: <span id="strikerRuns">00</span> (0 balls)</p>
+                                                <p class="m-0">Runs: <span id="strikerRuns">00</span> (<span
+                                                        id="strikerBallsFaced">0</span> balls)</span></p>
                                             </div>
                                         </div>
                                         <div id="strikerActions">
@@ -344,7 +353,8 @@
                                     <div class="card-body d-flex justify-content-between align-items-center">
                                         <div>
                                             <h5 id="nonStrikerName">Choose Player</h5>
-                                            <p class="m-0">Runs: <span id="nonStrikerRuns">00</span> (0 balls)</p>
+                                            <p class="m-0">Runs: <span id="nonStrikerRuns">00</span> (<span
+                                                    id="nonStrikerBallsFaced">0</span> balls)</span></p>
                                         </div>
                                         <div class="d-flex flex-column" id="nonStrikerActions">
                                             {{-- <button class="btn btn-danger btn-sm mb-1"
@@ -357,7 +367,6 @@
                             {{-- Scoring buttons --}}
                             <div class="col-12">
                                 <div class="d-flex flex-wrap gap-3 mt-3">
-
                                     {{-- Runs --}}
                                     <div>
                                         <h5>Runs</h5>
@@ -370,42 +379,19 @@
                                     {{-- Extras --}}
                                     <div>
                                         <h5>Extras</h5>
-                                        @foreach (['NB', 'WD', 'LB1', 'LB2', 'LB3'] as $extra)
-                                            <button class="btn btn-outline-warning btn-extra"
+                                        @foreach (['NB', 'WD', 'LB'] as $extra)
+                                            <button class="btn btn-outline-warning btn-extra" data-bs-toggle="modal"
+                                                data-bs-target="#extraModal"
                                                 data-extra="{{ $extra }}">{{ $extra }}</button>
                                         @endforeach
-
-                                        <div class="modal fade" id="extraModal" tabindex="-1" aria-hidden="true">
-                                            <div class="modal-dialog">
-                                                <div class="modal-content">
-                                                    <div class="modal-header">
-                                                        <h5 class="modal-title">Extra Runs</h5>
-                                                        <button type="button" class="btn-close"
-                                                            data-bs-dismiss="modal"></button>
-                                                    </div>
-                                                    <div class="modal-body">
-                                                        <p>Runs scored on this extra:</p>
-                                                        <div id="extraRunButtons" class="d-flex gap-2">
-                                                            @foreach (['0', '1', '2', '3', '4', '6'] as $run)
-                                                                <button class="btn btn-outline-primary btn-extra-run"
-                                                                    data-run="{{ $run }}">{{ $run }}</button>
-                                                            @endforeach
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </div>
                                     </div>
 
                                     {{-- Wickets --}}
                                     <div>
                                         <h5>Wickets</h5>
-                                        @foreach (['W', 'Run Out', 'Bowled', 'Caught', 'LBW', 'Stumped'] as $wicket)
-                                            <button class="btn btn-outline-danger btn-wicket"
-                                                data-wicket="{{ $wicket }}">{{ $wicket }}</button>
-                                        @endforeach
+                                        <button class="btn btn-outline-danger btn-wicket" data-bs-toggle="modal"
+                                            data-bs-target="#wicketModal" data-type="W">W</button>
                                     </div>
-
                                 </div>
 
                                 {{-- Over display --}}
@@ -520,6 +506,58 @@
             </div>
         </div>
     </div>
+
+    {{-- Extra Modal --}}
+    <div class="modal fade" id="extraModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Extra Runs</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <p>Runs scored on this extra:</p>
+                    <div id="extraRunButtons" class="d-flex gap-2">
+                        @foreach (['0', '1', '2', '3', '4', '6'] as $run)
+                            <button class="btn btn-outline-primary btn-extra-run"
+                                data-run="{{ $run }}">{{ $run }}</button>
+                        @endforeach
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    {{-- Wicket Modal --}}
+    <div class="modal fade" id="wicketModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Wicket Details</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <p>Select Wicket Type:</p>
+                    <div class="d-flex flex-column gap-2">
+                        <button class="btn btn-outline-danger btn-wicket-type" data-wicket="Run Out">Run Out</button>
+                        <button class="btn btn-outline-danger btn-wicket-type" data-wicket="Bowled">Bowled</button>
+                        <button class="btn btn-outline-danger btn-wicket-type" data-wicket="Caught">Caught</button>
+                        <button class="btn btn-outline-danger btn-wicket-type" data-wicket="LBW">LBW</button>
+                        <button class="btn btn-outline-danger btn-wicket-type" data-wicket="Stumped">Stumped</button>
+                    </div>
+                    <div id="runOutOptions" class="mt-3 d-none">
+                        <p>Select Batsman Out:</p>
+                        <div class="d-flex flex-column gap-2">
+                            <button class="btn btn-outline-secondary btn-batsman-out"
+                                data-batsman="Striker">Striker</button>
+                            <button class="btn btn-outline-secondary btn-batsman-out"
+                                data-batsman="Non-Striker">Non-Striker</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
 @endsection
 
 @push('scripts')
@@ -533,69 +571,70 @@
             let nonStrikerId = null;
 
             function switchStrike() {
-                if (!strikerId || !nonStrikerId) return;
-
-                // Swap IDs
-                [strikerId, nonStrikerId] = [nonStrikerId, strikerId];
-                // Swap Names
-                let strikerNameEl = document.getElementById("strikerName");
-                let strikerImgEl = document.getElementById("strikerImg");
-                let nonStrikerNameEl = document.getElementById("nonStrikerName");
-                let nonStrikerImgEl = document.getElementById("nonStrikerImg");
-
-                // Swap text and images
-                [strikerNameEl.innerText, nonStrikerNameEl.innerText] = [nonStrikerNameEl.innerText, strikerNameEl
-                    .innerText
-                ];
-                [strikerImgEl.src, nonStrikerImgEl.src] = [nonStrikerImgEl.src, strikerImgEl.src];
-
-                // Update strike buttons
-                updateStrikeButtons('striker');
-
-                // Update database
                 fetch("{{ route('admin.cricket-matches.scoreboard.switch-strike') }}", {
-                        method: "POST",
+                        method: "POST", // must be POST
                         headers: {
                             "Content-Type": "application/json",
                             "X-CSRF-TOKEN": document.querySelector('meta[name="csrf-token"]').content
                         },
                         body: JSON.stringify({
-                            match_id: matchId,
-                            striker_id: strikerId,
-                            non_striker_id: nonStrikerId
+                            match_id: matchId
                         })
                     })
                     .then(res => res.json())
                     .then(data => {
-                        if (!data.success) {
-                            Swal.fire({
-                                toast: true,
-                                position: 'top-end',
-                                icon: 'error',
-                                title: data.message || 'Failed to switch strike',
-                                showConfirmButton: false,
-                                timer: 2500,
-                                timerProgressBar: true
-                            });
-                        }
+                        if (!data.success) throw new Error(data.message || 'Failed to switch strike');
+
+                        // ✅ Update local IDs
+                        strikerId = data.data.striker.id;
+                        nonStrikerId = data.data.nonStriker.id;
+
+                        // ✅ Update frontend UI
+                        updatePlayerUI(data.data.striker, 'striker');
+                        updatePlayerUI(data.data.nonStriker, 'nonStriker');
+                        updateStrikeButtons();
+
+                        // ✅ Update localStorage
+                        const saved = JSON.parse(localStorage.getItem("match_state_" + matchId) || "{}");
+                        saved.striker = {
+                            id: data.data.striker.id,
+                            name: data.data.striker.name,
+                            runs: data.data.striker.runs ?? 0,
+                            balls: data.data.striker.balls ?? 0
+                        };
+                        saved.nonStriker = {
+                            id: data.data.nonStriker.id,
+                            name: data.data.nonStriker.name,
+                            runs: data.data.nonStriker.runs ?? 0,
+                            balls: data.data.nonStriker.balls ?? 0
+                        };
+                        localStorage.setItem("match_state_" + matchId, JSON.stringify(saved));
                     })
                     .catch(err => console.error("Error switching strike:", err));
             }
 
+            // Strike button logic
             function updateStrikeButtons() {
-                // Remove any existing "On Strike" buttons
                 document.querySelectorAll('.on-strike-btn').forEach(btn => btn.remove());
 
-                // Create new "On Strike" button
                 const btn = document.createElement('button');
                 btn.classList.add('btn', 'btn-info', 'btn-sm', 'on-strike-btn');
                 btn.innerText = 'On Strike';
                 btn.onclick = () => switchStrike();
 
-                // Always append to non-striker actions container
                 const nonStrikerContainer = document.getElementById('nonStrikerActions');
-                if (nonStrikerContainer) {
-                    nonStrikerContainer.appendChild(btn);
+                if (nonStrikerContainer) nonStrikerContainer.appendChild(btn);
+            }
+
+            // Helper to update player UI
+            function updatePlayerUI(playerData, type) {
+                document.getElementById(type + 'Name').innerText = playerData.name;
+                document.getElementById(type + 'Runs').innerText = playerData.runs ?? 0;
+                document.getElementById(type + 'BallsFaced').innerText = playerData.balls ?? 0;
+
+                const imgEl = document.getElementById(type + 'Img');
+                if (imgEl && playerData.img) {
+                    imgEl.src = playerData.img;
                 }
             }
 
@@ -607,13 +646,15 @@
                     striker: strikerId ? {
                         id: strikerId,
                         name: document.getElementById("strikerName")?.innerText,
-                        img: document.getElementById("strikerImg")?.src
+                        runs: document.getElementById("strikerRuns")?.innerText ?? "0",
+                        balls: document.getElementById("strikerBallsFaced")?.innerText ?? "0",
                     } : null,
 
                     nonStriker: nonStrikerId ? {
                         id: nonStrikerId,
                         name: document.getElementById("nonStrikerName")?.innerText,
-                        img: document.getElementById("nonStrikerImg")?.src
+                        runs: document.getElementById("nonStrikerRuns")?.innerText ?? "0",
+                        balls: document.getElementById("nonStrikerBallsFaced")?.innerText ?? "0",
                     } : null,
 
                     team: {
@@ -622,7 +663,9 @@
                         overs: document.getElementById("currentOvers")?.innerText,
                         crr: document.getElementById("currentCRR")?.innerText,
                         projected: document.getElementById("projectedScore")?.innerText
-                    }
+                    },
+
+                    currentBowler: parseInt($('input[name="current-bowler"]:checked').attr('data-playerid')) || null,
                 };
 
                 localStorage.setItem("match_state_" + matchId, JSON.stringify(state));
@@ -632,52 +675,51 @@
             // 🔹 Load saved state from localStorage
             // ------------------------
             function loadMatchState() {
-                const saved = localStorage.getItem("match_state_" + matchId);
-
-                if (!saved) {
-                    // Fetch from backend if not in localStorage
-                    fetch("{{ route('admin.cricket-matches.scoreboard.match-info', ['match_id' => '']) }}" +
-                            matchId, {
-                                method: "GET",
-                            })
-                        .then(res => res.json())
-                        .then(data => {
-                            if (data.success) {
-                                localStorage.setItem("match_state_" + matchId, JSON.stringify(data
-                                    .match_state));
-                                populateMatchState(data.match_state);
-                            } else {
-                                console.error("Failed to load match state:", data.message);
-                            }
+                fetch("{{ route('admin.cricket-matches.scoreboard.match-info', ['match_id' => '']) }}" +
+                        matchId, {
+                            method: "GET",
                         })
-                        .catch(err => console.error("Error fetching match state:", err));
-                } else {
-                    const state = JSON.parse(saved);
-                    populateMatchState(state);
-                }
+                    .then(res => res.json())
+                    .then(data => {
+                        if (data.success) {
+                            localStorage.setItem("match_state_" + matchId, JSON.stringify(data.match_state));
+                            populateMatchState(data.match_state);
+                        } else {
+                            console.error("Failed to load match state:", data.message);
+                        }
+                    })
+                    .catch(err => console.error("Error fetching match state:", err));
             }
 
             function populateMatchState(state) {
                 if (state.striker) {
                     strikerId = state.striker.id;
                     document.getElementById("strikerName").innerText = state.striker.name;
-                    // document.getElementById("strikerImg").src = state.striker.img;
-                    updateStrikeButtons('striker'); // ✅ add button next to striker
+                    document.getElementById("strikerRuns").innerText = state.striker.runs;
+                    document.getElementById("strikerBallsFaced").innerText = state.striker.balls;
                 }
 
                 if (state.nonStriker) {
                     nonStrikerId = state.nonStriker.id;
                     document.getElementById("nonStrikerName").innerText = state.nonStriker.name;
-                    // document.getElementById("nonStrikerImg").src = state.nonStriker.img;
-                    // you don't need updateStrikeButtons for non-striker unless you want to highlight swap
+                    document.getElementById("nonStrikerRuns").innerText = state.nonStriker.runs;
+                    document.getElementById("nonStrikerBallsFaced").innerText = state.nonStriker.balls;
                 }
 
                 if (state.team) {
                     document.getElementById("battingTeamName").innerText = state.team.name;
-                    document.getElementById("currentScore").innerText = state.team.score;
+                    document.getElementById("currentScore").innerText = state.team.score + " / " + (state.team.wickets || 0);
                     document.getElementById("currentOvers").innerText = state.team.overs;
                     document.getElementById("currentCRR").innerText = state.team.crr;
                     document.getElementById("projectedScore").innerText = state.team.projected;
+                }
+
+                if (state.currentBowler) {
+                    const bowlerId = parseInt(state.currentBowler);
+                    $('input[name="current-bowler"]').each(function() {
+                        const pid = parseInt($(this).attr('data-playerid'));
+                        $(this).prop('checked', pid === bowlerId);
+                    });
                 }
             }
 
@@ -844,112 +886,186 @@
             }
 
             // ------------------------
-            // 🔹 STORE RUNS
+            // 🔹 STORE RUNS & DELIVERIES
             // ------------------------
             let currentExtra = null;
+            let currentWicket = null;
 
-            function addDelivery({
-                runs = 0,
-                extra = null,
-                wicket = null,
-                legalBall = true
-            }) {
-                const delivery = {
-                    runs,
+            // ------------------------
+            // Add a delivery
+            // ------------------------
+            function addDelivery({ runs = 0, extra = null, wicket = null, batsmanOut = null, legalBall = true }) {
+                // 🏏 Retrieve current match state
+                const state = JSON.parse(localStorage.getItem("match_state_" + matchId) || "{}");
+
+                // safely get striker/non-striker/bowler
+                const strikerId = state?.striker?.id ?? null;
+                const nonStrikerId = state?.nonStriker?.id ?? null;
+
+                // 🔹 If bowler not set in localStorage, try getting it from selected input (radio/button)
+                let bowlerId = state?.currentBowler ?? null;
+                if (!bowlerId) {
+                    const selectedBowlerInput = document.querySelector('input[name="current-bowler"]:checked');
+                    bowlerId = selectedBowlerInput ? selectedBowlerInput.dataset.playerid : null;
+                }
+
+                if (!bowlerId) {
+                    Swal.fire('Error', 'Please select the current bowler before recording delivery.', 'error');
+                    return; // stop if bowler is not selected
+                }
+
+                const payload = {
+                    match_id: matchId,
+                    striker_id: strikerId ? Number(strikerId) : null,
+                    non_striker_id: nonStrikerId ? Number(nonStrikerId) : null,
+                    bowler_id: Number(bowlerId),
+                    runs: Number(runs ?? 0),
                     extras: extra ? [extra] : [],
-                    wicket,
-                    legalBall,
-                    strikerId,
-                    nonStrikerId
+                    wicket: wicket || null,
+                    batsman_out: batsmanOut || null,
+                    legal_ball: legalBall
                 };
 
-                sendDeliveryToServer(delivery);
+                sendDeliveryToServer(payload);
             }
 
+            // ------------------------
             // Runs buttons
+            // ------------------------
             document.querySelectorAll('.btn-run').forEach(btn => {
                 btn.addEventListener('click', e => {
                     const run = parseInt(e.target.dataset.run);
+
                     addDelivery({
                         runs: run
                     });
-                });
-            });
 
-            // Extras
-            document.querySelectorAll('.btn-extra').forEach(btn => {
-                btn.addEventListener('click', e => {
-                    const extra = e.target.dataset.extra; // 'NB', 'WD', 'LB1'...
-
-                    // If NB/WD, show modal to add runs scored on it
-                    if (['NB', 'WD'].includes(extra)) {
-                        currentExtra = extra;
-                        const modal = new bootstrap.Modal(document.getElementById('extraModal'));
-                        modal.show();
-                    } else {
-                        const runs = parseInt(extra.replace('LB', '')) || 0;
-                        addDelivery({
-                            runs,
-                            extra
-                        });
+                    // 🔹 Switch strike for odd runs
+                    if ([1, 3].includes(run)) {
+                        switchStrike();
+                        console.log("Strike Switched...")
                     }
                 });
             });
 
-            // Wickets
-            document.querySelectorAll('.btn-wicket').forEach(btn => {
+            // ------------------------
+            // Extras buttons
+            // ------------------------
+            document.querySelectorAll('.btn-extra').forEach(btn => {
                 btn.addEventListener('click', e => {
-                    const wicketType = e.target.dataset.wicket; // 'Run Out', 'Bowled'...
-                    addDelivery({
-                        wicket: wicketType
-                    });
+                    const extra = e.target.dataset.extra; // 'NB', 'WD', 'LB'
+
+                    currentExtra = extra;
+
+                    if (['NB', 'WD'].includes(extra)) {
+                        // Show modal to choose runs and possible run out
+                        const modal = new bootstrap.Modal(document.getElementById('extraModal'));
+                        document.getElementById('extraRunButtons').classList.remove('d-none');
+                        document.getElementById('runOutOptionsExtra').classList.remove(
+                        'd-none'); // Run out selection
+                        modal.show();
+                    } else if (extra.startsWith('LB')) {
+                        // Show modal to select runs
+                        const modal = new bootstrap.Modal(document.getElementById('extraModal'));
+                        document.getElementById('extraRunButtons').classList.remove('d-none');
+                        document.getElementById('runOutOptionsExtra').classList.add(
+                        'd-none'); // no run out for LB
+                        modal.show();
+                    }
                 });
             });
 
-            window.submitExtraRun = function(runsScored) {
+            // ------------------------
+            // Extra modal: submit runs
+            // ------------------------
+            window.submitExtraRun = function(runsScored, batsmanOut = null, wicketType = null) {
+                const isLegalBall = !['NB', 'WD'].includes(currentExtra); // NB/WD = extra ball
                 addDelivery({
                     runs: runsScored,
                     extra: currentExtra,
-                    legalBall: false
+                    wicket: wicketType,
+                    batsmanOut: batsmanOut,
+                    legalBall: isLegalBall
                 });
+
                 const modal = bootstrap.Modal.getInstance(document.getElementById('extraModal'));
                 modal.hide();
                 currentExtra = null;
+                currentWicket = null;
             }
 
+            // ------------------------
+            // Wicket buttons
+            // ------------------------
+            document.querySelectorAll('.btn-wicket').forEach(btn => {
+                btn.addEventListener('click', e => {
+                    const wicketType = e.target.dataset.wicket; // 'Run Out', 'Bowled', etc.
+                    currentWicket = wicketType;
+
+                    // Show modal to choose batsman
+                    const modal = new bootstrap.Modal(document.getElementById('wicketModal'));
+                    document.getElementById('runOutOptionsWicket').classList.toggle(wicketType ===
+                        'Run Out' ? 'd-none' : 'd-none', false); // show run out option
+                    modal.show();
+                });
+            });
+
+            // ------------------------
+            // Send payload to backend
+            // ------------------------
             function sendDeliveryToServer(delivery) {
+                console.log("Payload:", delivery);
+
                 fetch("{{ route('admin.cricket-matches.scoreboard.store-delivery') }}", {
                         method: "POST",
                         headers: {
                             "Content-Type": "application/json",
                             "X-CSRF-TOKEN": document.querySelector('meta[name="csrf-token"]').content
                         },
-                        body: JSON.stringify({
-                            match_id: matchId,
-                            ...delivery
-                        })
+                        body: JSON.stringify(delivery)
                     })
                     .then(res => res.json())
                     .then(data => {
                         if (data.success) {
-                            // updateScoreUI(data.updated_state);
-                            loadCurrentStats();
+                            loadCurrentStats(matchId);
+                            loadCurrentOver();
                             Swal.fire({
                                 toast: true,
                                 position: 'top-end',
                                 icon: 'success',
-                                title: data.message || 'Delivery Stored and current stats updated.',
+                                title: data.message || 'Delivery stored & stats updated.',
                                 showConfirmButton: false,
                                 timer: 2500,
                                 timerProgressBar: true
                             });
                         } else {
+                            console.error("Validation failed:", data.errors);
                             Swal.fire('Error', data.message || 'Failed to record delivery', 'error');
                         }
                     })
                     .catch(err => console.error("Error recording delivery:", err));
             }
 
+            function loadCurrentOver() {
+                let chooseBowlerRoute = "{{ route('admin.cricket-matches.scoreboard.current-over', ['match' => '__MATCH__']) }}";
+                const url = chooseBowlerRoute.replace('__MATCH__', matchId);
+                fetch(url)
+                    .then(res => res.json())
+                    .then(data => {
+                        if (!data.success) return console.error(data.message);
+
+                        const container = document.getElementById('currentOverDetails');
+                        container.innerHTML = '';
+
+                        data.balls.forEach(ball => {
+                            const span = document.createElement('span');
+                            span.classList.add('ball', ball.class);
+                            span.innerText = ball.ball;
+                            container.appendChild(span);
+                        });
+                    })
+                    .catch(err => console.error('Error loading current over:', err));
+            }
 
             // ------------------------
             // 🔹 Mark Player as Out
@@ -1050,8 +1166,7 @@
             $('#bowler-select').on('select2:select', function(e) {
                 const bowlerId = e.params.data.id;
                 const teamId = $('#bowling_team_id').val();
-                let chooseBowlerRoute =
-                    "{{ route('admin.cricket-matches.scoreboard.choose-bowler', ['match' => '__MATCH__']) }}";
+                let chooseBowlerRoute = "{{ route('admin.cricket-matches.scoreboard.choose-bowler', ['match' => '__MATCH__']) }}";
                 const url = chooseBowlerRoute.replace('__MATCH__', matchId);
                 $.ajax({
                     url: url,
@@ -1121,10 +1236,16 @@
                     .then(res => res.json())
                     .then(data => {
                         if (data.success) {
-                            console.log(data)
                             $('input[name="innings"]').val(data.innings);
                             $('#bowling_team_id').val(data.bowling_team_id);
 
+                            // update scoreboard
+                            const scoreboard = data.scoreboard;
+                            $('#currentScore').text(scoreboard.runs + " / " + scoreboard.wickets);
+                            $('#currentOvers').text(scoreboard.overs + " / " + scoreboard.totalOvers);
+                            $('#currentCRR').text(scoreboard.currentCRR);
+                            $('#projectedScore').text(scoreboard.projected);
+                            console.log(data)
                             const tbody = document.querySelector('#batting-stats');
                             tbody.innerHTML = '';
 
@@ -1142,6 +1263,9 @@
                             });
 
                             // 🏏 Update bowling table
+                            const state = JSON.parse(localStorage.getItem("match_state_" + matchId) || "{}");
+                            const bowlerId = state?.currentBowler ?? null;
+
                             const bowlingTbody = document.querySelector('#bowling-stats');
                             bowlingTbody.innerHTML = '';
 
@@ -1151,7 +1275,7 @@
                                     <td style="vertical-align: middle;display: flex;align-items: center;">
                                         ${player.name}
                                         <div class="form-check">
-                                            <input class="form-check-input" type="radio" data-playerid="${player.id}" name="current-bowler" style="margin-left: 10px;" ${player.is_current ? 'checked' : ''}>
+                                            <input class="form-check-input" type="radio" data-playerid="${player.id}" name="current-bowler" style="margin-left: 10px;" ${bowlerId == player.id ? 'checked' : ''}>
                                         </div>
                                     </td>
                                     <td class='text-center'>${player.overs}</td>
@@ -1168,9 +1292,7 @@
                                 if (e.target.name === 'current-bowler') {
                                     const currentBowlerId = e.target.value;
                                     console.log("🎯 Current bowler set:", currentBowlerId);
-
-                                    // 👉 Call your API here to update current bowler in DB
-                                    // fetch('/set-current-bowler', { method: 'POST', body: JSON.stringify({ id: currentBowlerId }) })
+                                    saveMatchState();
                                 }
                             });
 
@@ -1180,6 +1302,7 @@
 
                             if (data.partnerships.length > 0) {
                                 data.partnerships.forEach(p => {
+                                    console.log(p);
                                     let trContent = `<tr>
                                                 <th>
                                                     <div class="d-flex align-items-center p-2">
@@ -1195,8 +1318,8 @@
                                                         <small>${p.runs} (${p.balls} balls)</small>
                                                     </div>
                                                     <div class="progress" style="height: 10px;">
-                                                        <div class="progress-bar bg-success" role="progressbar" style="width: ${p.runsPercent}%" aria-valuenow="${p.runsPercent}" aria-valuemin="0" aria-valuemax="100"></div>
-                                                        <div class="progress-bar bg-primary" role="progressbar" style="width: ${100 - p.runsPercent}%" aria-valuenow="${100 - p.runsPercent}" aria-valuemin="0" aria-valuemax="100"></div>
+                                                        <div class="progress-bar bg-success" role="progressbar" style="width: ${p.batter1.percent}%" aria-valuenow="${p.batter1.percent}" aria-valuemin="0" aria-valuemax="100"></div>
+                                                        <div class="progress-bar bg-primary" role="progressbar" style="width: ${p.batter2.percent}%" aria-valuenow="${p.batter2.percent}" aria-valuemin="0" aria-valuemax="100"></div>
                                                     </div>
                                                 </td>
                                                 <td class="text-right">
@@ -1242,6 +1365,8 @@
                                 tr.innerHTML = `<th colspan="3" class="text-center">No wickets fallen yet</th>`;
                                 fallWicketsList.appendChild(tr);
                             }
+
+                            loadMatchState();
                         } else {
                             console.error('Failed to load stats:', data.message);
                         }
@@ -1256,6 +1381,7 @@
             loadMatchState();
             loadCurrentStats(matchId);
             fetchBowlingTeamPlayers();
+            loadCurrentOver();
         });
     </script>
 @endpush
