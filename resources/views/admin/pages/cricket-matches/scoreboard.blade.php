@@ -3,6 +3,86 @@
 @section('content')
     @push('styles')
         <style>
+            .player-wrapper {
+                display: flex;
+                flex-wrap: wrap;
+                gap: 15px;
+            }
+
+            .input-card {
+                position: relative;
+                flex: 1 1 calc(50% - 15px);
+                /* 2 cards per row with gap */
+                background: #f9f9f9;
+                border-radius: 12px;
+                box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+                transition: transform 0.3s, box-shadow 0.3s;
+                cursor: pointer;
+                min-height: 100px;
+                padding: 15px;
+            }
+
+            .input-card:hover {
+                transform: translateY(-3px);
+                box-shadow: 0 8px 12px rgba(0, 0, 0, 0.15);
+            }
+
+            .input {
+                position: absolute;
+                opacity: 0;
+                width: 100%;
+                height: 100%;
+                cursor: pointer;
+                z-index: 2;
+            }
+
+            .check::before {
+                content: '';
+                position: absolute;
+                top: 15px;
+                right: 15px;
+                width: 20px;
+                height: 20px;
+                border: 2px solid #ccc;
+                border-radius: 50%;
+                background: #fff;
+                z-index: 1;
+            }
+
+            .input:checked+.check::after {
+                content: '';
+                position: absolute;
+                top: 19px;
+                right: 19px;
+                width: 12px;
+                height: 12px;
+                background-color: #007bff;
+                border-radius: 50%;
+                z-index: 1;
+            }
+
+            .label {
+                position: relative;
+                z-index: 0;
+                display: flex;
+                flex-direction: column;
+                justify-content: center;
+                height: 100%;
+            }
+
+            .label .title {
+                font-weight: 700;
+                font-size: 16px;
+                color: #333;
+                margin-bottom: 5px;
+            }
+
+            .label .score {
+                font-weight: 500;
+                font-size: 14px;
+                color: #555;
+            }
+
             .over-display {
                 display: flex;
                 align-items: center;
@@ -36,12 +116,16 @@
                 background-color: #28a745;
             }
 
-            .boundary-ball {
-                background-color: #ff9800;
+            .extra-ball {
+                background-color: #F08B51;
             }
 
             .six-ball {
-                background-color: #e91e63;
+                background-color: #16C47F;
+            }
+
+            .four-ball {
+                background-color: #1E93AB;
             }
 
             .wicket-ball {
@@ -380,9 +464,11 @@
                                     <div>
                                         <h5>Extras</h5>
                                         @foreach (['NB', 'WD', 'LB'] as $extra)
-                                            <button class="btn btn-outline-warning btn-extra" data-bs-toggle="modal"
-                                                data-bs-target="#extraModal"
-                                                data-extra="{{ $extra }}">{{ $extra }}</button>
+                                            <button type="button" class="btn btn-outline-warning btn-extra"
+                                                data-bs-toggle="modal" data-bs-target="#extraModal"
+                                                data-extra="{{ $extra }}">
+                                                {{ $extra }}
+                                            </button>
                                         @endforeach
                                     </div>
 
@@ -392,18 +478,104 @@
                                         <button class="btn btn-outline-danger btn-wicket" data-bs-toggle="modal"
                                             data-bs-target="#wicketModal" data-type="W">W</button>
                                     </div>
+
+                                    <!-- Modal -->
+                                    <div class="modal fade" id="extraModal" tabindex="-1"
+                                        aria-labelledby="extraModalLabel" aria-hidden="true">
+                                        <div class="modal-dialog">
+                                            <div class="modal-content">
+                                                <form id="extraForm">
+                                                    <div class="modal-header">
+                                                        <h5 class="modal-title" id="extraModalLabel">Extra</h5>
+                                                        <button type="button" class="btn-close"
+                                                            data-bs-dismiss="modal"></button>
+                                                    </div>
+
+                                                    <div class="modal-body">
+
+                                                        {{-- NB Section --}}
+                                                        <div id="nbSection" class="d-none">
+                                                            <p><strong>No Ball:</strong> Select runs + run out option</p>
+                                                            <div>
+                                                                <label>Runs:</label>
+                                                                <div class="btn-group" role="group"
+                                                                    id="extraRunButtons">
+                                                                    @foreach ([0, 1, 2, 3, 4, 6] as $r)
+                                                                        <input type="radio" class="btn-check"
+                                                                            name="nbRuns" id="nbRun{{ $r }}"
+                                                                            value="{{ $r }}">
+                                                                        <label class="btn btn-outline-primary"
+                                                                            for="nbRun{{ $r }}">{{ $r }}</label>
+                                                                    @endforeach
+                                                                </div>
+                                                            </div>
+                                                            <div class="mt-3">
+                                                                <input type="checkbox" id="nbRunOut"
+                                                                    class="form-check-input">
+                                                                <label for="nbRunOut" class="form-check-label">Run
+                                                                    Out?</label>
+                                                            </div>
+                                                            <div id="nbBatsmanOut" class="mt-2 d-none">
+                                                                <label class="fs-14" style="font-weight: bold;">Batsman
+                                                                    Out:</label>
+                                                                <div class="player-wrapper">
+                                                                </div>
+                                                            </div>
+                                                        </div>
+
+                                                        {{-- WD Section --}}
+                                                        <div id="wdSection" class="d-none">
+                                                            <p><strong>Wide Ball:</strong> Default 1 run counted. Add extras
+                                                                if needed.</p>
+                                                            <div>
+                                                                <label>Extra Runs:</label>
+                                                                <div class="btn-group" role="group">
+                                                                    @foreach ([0, 1, 2, 3, 4, 5, 6] as $r)
+                                                                        <input type="radio" class="btn-check"
+                                                                            name="wdExtraRuns"
+                                                                            id="wdRun{{ $r }}"
+                                                                            value="{{ $r }}">
+                                                                        <label class="btn btn-outline-primary"
+                                                                            for="wdRun{{ $r }}">{{ $r }}</label>
+                                                                    @endforeach
+                                                                </div>
+                                                            </div>
+                                                        </div>
+
+                                                        {{-- LB Section --}}
+                                                        <div id="lbSection" class="d-none">
+                                                            <p><strong>Leg Bye:</strong> Select runs</p>
+                                                            <div>
+                                                                <label>Runs:</label>
+                                                                <div class="btn-group" role="group">
+                                                                    @foreach ([0, 1, 2, 3, 4] as $r)
+                                                                        <input type="radio" class="btn-check"
+                                                                            name="lbRuns" id="lbRun{{ $r }}"
+                                                                            value="{{ $r }}">
+                                                                        <label class="btn btn-outline-primary"
+                                                                            for="lbRun{{ $r }}">{{ $r }}</label>
+                                                                    @endforeach
+                                                                </div>
+                                                            </div>
+                                                        </div>
+
+                                                    </div>
+
+                                                    <div class="modal-footer">
+                                                        <button type="button" class="btn btn-secondary"
+                                                            data-bs-dismiss="modal">Cancel</button>
+                                                        <button type="submit" class="btn btn-primary">Submit</button>
+                                                    </div>
+                                                </form>
+                                            </div>
+                                        </div>
+                                    </div>
                                 </div>
 
                                 {{-- Over display --}}
                                 <div class="mt-3 fs-16 d-flex align-items-center">
                                     <p class="m-0"><strong>Current Over:</strong></p>
                                     <div id="currentOverDetails" class="over-display" style="margin-left: 15px;">
-                                        {{-- <span class="ball run-ball">1</span>
-                                        <span class="ball dot-ball">0</span>
-                                        <span class="ball boundary-ball">4</span>
-                                        <span class="ball run-ball">2</span>
-                                        <span class="ball run-ball">1</span>
-                                        <span class="ball dot-ball">0</span> --}}
                                     </div>
                                 </div>
                             </div>
@@ -507,27 +679,6 @@
         </div>
     </div>
 
-    {{-- Extra Modal --}}
-    <div class="modal fade" id="extraModal" tabindex="-1" aria-hidden="true">
-        <div class="modal-dialog">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title">Extra Runs</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-                </div>
-                <div class="modal-body">
-                    <p>Runs scored on this extra:</p>
-                    <div id="extraRunButtons" class="d-flex gap-2">
-                        @foreach (['0', '1', '2', '3', '4', '6'] as $run)
-                            <button class="btn btn-outline-primary btn-extra-run"
-                                data-run="{{ $run }}">{{ $run }}</button>
-                        @endforeach
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-
     {{-- Wicket Modal --}}
     <div class="modal fade" id="wicketModal" tabindex="-1" aria-hidden="true">
         <div class="modal-dialog">
@@ -537,7 +688,10 @@
                     <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                 </div>
                 <div class="modal-body">
-                    <p>Select Wicket Type:</p>
+                    <div class="d-flex align-items-center justify-content-between mb-3">
+                        <p class="fs-16 font-weight-bold m-0">Select Wicket Type:</p>
+                        <button type="reset" class="btn btn-sm btn-warning" id="btn-reset-wicket-form">Reset</button>
+                    </div>
                     <div class="d-flex flex-column gap-2">
                         <button class="btn btn-outline-danger btn-wicket-type" data-wicket="Run Out">Run Out</button>
                         <button class="btn btn-outline-danger btn-wicket-type" data-wicket="Bowled">Bowled</button>
@@ -545,7 +699,9 @@
                         <button class="btn btn-outline-danger btn-wicket-type" data-wicket="LBW">LBW</button>
                         <button class="btn btn-outline-danger btn-wicket-type" data-wicket="Stumped">Stumped</button>
                     </div>
-                    <div id="runOutOptions" class="mt-3 d-none">
+
+                    <!-- Run Out Options -->
+                    <div id="runOutOptions" class="mt-3 d-none wicket-extra">
                         <p>Select Batsman Out:</p>
                         <div class="d-flex flex-column gap-2">
                             <button class="btn btn-outline-secondary btn-batsman-out"
@@ -554,6 +710,23 @@
                                 data-batsman="Non-Striker">Non-Striker</button>
                         </div>
                     </div>
+
+                    <!-- Caught Options -->
+                    <div id="caughtOptions" class="mt-3 d-none wicket-extra">
+                        <p>Select Fielder (Who took the catch):</p>
+                        <select class="form-select" id="caughtBySelect">
+                            <!-- Dynamically load bowling team players -->
+                        </select>
+                    </div>
+
+                    <!-- Stumped Options -->
+                    <div id="stumpedOptions" class="mt-3 d-none wicket-extra">
+                        <p>Select Keeper (Who stumped):</p>
+                        <select class="form-select" id="stumpedBySelect">
+                            <!-- Dynamically load bowling team players -->
+                        </select>
+                    </div>
+
                 </div>
             </div>
         </div>
@@ -569,6 +742,14 @@
 
             let strikerId = null;
             let nonStrikerId = null;
+
+            document.querySelectorAll('.btn-extra').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    let extra = this.dataset.extra;
+                    document.querySelector('#extraModal .modal-title').innerText = "Selected: " +
+                        extra;
+                });
+            });
 
             function switchStrike() {
                 fetch("{{ route('admin.cricket-matches.scoreboard.switch-strike') }}", {
@@ -665,7 +846,8 @@
                         projected: document.getElementById("projectedScore")?.innerText
                     },
 
-                    currentBowler: parseInt($('input[name="current-bowler"]:checked').attr('data-playerid')) || null,
+                    currentBowler: parseInt($('input[name="current-bowler"]:checked').attr('data-playerid')) ||
+                        null,
                 };
 
                 localStorage.setItem("match_state_" + matchId, JSON.stringify(state));
@@ -708,7 +890,8 @@
 
                 if (state.team) {
                     document.getElementById("battingTeamName").innerText = state.team.name;
-                    document.getElementById("currentScore").innerText = state.team.score + " / " + (state.team.wickets || 0);
+                    document.getElementById("currentScore").innerText = state.team.score + " / " + (state.team
+                        .wickets || 0);
                     document.getElementById("currentOvers").innerText = state.team.overs;
                     document.getElementById("currentCRR").innerText = state.team.crr;
                     document.getElementById("projectedScore").innerText = state.team.projected;
@@ -721,6 +904,33 @@
                         $(this).prop('checked', pid === bowlerId);
                     });
                 }
+            }
+
+            function loadCurrentPlayersToModal() {
+                const state = JSON.parse(localStorage.getItem("match_state_" + matchId) || "{}");
+
+                const players = [];
+                if (state.striker) players.push(state.striker);
+                if (state.nonStriker) players.push(state.nonStriker);
+
+                const container = $('#nbBatsmanOut .player-wrapper');
+                container.empty(); // Clear old entries
+
+                players.forEach(player => {
+                    const playerCard = `
+                        <div class="input-card">
+                            <input class="input player-id" type="radio" name="player_id" value="${player.id}">
+                            <span class="check"></span>
+                            <label class="label">
+                                <div class="title">${player.name}</div>
+                                <div class="score">Score: ${player.score}</div>
+                            </label>
+                        </div>`;
+                    container.append(playerCard);
+                });
+
+                // Show the modal section if hidden
+                container.removeClass('d-none');
             }
 
             // ------------------------
@@ -806,7 +1016,7 @@
                         saveMatchState();
                         strikerId = playerId;
                         document.getElementById("strikerName").innerText = playerName;
-                        document.getElementById("strikerImg").src = playerImg;
+                        // document.getElementById("strikerImg").src = playerImg;
 
                         playerCard.closest(".player-card").remove();
                     });
@@ -819,7 +1029,7 @@
                         saveMatchState();
                         nonStrikerId = playerId;
                         document.getElementById("nonStrikerName").innerText = playerName;
-                        document.getElementById("nonStrikerImg").src = playerImg;
+                        // document.getElementById("nonStrikerImg").src = playerImg;
 
                         playerCard.closest(".player-card").remove();
                     });
@@ -855,9 +1065,8 @@
                                 timer: 2500,
                                 timerProgressBar: true
                             });
-                            console.log("Player saved:", data.data);
 
-                            if (callback) callback(); // only now save to localStorage
+                            if (callback) callback();
                         } else {
                             Swal.fire({
                                 toast: true,
@@ -894,15 +1103,17 @@
             // ------------------------
             // Add a delivery
             // ------------------------
-            function addDelivery({ runs = 0, extra = null, wicket = null, batsmanOut = null, legalBall = true }) {
-                // 🏏 Retrieve current match state
+            function addDelivery({
+                runs = 0,
+                extra = null,
+                wicket = null,
+                batsmanOut = null,
+                legalBall = true
+            }) {
                 const state = JSON.parse(localStorage.getItem("match_state_" + matchId) || "{}");
-
-                // safely get striker/non-striker/bowler
                 const strikerId = state?.striker?.id ?? null;
                 const nonStrikerId = state?.nonStriker?.id ?? null;
 
-                // 🔹 If bowler not set in localStorage, try getting it from selected input (radio/button)
                 let bowlerId = state?.currentBowler ?? null;
                 if (!bowlerId) {
                     const selectedBowlerInput = document.querySelector('input[name="current-bowler"]:checked');
@@ -911,7 +1122,7 @@
 
                 if (!bowlerId) {
                     Swal.fire('Error', 'Please select the current bowler before recording delivery.', 'error');
-                    return; // stop if bowler is not selected
+                    return;
                 }
 
                 const payload = {
@@ -920,11 +1131,13 @@
                     non_striker_id: nonStrikerId ? Number(nonStrikerId) : null,
                     bowler_id: Number(bowlerId),
                     runs: Number(runs ?? 0),
-                    extras: extra ? [extra] : [],
+                    extras: extra ? extra : [],
                     wicket: wicket || null,
                     batsman_out: batsmanOut || null,
                     legal_ball: legalBall
                 };
+
+                console.dir(payload)
 
                 sendDeliveryToServer(payload);
             }
@@ -939,12 +1152,6 @@
                     addDelivery({
                         runs: run
                     });
-
-                    // 🔹 Switch strike for odd runs
-                    if ([1, 3].includes(run)) {
-                        switchStrike();
-                        console.log("Strike Switched...")
-                    }
                 });
             });
 
@@ -952,25 +1159,47 @@
             // Extras buttons
             // ------------------------
             document.querySelectorAll('.btn-extra').forEach(btn => {
-                btn.addEventListener('click', e => {
-                    const extra = e.target.dataset.extra; // 'NB', 'WD', 'LB'
+                btn.addEventListener('click', () => {
+                    const extraModal = document.getElementById('extraModal');
+                    if (!extraModal) {
+                        console.error("#extraModal not found in DOM");
+                        return;
+                    }
 
-                    currentExtra = extra;
+                    const modalTitle = extraModal.querySelector('.modal-title');
+                    const nbSection = document.getElementById('nbSection');
+                    const wdSection = document.getElementById('wdSection');
+                    const lbSection = document.getElementById('lbSection');
+                    const nbRunOutCheckbox = document.getElementById('nbRunOut');
+                    const nbBatsmanOut = document.getElementById('nbBatsmanOut');
+                    const type = btn.dataset.extra;
 
-                    if (['NB', 'WD'].includes(extra)) {
-                        // Show modal to choose runs and possible run out
-                        const modal = new bootstrap.Modal(document.getElementById('extraModal'));
-                        document.getElementById('extraRunButtons').classList.remove('d-none');
-                        document.getElementById('runOutOptionsExtra').classList.remove(
-                        'd-none'); // Run out selection
-                        modal.show();
-                    } else if (extra.startsWith('LB')) {
-                        // Show modal to select runs
-                        const modal = new bootstrap.Modal(document.getElementById('extraModal'));
-                        document.getElementById('extraRunButtons').classList.remove('d-none');
-                        document.getElementById('runOutOptionsExtra').classList.add(
-                        'd-none'); // no run out for LB
-                        modal.show();
+                    // 🔹 Reset sections
+                    nbSection.classList.add('d-none');
+                    wdSection.classList.add('d-none');
+                    lbSection.classList.add('d-none');
+                    modalTitle.textContent = "Extra";
+
+                    if (type === "NB") {
+                        modalTitle.textContent = "No Ball";
+                        nbSection.classList.remove('d-none');
+
+                        // Run Out toggle
+                        nbRunOutCheckbox.addEventListener('change', function() {
+                            if (this.checked) {
+                                nbBatsmanOut.classList.remove('d-none');
+                            } else {
+                                nbBatsmanOut.classList.add('d-none');
+                            }
+                        });
+
+                        loadCurrentPlayersToModal();
+                    } else if (type === "WD") {
+                        modalTitle.textContent = "Wide Ball";
+                        wdSection.classList.remove('d-none');
+                    } else if (type === "LB") {
+                        modalTitle.textContent = "Leg Bye";
+                        lbSection.classList.remove('d-none');
                     }
                 });
             });
@@ -978,21 +1207,65 @@
             // ------------------------
             // Extra modal: submit runs
             // ------------------------
-            window.submitExtraRun = function(runsScored, batsmanOut = null, wicketType = null) {
-                const isLegalBall = !['NB', 'WD'].includes(currentExtra); // NB/WD = extra ball
+            document.getElementById("extraForm").addEventListener("submit", function(e) {
+                e.preventDefault(); // Prevent form submission
+
+                // Determine which type of extra is selected
+                let extra = null;
+                let batsmanOut = null;
+
+                // No Ball
+                const nbSection = document.getElementById("nbSection");
+                if (!nbSection.classList.contains("d-none")) {
+                    const nbRun = document.querySelector('input[name="nbRuns"]:checked');
+                    const runOutChecked = document.getElementById("nbRunOut").checked;
+                    extra = {
+                        type: "NB",
+                        runs: nbRun ? Number(nbRun.value) : 0,
+                        run_out: runOutChecked
+                    };
+
+                    if (runOutChecked) {
+                        const selectedBatsman = nbSection.querySelector('input[name="player_id"]:checked');
+                        if (selectedBatsman) batsmanOut = selectedBatsman.value;
+                    }
+                }
+
+                // Wide Ball
+                const wdSection = document.getElementById("wdSection");
+                if (!wdSection.classList.contains("d-none")) {
+                    const wdRun = document.querySelector('input[name="wdExtraRuns"]:checked');
+                    extra = {
+                        type: "WD",
+                        runs: wdRun ? Number(wdRun.value) : 1,
+                        run_out: false
+                    };
+                }
+
+                // Leg Bye
+                const lbSection = document.getElementById("lbSection");
+                if (!lbSection.classList.contains("d-none")) {
+                    const lbRun = document.querySelector('input[name="lbRuns"]:checked');
+                    extra = {
+                        type: "LB",
+                        runs: lbRun ? Number(lbRun.value) : 0,
+                        run_out: false
+                    };
+                }
+
+                // Now call addDelivery with extra
                 addDelivery({
-                    runs: runsScored,
-                    extra: currentExtra,
-                    wicket: wicketType,
+                    runs: 0, // runs scored by batsman
+                    extra: extra,
+                    wicket: extra?.run_out ? "run_out" : null,
                     batsmanOut: batsmanOut,
-                    legalBall: isLegalBall
+                    legalBall: false // extras are generally illegal deliveries
                 });
 
-                const modal = bootstrap.Modal.getInstance(document.getElementById('extraModal'));
-                modal.hide();
-                currentExtra = null;
-                currentWicket = null;
-            }
+                // Close modal after submission
+                const extraModal = bootstrap.Modal.getInstance(document.getElementById("extraModal"));
+                extraModal.hide();
+            });
 
             // ------------------------
             // Wicket buttons
@@ -1010,12 +1283,76 @@
                 });
             });
 
+            document.querySelectorAll(".btn-wicket-type").forEach(btn => {
+                btn.addEventListener("click", function () {
+                    const type = this.dataset.wicket;
+
+                    // 🔥 Hide all other buttons except the one clicked
+                    document.querySelectorAll(".btn-wicket-type").forEach(b => {
+                        if (b !== this) b.classList.add("d-none");
+                    });
+
+                    // Hide all extra option sections first
+                    document.querySelectorAll(".wicket-extra").forEach(el => el.classList.add("d-none"));
+
+                    if (type === "Run Out") {
+                        document.getElementById("runOutOptions").classList.remove("d-none");
+                    } 
+                    else if (type === "Caught") {
+                        document.getElementById("caughtOptions").classList.remove("d-none");
+                        loadBowlingTeamPlayers("caughtBySelect"); // helper to load list
+                    } 
+                    else if (type === "Stumped") {
+                        document.getElementById("stumpedOptions").classList.remove("d-none");
+                        loadBowlingTeamPlayers("stumpedBySelect"); // helper to load list
+                    } 
+                    else {
+                        // Bowled or LBW: no extra inputs → directly finalize
+                        finalizeWicket({
+                            type: type,
+                            batsmanOut: "Striker",  // striker is out
+                            bowlerId: currentBowlerId
+                        });
+                    }
+                });
+            });
+
+            $('#btn-reset-wicket-form').on('click', function () {
+                // ✅ Remove active/selected state from wicket type buttons
+                document.querySelectorAll(".btn-wicket-type").forEach(btn => {
+                    btn.classList.remove("active");
+                    btn.classList.remove("d-none"); // show them again if previously hidden
+                });
+
+                // ✅ Hide all extra sections (Run Out, Caught, Stumped, etc.)
+                document.querySelectorAll(".wicket-extra").forEach(el => {
+                    el.classList.add("d-none");
+                });
+
+                // ✅ Reset selects & inputs inside modal
+                $('#wicketModal select').val('').trigger('change'); // reset dropdowns
+                $('#wicketModal input').val(''); // reset inputs
+
+                // ✅ Clear any stored wicket data (if you stored it globally)
+                window.currentWicketData = null;
+            });
+
+            // Example function to populate dropdown from bowling team
+            function loadBowlingTeamPlayers(selectId) {
+                const select = document.getElementById(selectId);
+                select.innerHTML = ""; // reset
+                bowlingTeamPlayers.forEach(player => {
+                    const opt = document.createElement("option");
+                    opt.value = player.id;
+                    opt.textContent = player.name;
+                    select.appendChild(opt);
+                });
+            }
+
             // ------------------------
             // Send payload to backend
             // ------------------------
             function sendDeliveryToServer(delivery) {
-                console.log("Payload:", delivery);
-
                 fetch("{{ route('admin.cricket-matches.scoreboard.store-delivery') }}", {
                         method: "POST",
                         headers: {
@@ -1026,29 +1363,34 @@
                     })
                     .then(res => res.json())
                     .then(data => {
-                        if (data.success) {
-                            loadCurrentStats(matchId);
-                            loadCurrentOver();
-                            Swal.fire({
-                                toast: true,
-                                position: 'top-end',
-                                icon: 'success',
-                                title: data.message || 'Delivery stored & stats updated.',
-                                showConfirmButton: false,
-                                timer: 2500,
-                                timerProgressBar: true
-                            });
-                        } else {
-                            console.error("Validation failed:", data.errors);
-                            Swal.fire('Error', data.message || 'Failed to record delivery', 'error');
-                        }
+                        if (!data.success) throw new Error(data.message || 'Failed to record delivery');
+
+                        loadCurrentStats(matchId);
+                        loadCurrentOver();
+
+                        const saved = JSON.parse(localStorage.getItem("match_state_" + matchId) || "{}");
+                        saved.striker = data.updated_state.striker;
+                        saved.nonStriker = data.updated_state.nonStriker;
+                        localStorage.setItem("match_state_" + matchId, JSON.stringify(saved));
+
+                        Swal.fire({
+                            toast: true,
+                            position: 'top-end',
+                            icon: 'success',
+                            title: data.message || 'Delivery stored & stats updated.',
+                            showConfirmButton: false,
+                            timer: 2500,
+                            timerProgressBar: true
+                        });
                     })
                     .catch(err => console.error("Error recording delivery:", err));
             }
 
             function loadCurrentOver() {
-                let chooseBowlerRoute = "{{ route('admin.cricket-matches.scoreboard.current-over', ['match' => '__MATCH__']) }}";
+                let chooseBowlerRoute =
+                    "{{ route('admin.cricket-matches.scoreboard.current-over', ['match' => '__MATCH__']) }}";
                 const url = chooseBowlerRoute.replace('__MATCH__', matchId);
+
                 fetch(url)
                     .then(res => res.json())
                     .then(data => {
@@ -1059,29 +1401,28 @@
 
                         data.balls.forEach(ball => {
                             const span = document.createElement('span');
-                            span.classList.add('ball', ball.class);
-                            span.innerText = ball.ball;
+
+                            // Add multiple classes safely
+                            if (ball.class) {
+                                ball.class.split(' ').forEach(cls => {
+                                    if (cls.trim()) span.classList.add(cls.trim());
+                                });
+                            }
+
+                            // Ensure ball.ball is a string
+                            const ballLabel = String(ball.ball);
+
+                            // Highlight wicket with red color
+                            if (ballLabel.includes('W')) {
+                                span.classList.add('wicket-ball'); // define in CSS
+                            }
+
+                            span.innerText = ballLabel;
                             container.appendChild(span);
                         });
                     })
                     .catch(err => console.error('Error loading current over:', err));
             }
-
-            // ------------------------
-            // 🔹 Mark Player as Out
-            // ------------------------
-            window.markAsOut = function(role) {
-                if (role === 'striker') {
-                    strikerId = null;
-                    document.getElementById("strikerName").innerText = "Choose Player";
-                    document.getElementById("strikerImg").src = "";
-                } else {
-                    nonStrikerId = null;
-                    document.getElementById("nonStrikerName").innerText = "Choose Player";
-                    document.getElementById("nonStrikerImg").src = "";
-                }
-                saveMatchState();
-            };
 
             // ------------------------
             // 🔹 Load Yet-To-Bat Players
@@ -1166,7 +1507,8 @@
             $('#bowler-select').on('select2:select', function(e) {
                 const bowlerId = e.params.data.id;
                 const teamId = $('#bowling_team_id').val();
-                let chooseBowlerRoute = "{{ route('admin.cricket-matches.scoreboard.choose-bowler', ['match' => '__MATCH__']) }}";
+                let chooseBowlerRoute =
+                    "{{ route('admin.cricket-matches.scoreboard.choose-bowler', ['match' => '__MATCH__']) }}";
                 const url = chooseBowlerRoute.replace('__MATCH__', matchId);
                 $.ajax({
                     url: url,
@@ -1199,8 +1541,15 @@
                                 bowlingTbody.appendChild(tr);
                             });
 
-                            alert("Bowler Selected");
-                            console.log(res)
+                            Swal.fire({
+                                toast: true,
+                                position: 'top-end',
+                                icon: 'success',
+                                title: "Bowler Selected..",
+                                showConfirmButton: false,
+                                timer: 2500,
+                                timerProgressBar: true
+                            });
                         } else {
                             alert(res.message || "Something went wrong!");
                         }
@@ -1245,7 +1594,7 @@
                             $('#currentOvers').text(scoreboard.overs + " / " + scoreboard.totalOvers);
                             $('#currentCRR').text(scoreboard.currentCRR);
                             $('#projectedScore').text(scoreboard.projected);
-                            console.log(data)
+
                             const tbody = document.querySelector('#batting-stats');
                             tbody.innerHTML = '';
 
@@ -1291,7 +1640,6 @@
                             bowlingTbody.addEventListener('change', (e) => {
                                 if (e.target.name === 'current-bowler') {
                                     const currentBowlerId = e.target.value;
-                                    console.log("🎯 Current bowler set:", currentBowlerId);
                                     saveMatchState();
                                 }
                             });
@@ -1302,7 +1650,6 @@
 
                             if (data.partnerships.length > 0) {
                                 data.partnerships.forEach(p => {
-                                    console.log(p);
                                     let trContent = `<tr>
                                                 <th>
                                                     <div class="d-flex align-items-center p-2">
@@ -1347,7 +1694,6 @@
                             fallWicketsList.innerHTML = '';
 
                             if (data.fall_of_wickets && data.fall_of_wickets.length > 0) {
-                                console.log("Fall Of Wickets: " + data.fall_of_wickets.length)
                                 data.fall_of_wickets.forEach(w => {
                                     // w should have: player_name, runs, balls, over
                                     const tr = document.createElement('tr');
@@ -1365,6 +1711,8 @@
                                 tr.innerHTML = `<th colspan="3" class="text-center">No wickets fallen yet</th>`;
                                 fallWicketsList.appendChild(tr);
                             }
+
+
 
                             loadMatchState();
                         } else {

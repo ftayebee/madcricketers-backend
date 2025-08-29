@@ -1,4 +1,2 @@
-[2025-08-28 13:20:53] local.INFO: Batsman 1: 27.00 Share: 39  
-[2025-08-28 13:20:53] local.INFO: Batsman 2: 43.00 Share: 61  
-[2025-08-28 13:22:14] local.INFO: Striker Switched...  
-[2025-08-28 13:22:22] local.INFO: Striker Switched...  
+[2025-08-29 11:12:22] local.INFO: FallOfWicket:  {"data":{"Illuminate\\Support\\Collection":[{"player_name":"Player 2","runs":87,"balls":0,"over":"10.4","wicket_number":1,"dismissal_type":"run_out"}]}} 
+[2025-08-29 11:12:29] local.INFO: Request Received:  {"request":{"match_id":"10","bowler_id":"23","team_id":"7"}} 

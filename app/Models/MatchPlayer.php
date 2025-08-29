@@ -13,16 +13,16 @@ class MatchPlayer extends Model
 
     public function match()
     {
-        return $this->belongsTo(CricketMatch::class);
+        return $this->belongsTo(CricketMatch::class, 'match_id', 'id');
     }
 
     public function player()
     {
-        return $this->belongsTo(Player::class);
+        return $this->belongsTo(Player::class, 'player_id', 'id');
     }
 
     public function team()
     {
-        return $this->belongsTo(Team::class);
+        return $this->belongsTo(Team::class, 'team_id', 'id');
     }
 }
