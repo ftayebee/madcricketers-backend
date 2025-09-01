@@ -846,8 +846,6 @@ class CricketMatchController extends Controller
         }
     }
 
-
-
     public function getMatchInfo(Request $request)
     {
         try {
@@ -1135,11 +1133,9 @@ class CricketMatchController extends Controller
         }
     }
 
-
     public function storeDelivery(Request $request)
     {
         try {
-            Log::info('Request Received: ', ['request' => $request->all()]);
             $validator = Validator::make($request->all(), [
                 'match_id'       => 'required|exists:cricket_matches,id',
                 'striker_id'     => 'nullable|exists:players,id',
