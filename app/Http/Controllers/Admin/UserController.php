@@ -303,6 +303,8 @@ class UserController extends Controller
                 throw new Exception('Unauthorized Access');
             }
 
+            Log::info($request->all());
+
             $validator = Validator::make($request->all(), [
                 'general.profile_picture' => 'nullable|mimes:jpg,jpeg,png|max:1024',
                 'general.full_name'       => 'required|string|max:255',
@@ -319,6 +321,8 @@ class UserController extends Controller
                 'general.address'         => 'nullable|string|max:500',
                 'general.national_id'     => 'nullable|digits_between:10,17',
             ]);
+
+            
 
             $user = User::findOrFail($id);
 
@@ -381,7 +385,14 @@ class UserController extends Controller
                 }
 
                 // Save image
-                $uploadPath = storage_path('app/public/uploads/users');
+                $basePath = storage_path('app/public/uploads');
+
+                if ($user->hasRole('player')) {
+                    $uploadPath = $basePath . '/players';
+                } else {
+                    $uploadPath = $basePath . '/users';
+                }
+
                 if (!file_exists($uploadPath)) {
                     mkdir($uploadPath, 0775, true);
                 }
@@ -391,11 +402,25 @@ class UserController extends Controller
             }
 
             $user->update();
+
+            if($user->hasRole('player')){
+                $player                 = $user->player;
+                $player->user_id        = $user->id;
+                $player->player_type    = $request->input('player.player_type');
+                $player->player_role    = $request->input('player.player_role');
+                $player->batting_style  = $request->input('player.batting_style');
+                $player->bowling_style  = $request->input('player.bowling_style');
+                $player->jursey_number     = $request->input('player.jursey_number');
+                $player->jursey_name       = $request->input('player.jursey_name');
+                $player->jursey_size       = $request->input('player.jursey_size');
+                $player->chest_measurement = $request->input('player.chest_measurement');
+                $player->save();
+            }
             DB::commit();
 
             return redirect($request->input('redirect') ?? route('admin.settings.users.index'))->with([
                 'success' => true,
-                'message' => 'User created successfully!',
+                'message' => 'User Updated successfully!',
             ]);
         } catch (Exception $e) {
             DB::rollBack();

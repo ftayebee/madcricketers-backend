@@ -57,11 +57,6 @@ class User extends Authenticatable
             return asset('storage/' . $imagePath);
         }
 
-        Log::warning("User image not found", [
-            'user_id' => $this->id,
-            'image_path' => $imagePath,
-        ]);
-
         return $defaultLogo;
     }
 

@@ -18,11 +18,8 @@ class PlayerController extends Controller
     public function register(Request $request)
     {
         try {
-            Log::info('Player registration request received', [
-                'request' => $request->all()
-            ]);
             $validator = Validator::make($request->all(), [
-                'image' => 'nullable|mimes:jpg,jpeg,png|max:1024',
+                'image'           => 'nullable|mimes:jpg,jpeg,png|max:1024',
                 'full_name'       => 'required|string|max:255',
                 'nickname'        => 'nullable|string|max:255',
                 'username'        => 'nullable|string|max:255',
@@ -39,6 +36,10 @@ class PlayerController extends Controller
                 'player_role'     => 'required|string|max:50',
                 'batting_style'   => 'required|string|max:50',
                 'bowling_style'   => 'required|string|max:50',
+                'jursey_number'      => 'required|string|max:10',
+                'jursey_name'        => 'required|string|max:50',
+                'jursey_size'        => 'required|in:s,m,l,xl,2xl,3xl',
+                'chest_measurement'  => 'nullable|string|max:10',
             ]);
 
             if ($validator->fails()) {
@@ -112,6 +113,10 @@ class PlayerController extends Controller
             $player->player_role    = $request->input('player_role');
             $player->batting_style  = $request->input('batting_style');
             $player->bowling_style  = $request->input('bowling_style');
+            $player->jursey_number     = $request->input('jursey_number');
+            $player->jursey_name       = $request->input('jursey_name');
+            $player->jursey_size       = $request->input('jursey_size');
+            $player->chest_measurement = $request->input('chest_measurement');
             $player->save();
 
             DB::commit();

@@ -15,6 +15,10 @@ class Player extends Model
         'player_role',
         'batting_style',
         'bowling_style',
+        'jursey_number',
+        'jursey_name',
+        'jursey_size',
+        'chest_measurement'
     ];
 
     public function user() {

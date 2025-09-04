@@ -70,12 +70,12 @@
                             </div>
                             <div class="ms-auto">
                                 <p class="mb-1 text-muted">Mark Player Application As</p>
-                                <form action="{{ route('admin.players.approve', $user->id) }}" method="POST">
+                                <form action="{{ route('admin.players.approve', $user->id) }}" method="POST" class="form-type-update" data-id="{{ $user->id }}">
                                     @csrf
                                     <div class="form-check form-switch">
-                                        <input class="form-check-input" type="checkbox" id="approveSwitch{{ $user->id }}" name="approve" onchange="this.form.submit()" {{ $user->player && $user->player->player_type === 'registered' ? 'checked' : '' }}>
+                                        <input class="form-check-input approve-switch" type="checkbox" id="approveSwitch{{ $user->id }}" name="approve" {{ $user->player && $user->player->player_type === 'registered' ? 'checked' : '' }}>
                                         <label class="form-check-label" for="approveSwitch{{ $user->id }}">
-                                            {{ $user->status === 'active' ? 'Registered' : 'Guest' }}
+                                            {{ $user->player->player_type === 'registered' ? 'Registered' : 'Guest' }}
                                         </label>
                                     </div>
                                 </form>
@@ -206,8 +206,78 @@
 
 @push('scripts')
     <script>
-        $(document).ready(function() {
-            // Additional interactivity can go here
+        document.querySelectorAll('.approve-switch').forEach((checkbox) => {
+            checkbox.addEventListener('change', function () {
+                const form = this.closest('.form-type-update');
+                const userId = form.dataset.id;
+                const redirectTo = "{{ url()->current() }}"
+                const approved = this.checked ? 'on' : 'off'; // mimic what backend expects
+
+                fetch(`/admin/players/approve/${userId}`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRF-TOKEN': document.querySelector('input[name="_token"]').value
+                    },
+                    body: JSON.stringify({ approve: approved , redirection: redirectTo})
+                })
+                .then(res => res.json())
+                .then(data => {
+                    if (data.success) {
+                        if(data.redirect) {
+                            window.location.href = data.redirect;
+                        } else {
+                            window.location.reload();
+                        }
+                    } else {
+                        alert('Failed to update player status.');
+                    }
+                })
+                .catch(err => {
+                    console.error(err);
+                    alert('Error updating status.');
+                });
+            });
         });
+        // $(document).on('submit', '#form-type-update', function(e) {
+        //     e.preventDefault();
+            
+        //     const $form = $(this);
+        //     const userId = $form.find('input[type="checkbox"]').attr('id').replace('approveSwitch', '');
+        //     const approveChecked = $form.find('input[name="approve"]').is(':checked');
+        //     const approveValue = approveChecked ? 'on' : 'off'; // mimic what checkbox would send
+
+        //     fetch(`/admin/players/approve/${userId}`, {
+        //         method: 'POST',
+        //         headers: {
+        //             'Content-Type': 'application/json',
+        //             'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+        //         },
+        //         body: JSON.stringify({
+        //             approve: approveValue,
+                    
+        //         })
+        //     })
+        //     .then(response => {
+        //         if (!response.ok) throw new Error('Network response was not ok');
+        //         return response.json();
+        //     })
+        //     .then(data => {
+        //         if (data.success) {
+        //             console.log('Player status updated:', data);
+        //             const label = $form.find('label');
+        //             label.text(approveChecked ? 'Registered' : 'Guest');
+        //             label.removeClass('text-success text-danger').addClass(approveChecked ? 'text-success' : 'text-danger');
+                    
+        //             if(data.success && data.redirect){
+        //                 window.location.href = data.redirect;
+        //             }
+        //         }
+        //     })
+        //     .catch(error => {
+        //         console.error('Failed to update player status:', error);
+        //         alert('Failed to update player status.');
+        //     });
+        // });
     </script>
 @endpush

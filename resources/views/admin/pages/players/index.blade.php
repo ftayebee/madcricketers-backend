@@ -15,8 +15,13 @@
             .choices[data-type*="select-one"].is-disabled:after {
                 content: "\f107" !important;
             }
+
+            .status-wrapper .btn-check {
+                margin-left: 5px;
+            }
         </style>
     @endpush
+    <meta name="csrf-token" content="{{csrf_token()}}" />
     <div class="row">
         <div class="col-sm-12">
             <div class="card">
@@ -108,12 +113,12 @@
                         render: function(data, type, row) {
                             const imageUrl = row.image ? row.image : '/path/to/default/image.jpg';
                             return `<div class="d-flex align-items-center file-name-icon">
-                                        <a href="${row.viewUrl}" class="avatar avatar-md avatar-rounded" style="background: #edefff; border-radius: 5px;">
-                                            <img src="${imageUrl}" class="img-fluid" alt="img">
+                                        <a href="${row.viewUrl}" class="avatar avatar-lg avatar-rounded" style="background: #edefff; border-radius: 5px;">
+                                            <img src="${imageUrl}" class="img-fluid  rounded-3 border border-secondary border-3" alt="img">
                                         </a>
                                         <div class="ms-2">
-                                            <h6 class="fw-medium">
-                                                <a href="${row.viewUrl}">${data}</a>
+                                            <h6 class="fw-medium fs-14 m-0">
+                                                ${data}
                                             </h6>
                                         </div>
                                     </div>`;
@@ -121,15 +126,18 @@
                     },
                     {
                         data: 'email',
-                        title: 'Email'
+                        title: 'Email',
+                        className: "fs-14",
                     },
                     {
                         data: 'phone',
-                        title: 'Phone'
+                        title: 'Phone',
+                        className: "fs-14",
                     },
                     {
                         data: 'playerRole',
                         title: 'Role',
+                        className: "fs-14",
                         render: function(data, type, row) {
                             if (!data) return '';
 
@@ -146,16 +154,31 @@
                     {
                         data: 'playerType',
                         title: 'Type',
+                        width: "220px",
                         render: function(data, type, row) {
-                            return data ?
-                                `<span class="badge bg-${data == 'guest' ? 'warning' : 'info'} text-uppercase">${data}</span>` :
-                                '';
+                            const options = ['guest', 'registered'];
+                            let selectOptions = options.map(opt => {
+                                return `<option value="${opt}" ${opt === data ? 'selected' : ''}>${opt.charAt(0).toUpperCase() + opt.slice(1)}</option>`;
+                            }).join('');
+
+                            // Determine border color
+                            let borderClass = '';
+                            if (data === 'guest') borderClass = 'border-warning';
+                            else if (data === 'registered') borderClass = 'border-success';
+
+                            return `
+                                <div class="status-wrapper">
+                                    <select class="form-select form-select-sm status-select fs-14 ${borderClass}" name="player_type-${row.id}" data-id="${row.id}">
+                                        ${selectOptions}
+                                    </select>
+                                </div>
+                            `;
                         }
                     },
-
                     {
                         data: 'status',
                         title: 'Status',
+                        className: "fs-14",
                         render: function(data, type, row) {
                             return data == 'active' ?
                                 `<span class="badge bg-success text-uppercase">${data}</span>` :
@@ -168,7 +191,7 @@
                         orderable: false,
                         searchable: false,
                         width: "120px",
-                        className: "text-center",
+                        className: "text-center fs-14",
                         render: function(data, type, row) {
                             return `
                                 <a class="btn btn-icon btn-sm btn-soft-success rounded-pill" href="${row.viewUrl}?redirect=${redirectTo}"><i class="fa fa-eye"></i></a>
@@ -181,7 +204,7 @@
 
             $('#filter_type').on('change', function() {
                 const filterType = $(this).val();
-                if(filterType != 'all') {
+                if (filterType != 'all') {
                     playersTable.column(5).search(filterType).draw();
                 } else {
                     playersTable.column(5).search('').draw();
@@ -190,11 +213,48 @@
 
             $('#filter_role').on('change', function() {
                 const filterRole = $(this).val();
-                if(filterRole != 'all') {
+                if (filterRole != 'all') {
                     playersTable.column(4).search(filterRole).draw();
                 } else {
                     playersTable.column(4).search('').draw();
                 }
+            });
+
+            $('#tbl-players').on('change', '.status-select', function() {
+                const $select = $(this);
+                const rowId = $select.data('id');
+                const newStatus = $select.val();
+                
+                $select.removeClass('border-warning border-success');
+                if(newStatus === 'guest') $select.addClass('border-warning');
+                else if(newStatus === 'registered') $select.addClass('border-success');
+
+                // Call your update logic (AJAX)
+                fetch(`/admin/players/approve/${rowId}`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+                        },
+                        body: JSON.stringify({
+                            approve: newStatus,
+                            redirection: redirectTo
+                        })
+                    })
+                    .then(response => {
+                        if (!response.ok) throw new Error('Network response was not ok');
+                        return response.json();
+                    })
+                    .then(data => {
+                        if(data.success){
+                            console.log('Status updated:', data);
+                            window.location.href = data.redirect;
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Update failed:', error);
+                        alert('Failed to update player status.');
+                    });
             });
 
             $(document).on('click', '.btn-delete', function() {

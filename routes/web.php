@@ -41,7 +41,7 @@ Route::prefix('admin')->name('admin.')->group(function(){
             Route::get('/loader', [UserController::class, 'loader'])->name('loader'); // working
             Route::get('/create', [UserController::class, 'create'])->name('create'); // working
             Route::get('/show/{id}', [UserController::class, 'show'])->name('show'); // working
-            Route::get('/edit', [UserController::class, 'edit'])->name('edit'); // working
+            Route::get('/edit/{id}', [UserController::class, 'edit'])->name('edit');
             Route::post('/store', [UserController::class, 'store'])->name('store'); // working
             Route::post('/update/{id}', [UserController::class, 'update'])->name('update');
             Route::post('/destroy/{id}', [UserController::class, 'destroy'])->name('destroy'); // working

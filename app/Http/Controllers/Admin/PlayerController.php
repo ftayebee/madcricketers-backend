@@ -126,7 +126,7 @@ class PlayerController extends Controller
     {
         try {
             $user = User::findOrFail($id);
-            $isApproved = $request->has('approve') && $request->input('approve') == 'on';
+            $isApproved = $request->has('approve') && $request->input('approve') == 'on' || $request->input('approve') == 'registered';
 
             if ($user->player) {
                 $user->player->update([
@@ -134,9 +134,10 @@ class PlayerController extends Controller
                 ]);
             }
 
-            return redirect()->route('admin.players.show', $id)->with([
+            return response()->json([
                 'success' => true,
-                'message' => 'Player status updated successfully.'
+                'message' => 'Player status updated successfully.',
+                'redirect'=> $request->redirection ?? url()->current()
             ]);
 
         } catch (Exception $e) {

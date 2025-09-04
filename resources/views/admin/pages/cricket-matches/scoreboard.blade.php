@@ -463,7 +463,7 @@
                                     {{-- Extras --}}
                                     <div>
                                         <h5>Extras</h5>
-                                        @foreach (['NB', 'WD', 'LB'] as $extra)
+                                        @foreach (['NB', 'WD', 'LB', 'BY'] as $extra)
                                             <button type="button" class="btn btn-outline-warning btn-extra"
                                                 data-bs-toggle="modal" data-bs-target="#extraModal"
                                                 data-extra="{{ $extra }}">
@@ -589,7 +589,7 @@
                             <table class="table">
                                 <thead>
                                     <tr>
-                                        <th width="50%" class="text-left">Batter</th>
+                                        <th width="50%" class="text-left font-weight-bold">Player Name</th>
                                         <th width="10%" class="text-center">R</th>
                                         <th width="10%" class="text-center">B</th>
                                         <th width="10%" class="text-center">4s</th>
@@ -616,7 +616,7 @@
                             <table class="table">
                                 <thead>
                                     <tr>
-                                        <th width="50%" class="text-left">Bowler</th>
+                                        <th width="50%" class="text-left font-weight-bold">Player Name</th>
                                         <th width="10%" class="text-center">O</th>
                                         <th width="10%" class="text-center">M</th>
                                         <th width="10%" class="text-center">R</th>
@@ -693,11 +693,13 @@
                         <button type="reset" class="btn btn-sm btn-warning" id="btn-reset-wicket-form">Reset</button>
                     </div>
                     <div class="d-flex flex-column gap-2">
-                        <button class="btn btn-outline-danger btn-wicket-type" data-wicket="Run Out">Run Out</button>
                         <button class="btn btn-outline-danger btn-wicket-type" data-wicket="Bowled">Bowled</button>
-                        <button class="btn btn-outline-danger btn-wicket-type" data-wicket="Caught">Caught</button>
-                        <button class="btn btn-outline-danger btn-wicket-type" data-wicket="LBW">LBW</button>
+                        <button class="btn btn-outline-danger btn-wicket-type" data-wicket="Caught">Catch</button>
+                        <button class="btn btn-outline-danger btn-wicket-type" data-wicket="Run Out">Run Out</button>
                         <button class="btn btn-outline-danger btn-wicket-type" data-wicket="Stumped">Stumped</button>
+                        <button class="btn btn-outline-danger btn-wicket-type" data-wicket="Hit-Wicket">Hit-Wicket</button>
+                        <button class="btn btn-outline-danger btn-wicket-type" data-wicket="Retired-Hurt">Retired-Hurt</button>
+                        <button class="btn btn-outline-danger btn-wicket-type" data-wicket="LBW">LBW</button>
                     </div>
 
                     <!-- Run Out Options -->
@@ -1318,22 +1320,17 @@
             });
 
             $('#btn-reset-wicket-form').on('click', function () {
-                // ✅ Remove active/selected state from wicket type buttons
                 document.querySelectorAll(".btn-wicket-type").forEach(btn => {
                     btn.classList.remove("active");
                     btn.classList.remove("d-none"); // show them again if previously hidden
                 });
 
-                // ✅ Hide all extra sections (Run Out, Caught, Stumped, etc.)
                 document.querySelectorAll(".wicket-extra").forEach(el => {
                     el.classList.add("d-none");
                 });
-
-                // ✅ Reset selects & inputs inside modal
+                
                 $('#wicketModal select').val('').trigger('change'); // reset dropdowns
                 $('#wicketModal input').val(''); // reset inputs
-
-                // ✅ Clear any stored wicket data (if you stored it globally)
                 window.currentWicketData = null;
             });
 
