@@ -662,9 +662,6 @@ class CricketMatchController extends Controller
                                 ];
                             });
 
-
-            Log::info("FallOfWicket: ", ['data'=> $fallOfWickets]);
-
             // 5️⃣ ScoreBoard
             $matchScoreboard = MatchScoreBoard::where('match_id', $matchId)
                 ->where('team_id', $batting_team_id)
@@ -956,82 +953,6 @@ class CricketMatchController extends Controller
         }
     }
 
-
-    public function switchStrike(Request $request)
-    {
-        try {
-            $validator = Validator::make($request->all(), [
-                'match_id' => 'required|exists:cricket_matches,id',
-            ]);
-
-            if ($validator->fails()) {
-                return response()->json([
-                    'success' => false,
-                    'message' => 'Invalid request.',
-                    'errors' => $validator->errors(),
-                ], 422);
-            }
-
-            $matchId = $request->match_id;
-
-            // Get current striker and non-striker
-            $striker = MatchPlayer::where('match_id', $matchId)
-                ->where('status', 'on-strike')
-                ->first();
-
-            $nonStriker = MatchPlayer::where('match_id', $matchId)
-                ->where('status', 'batting')
-                ->first();
-
-            if (!$striker || !$nonStriker) {
-                return response()->json([
-                    'success' => false,
-                    'message' => 'Cannot switch strike. Both striker and non-striker must be selected.',
-                ], 400);
-            }
-
-            // Swap statuses
-            $striker->status = 'batting';
-            $nonStriker->status = 'on-strike';
-
-            $striker->save();
-            $nonStriker->save();
-            Log::info("Striker Switched...");
-            
-            return response()->json([
-                'success' => true,
-                'message' => 'Strike switched successfully.',
-                'data' => [
-                    'striker' => [
-                        'id' => $nonStriker->player_id,
-                        'name' => $nonStriker->player->user->full_name,
-                        'img' => $nonStriker->player->image ?? asset('storage/assets/images/users/dummy-avatar.jpg'),
-                        'runs' => $nonStriker->runs_scored ?? 0,
-                        'balls' => $nonStriker->balls_faced ?? 0,
-                    ],
-                    'nonStriker' => [
-                        'id' => $striker->player_id,
-                        'name' => $striker->player->user->full_name,
-                        'img' => $striker->player->image ?? asset('storage/assets/images/users/dummy-avatar.jpg'),
-                        'runs' => $striker->runs_scored ?? 0,
-                        'balls' => $striker->balls_faced ?? 0,
-                    ]
-                ]
-            ]);
-        } catch (\Exception $e) {
-            Log::error("Error switching strike", [
-                'line' => $e->getLine(),
-                'file' => $e->getFile(),
-                'message' => $e->getMessage(),
-            ]);
-
-            return response()->json([
-                'success' => false,
-                'message' => 'Failed to switch strike.',
-            ], 500);
-        }
-    }
-
     public function getCurrentOver($matchId)
     {
         try {
@@ -1131,6 +1052,119 @@ class CricketMatchController extends Controller
             Log::error('Error fetching current over', ['message' => $e->getMessage()]);
             return response()->json(['success' => false, 'message' => 'Failed to fetch current over.']);
         }
+    }
+
+    public function switchStrike(Request $request)
+    {
+        try {
+            $validator = Validator::make($request->all(), [
+                'match_id' => 'required|exists:cricket_matches,id',
+            ]);
+
+            if ($validator->fails()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Invalid request.',
+                    'errors' => $validator->errors(),
+                ], 422);
+            }
+
+            $matchId = $request->match_id;
+            $strikeSwitched = $this->doSwitchStrike($matchId);
+
+            // Get current striker and non-striker
+            $striker = MatchPlayer::where('match_id', $matchId)
+                ->where('status', 'on-strike')
+                ->first();
+
+            $nonStriker = MatchPlayer::where('match_id', $matchId)
+                ->where('status', 'batting')
+                ->first();
+
+            if (!$striker || !$nonStriker) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Cannot switch strike. Both striker and non-striker must be selected.',
+                ], 400);
+            }
+
+            if (!$strikeSwitched) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Strike switch failed.',
+                ], 500);
+            }
+            
+            return response()->json([
+                'success' => true,
+                'message' => 'Strike switched successfully.',
+                'data' => [
+                    'striker' => [
+                        'id' => $striker->player_id,
+                        'name' => $striker->player->user->full_name,
+                        'img' => $striker->player->image ?? asset('storage/assets/images/users/dummy-avatar.jpg'),
+                        'runs' => $striker->runs_scored ?? 0,
+                        'balls' => $striker->balls_faced ?? 0,
+                    ],
+                    'nonStriker' => [
+                        'id' => $nonStriker->player_id,
+                        'name' => $nonStriker->player->user->full_name,
+                        'img' => $nonStriker->player->image ?? asset('storage/assets/images/users/dummy-avatar.jpg'),
+                        'runs' => $nonStriker->runs_scored ?? 0,
+                        'balls' => $nonStriker->balls_faced ?? 0,
+                    ]
+                ]
+            ]);
+        } catch (\Exception $e) {
+            Log::error("Error switching strike", [
+                'line' => $e->getLine(),
+                'file' => $e->getFile(),
+                'message' => $e->getMessage(),
+            ]);
+
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to switch strike.',
+            ], 500);
+        }
+    }
+
+    private function doSwitchStrike($matchId)
+    {
+        $striker = MatchPlayer::where('match_id', $matchId)
+            ->where('status', 'on-strike')
+            ->first();
+
+        $nonStriker = MatchPlayer::where('match_id', $matchId)
+            ->where('status', 'batting')
+            ->first();
+
+        // 🔹 If not found in normal orientation, try reversed
+        if (!$striker || !$nonStriker) {
+            $striker = MatchPlayer::where('match_id', $matchId)
+                ->where('status', 'batting')
+                ->first();
+
+            $nonStriker = MatchPlayer::where('match_id', $matchId)
+                ->where('status', 'on-strike')
+                ->first();
+        }
+
+        if (!$striker || !$nonStriker) {
+            return false;
+        }
+
+        // 🔹 Swap
+        $strikerStatus = $striker->status;
+        $nonStrikerStatus = $nonStriker->status;
+
+        $striker->status = $nonStrikerStatus;
+        $nonStriker->status = $strikerStatus;
+
+        $striker->save();
+        $nonStriker->save();
+
+        return true;
     }
 
     public function storeDelivery(Request $request)
@@ -1408,14 +1442,12 @@ class CricketMatchController extends Controller
             $isWicket = $delivery->is_wicket;
 
             if ($ballInOver == 6) {
-                if (!in_array($runs, [1,3])) {
-                    $this->switchStrike($matchId);
-                }
+                $this->doSwitchStrike($matchId);
             }
 
             // ✅ If wicket or dot on last ball, still switch
             if ($ballInOver == 6 && ($isWicket || $runs == 0)) {
-                $this->switchStrike($matchId);
+                $this->doSwitchStrike($matchId);
             }
 
             DB::commit();

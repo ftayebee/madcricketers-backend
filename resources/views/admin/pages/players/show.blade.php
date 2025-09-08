@@ -239,45 +239,5 @@
                 });
             });
         });
-        // $(document).on('submit', '#form-type-update', function(e) {
-        //     e.preventDefault();
-            
-        //     const $form = $(this);
-        //     const userId = $form.find('input[type="checkbox"]').attr('id').replace('approveSwitch', '');
-        //     const approveChecked = $form.find('input[name="approve"]').is(':checked');
-        //     const approveValue = approveChecked ? 'on' : 'off'; // mimic what checkbox would send
-
-        //     fetch(`/admin/players/approve/${userId}`, {
-        //         method: 'POST',
-        //         headers: {
-        //             'Content-Type': 'application/json',
-        //             'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
-        //         },
-        //         body: JSON.stringify({
-        //             approve: approveValue,
-                    
-        //         })
-        //     })
-        //     .then(response => {
-        //         if (!response.ok) throw new Error('Network response was not ok');
-        //         return response.json();
-        //     })
-        //     .then(data => {
-        //         if (data.success) {
-        //             console.log('Player status updated:', data);
-        //             const label = $form.find('label');
-        //             label.text(approveChecked ? 'Registered' : 'Guest');
-        //             label.removeClass('text-success text-danger').addClass(approveChecked ? 'text-success' : 'text-danger');
-                    
-        //             if(data.success && data.redirect){
-        //                 window.location.href = data.redirect;
-        //             }
-        //         }
-        //     })
-        //     .catch(error => {
-        //         console.error('Failed to update player status:', error);
-        //         alert('Failed to update player status.');
-        //     });
-        // });
     </script>
 @endpush
