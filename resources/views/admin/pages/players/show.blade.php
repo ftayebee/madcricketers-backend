@@ -1,6 +1,7 @@
 @extends('admin.layouts.theme')
 
 @section('content')
+    
     @push('styles')
         <style>
             .user-profile-card {

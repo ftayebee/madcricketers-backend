@@ -114,7 +114,7 @@
                             const imageUrl = row.image ? row.image : '/path/to/default/image.jpg';
                             return `<div class="d-flex align-items-center file-name-icon">
                                         <a href="${row.viewUrl}" class="avatar avatar-lg avatar-rounded" style="background: #edefff; border-radius: 5px;">
-                                            <img src="${imageUrl}" class="img-fluid  rounded-3 border border-secondary border-3" alt="img">
+                                            <img src="${imageUrl}" class="img-fluid  rounded-3 border border-3" alt="img" style="border-color: #c0ffab!important;">
                                         </a>
                                         <div class="ms-2">
                                             <h6 class="fw-medium fs-14 m-0">

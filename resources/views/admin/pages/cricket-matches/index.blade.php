@@ -6,7 +6,7 @@
             <div class="card">
                 <div class="card-header d-flex align-items-center justify-content-between flex-wrap row-gap-3">
                     <h5>Daily Cricket Matches List</h5>
-                    <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#add-tournament">
+                    <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#add-cricket-match">
                         Add New
                     </button>
                 </div>
@@ -41,127 +41,77 @@
         </div>
     </div>
 
-    <div class="modal fade" id="add-tournament" tabindex="-1" aria-labelledby="add-tournamentTitle" aria-hidden="true">
+    <div class="modal fade" id="add-cricket-match" tabindex="-1" aria-labelledby="add-tournamentTitle" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered modal-lg"> <!-- wider modal -->
             <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title" id="add-tournamentTitle">Add New Tournament</h5>
+                <div class="modal-header" style="background: #06923E!important;">
+                    <h5 class="modal-title" id="add-tournamentTitle" style="color: #fff; font-size: 20px; font-weight: 800;margin:0px;">Add New Cricket Match</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
 
-                <form action="{{ route('admin.tournaments.store') }}" method="POST" enctype="multipart/form-data">
+                <form action="{{ route('admin.cricket-matches.store') }}" method="POST" enctype="multipart/form-data">
                     @csrf
                     <div class="modal-body">
                         <div class="row g-3">
                             <div class="col-md-6">
-                                <label for="name" class="form-label">Tournament Name</label>
-                                <input type="text" name="name" class="form-control"
-                                    placeholder="Enter tournament name" required>
+                                <label for="name" class="form-label">Match Title (Optional)</label>
+                                <input type="text" name="title" class="form-control" placeholder="Enter Title">
                             </div>
 
                             <div class="col-md-6">
-                                <label for="location" class="form-label">Location</label>
-                                <input type="text" name="location" class="form-control"
-                                    placeholder="Enter venue or city">
+                                <label for="venue" class="form-label">Match Venue</label>
+                                <input type="text" name="venue" class="form-control" placeholder="Enter venue or city">
+                            </div>
+                            <div class="col-md-6">
+                                <label for="team_a_id" class="form-label">Team A</label>
+                                <select name="team_a_id" class="form-select select2">
+                                    <option value=""></option>
+                                    @foreach (\App\Models\Team::all() as $item)
+                                        <option value="{{$item->id}}">{{$item->name}}</option>
+                                    @endforeach
+                                </select>
+                            </div>
+                            <div class="col-md-6">
+                                <label for="team_b_id" class="form-label">Team B</label>
+                                <select name="team_b_id" class="form-select select2">
+                                    <option value=""></option>
+                                    @foreach (\App\Models\Team::all() as $item)
+                                        <option value="{{$item->id}}">{{$item->name}}</option>
+                                    @endforeach
+                                </select>
                             </div>
 
-                            <div class="col-md-3">
-                                <label for="start_date" class="form-label">Start Date</label>
-                                <input type="date" name="start_date" class="form-control">
+                            <div class="col-md-6">
+                                <label for="match_date" class="form-label">Match Date</label>
+                                <input type="date" name="match_date" class="form-control">
+                            </div>
+                            <div class="col-md-6">
+                                <label for="max_overs" class="form-label">Total Overs (Per Innings)</label>
+                                <input type="number" name="max_overs" class="form-control">
                             </div>
 
-                            <div class="col-md-3">
-                                <label for="end_date" class="form-label">End Date</label>
-                                <input type="date" name="end_date" class="form-control">
+                            <div class="col-md-6">
+                                <label for="match_type" class="form-label">Match Type</label>
+                                <select name="match_type" class="form-select select2">
+                                    <option value="tournament">Tournament</option>
+                                    <option value="regular">Regular</option>
+                                </select>
                             </div>
 
                             <div class="col-md-6">
                                 <label for="status" class="form-label">Status</label>
-                                <select name="status" class="form-select">
+                                <select name="status" class="form-select select2">
+                                    <option value="live">Live</option>
                                     <option value="upcoming">Upcoming</option>
-                                    <option value="ongoing">Ongoing</option>
                                     <option value="completed">Completed</option>
                                 </select>
                             </div>
-
-                            <div class="col-md-6">
-                                <label for="format" class="form-label">Format</label>
-                                <select name="format" class="form-select" id="format">
-                                    <option value=""></option>
-                                    <option value="group">Group</option>
-                                    <option value="round-robin">Round Robin</option>
-                                    <option value="knockout">Knockout</option>
-                                </select>
-                            </div>
-
-                            <div class="col-md-6 format-dependent" id="group-fields" style="display: none;">
-                                <label for="number_of_groups" class="form-label">Number of Groups</label>
-                                <input type="number" name="group_count" class="form-control" min="2" step="2">
-                            </div>
-
-                            <div class="col-md-6">
-                                <label for="trophy_image" class="form-label">Trophy Image</label>
-                                <input type="file" name="trophy_image" class="form-control" accept="image/*">
-                            </div>
-
-                            <div class="col-md-6">
-                                <label for="logo" class="form-label">Tournament Logo</label>
-                                <input type="file" name="logo" class="form-control" accept="image/*">
-                            </div>
-
-                            <div class="col-12">
-                                <label for="description" class="form-label">Description</label>
-                                <textarea name="description" rows="3" class="form-control" placeholder="Write tournament description..."></textarea>
-                            </div>
                         </div>
                     </div>
 
                     <div class="modal-footer">
                         <button type="button" class="btn btn-light" data-bs-dismiss="modal">Close</button>
-                        <button type="submit" class="btn btn-primary">Save Tournament</button>
-                    </div>
-                </form>
-            </div>
-        </div>
-    </div>
-
-    <div class="modal fade" id="assign-tournament-teams" tabindex="-1" aria-labelledby="add-tournamentTitle"
-        aria-hidden="true">
-        <div class="modal-dialog modal-dialog-centered modal-lg">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title" id="add-tournamentTitle">Add Teams To Tournament</h5>
-                    <p class="modal-title" id="add-tournamentSubTitle"></p>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                </div>
-
-                <form action="{{ route('admin.tournaments.assign-teams') }}" method="POST"
-                    enctype="multipart/form-data">
-                    @csrf
-                    <div class="modal-body">
-                        <div class="row g-3">
-                            <div class="col-md-12">
-                                <label for="status" class="form-label">Team List</label>
-                                <select name="team_id[]" class="form-select form-control" multiple>
-                                    @foreach ($validTeams as $teamInfo)
-                                        <option value="{{ $teamInfo->id }}">{{ $teamInfo->name }}</option>
-                                    @endforeach
-                                </select>
-                                <input type="hidden" name="tournament_id" value="">
-
-                                <div class="form-check form-switch mt-2">
-                                    <input class="form-check-input checkbox-md" type="checkbox" role="switch"
-                                        id="flexSwitchCheckChecked" checked="" name="seperate_teams">
-                                    <label class="form-check-label" for="flexSwitchCheckChecked">Seperate Teams to
-                                        Groups</label>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="modal-footer">
-                        <button type="button" class="btn btn-light" data-bs-dismiss="modal">Close</button>
-                        <button type="submit" class="btn btn-primary">Save Tournament</button>
+                        <button type="submit" class="btn btn-primary">Save Match</button>
                     </div>
                 </form>
             </div>
@@ -321,16 +271,10 @@
                 ]
             });
 
-            $('select[name="team_id[]"]').select2({
-                dropdownParent: $('#assign-tournament-teams'),
+            $('.select2').select2({
                 width: "100%",
-                closeOnSelect: false
-            });
+                dropdownParent: $('#add-cricket-match'),
 
-            $(document).on('click', '.btn-assign-players', function() {
-                const tournamentId = $(this).data('id');
-                $('input[name="tournament_id"]').val(tournamentId);
-                $('#assign-tournament-teams').modal('show');
             });
 
             document.querySelectorAll('[data-bs-toggle="tooltip"]').forEach(el => {
@@ -347,11 +291,6 @@
                 if (value === "group") {
                     document.getElementById("group-fields").style.display = "block";
                 }
-                // else if (value === "round-robin") {
-                //     document.getElementById("round-robin-fields").style.display = "block";
-                // } else if (value === "knockout") {
-                //     document.getElementById("knockout-fields").style.display = "block";
-                // }
             };
 
             formatSelector.addEventListener("change", toggleFields);
@@ -371,7 +310,7 @@
                 }).then((result) => {
                     if (result.isConfirmed) {
                         $.ajax({
-                            url: '{{ route('admin.tournaments.destroy', ':selectedId') }}'
+                            url: '{{ route('admin.cricket-matches.destroy', ':selectedId') }}'
                                 .replace(':selectedId', selectedId),
                             type: 'POST',
                             headers: {
@@ -380,16 +319,16 @@
                             success: function(response) {
                                 Swal.fire(
                                     'Deleted!',
-                                    'The Tournament has been deleted.',
+                                    'The cricket matches has been deleted.',
                                     'success'
                                 );
-                                $('#tbl-players').DataTable().ajax.reload();
+                                $('#tbl-cricket-matches').DataTable().ajax.reload();
                             },
                             error: function(response) {
                                 console.log(response)
                                 Swal.fire(
                                     'Error!',
-                                    'There was a problem deleting the tournament.',
+                                    'There was a problem deleting the match.',
                                     'error'
                                 );
                             }

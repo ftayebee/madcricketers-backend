@@ -11,7 +11,7 @@ class MatchScoreBoard extends Model
 
     protected $fillable = [
         'match_id', 'team_id', 'innings', 'runs',
-        'wickets', 'overs', 'extras'
+        'wickets', 'overs', 'extras', 'status'
     ];
 
     public function match()

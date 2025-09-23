@@ -21,7 +21,6 @@ class LoginController extends Controller
 
     protected function redirectTo()
     {
-        Log::info('Login POST received');
         $user = Auth::user();
 
         if ($user->hasRole('admin')) {

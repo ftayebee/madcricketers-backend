@@ -1,14 +1,14 @@
 <div class="main-nav">
     <!-- Sidebar Logo -->
     <div class="logo-box">
-        <a href="index.html" class="logo-dark">
-            <img src="{{ asset('storage/assets/images/Main-Logo.png') }}" class="logo-sm" alt="logo sm">
-            <img src="{{ asset('storage/assets/images/main-logo-dark.png') }}" class="logo-lg" alt="logo dark">
+        <a href="index.html" class="logo-dark" style="text-align: center;">
+            <img src="{{ asset('storage/assets/images/Main-Logo.png') }}" class="logo-sm" alt="logo sm" >
+            <img src="{{ asset('storage/assets/images/main-logo-dark.png') }}" class="logo-lg" alt="logo dark" height="45px">
         </a>
 
-        <a href="index.html" class="logo-light">
+        <a href="index.html" class="logo-light" style="text-align: center;">
             <img src="{{ asset('storage/assets/images/Main-Logo.png') }}" class="logo-sm" alt="logo sm">
-            <img src="{{ asset('storage/assets/images/main-logo-light.png') }}" class="logo-lg" alt="logo light">
+            <img src="{{ asset('storage/assets/images/main-logo-light.png') }}" class="logo-lg" alt="logo light" style="height: 45px!important;">
         </a>
     </div>
 

@@ -264,6 +264,18 @@
                 white-space: nowrap;
                 width: 1px;
             }
+
+            .score-badge {
+                min-width: 120px;
+                text-align: center;
+                font-weight: 600;
+                box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+                transition: transform 0.2s;
+            }
+
+            .score-badge:hover {
+                transform: scale(1.05);
+            }
         </style>
     @endpush
 
@@ -387,24 +399,56 @@
             </div>
 
             <div class="card">
-                <div class="card shadow-sm mb-3 border-0">
+                <div class="card shadow-sm border-0">
                     <div class="card-body p-3">
-                        <h5 class="mb-2 fw-bold text-info fs-20">
-                            <i class="ri-trophy-line me-1"></i> <span id="battingTeamName">Team A</span>
-                        </h5>
-                        <div class="d-flex flex-wrap gap-2">
-                            <span class="fs-16 badge bg-soft-success text-dark">
-                                <strong>Score:</strong> <span id="currentScore">0 / 0</span>
-                            </span>
-                            <span class="fs-16 badge bg-soft-info text-dark">
-                                <strong>Overs:</strong> <span id="currentOvers">0.0</span>
-                            </span>
-                            <span class="fs-16 badge bg-soft-warning text-dark">
-                                <strong>CRR:</strong> <span id="currentCRR">0.0</span>
-                            </span>
-                            <span class="fs-16 badge bg-soft-secondary text-dark">
-                                <strong>Projected:</strong> <span id="projectedScore">00</span>
-                            </span>
+                        <div class="d-flex justify-content-between align-items-center flex-wrap">
+
+                            <!-- Left: Team & Score Info -->
+                            <div class="me-3 flex-grow-1">
+                                <h4 class="mb-3 fw-bold text-primary d-flex align-items-center">
+                                    <i class="ri-trophy-line me-3 fs-28"></i>
+                                    <span id="battingTeamName">Team A</span>
+                                </h4>
+
+                                <div class="d-flex flex-wrap gap-3">
+                                    <div class="score-badge bg-success text-white px-4 py-2 rounded">
+                                        <strong>Score</strong><br>
+                                        <span id="currentScore" class="fs-18">0 / 0</span>
+                                    </div>
+
+                                    <div class="score-badge bg-info text-white px-4 py-2 rounded">
+                                        <strong>Overs</strong><br>
+                                        <span id="currentOvers" class="fs-18">0.0</span>
+                                    </div>
+
+                                    <div class="score-badge bg-warning text-dark px-4 py-2 rounded">
+                                        <strong>CRR</strong><br>
+                                        <span id="currentCRR" class="fs-18">0.0</span>
+                                    </div>
+
+                                    <div class="score-badge bg-secondary text-white px-4 py-2 rounded">
+                                        <strong>Projected</strong><br>
+                                        <span id="projectedScore" class="fs-18">00</span>
+                                    </div>
+
+                                    <div class="score-badge bg-primary text-white px-4 py-2 rounded tagetscore-container d-none">
+                                        <strong>Target</strong><br>
+                                        <span id="targetScore" class="fs-18">00</span>
+                                    </div>
+
+                                    <div class="score-badge bg-primary text-white px-4 py-2 rounded requiredRunRate-container d-none">
+                                        <strong>RR</strong><br>
+                                        <span id="requiredRunRate" class="fs-18">00</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Right: Action Button -->
+                            <div class="ms-auto mt-2 mt-md-0">
+                                <button class="btn btn-outline-danger btn-complete-innings btn-lg shadow-sm">
+                                    Complete Innings
+                                </button>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -424,13 +468,11 @@
                                             </div>
                                         </div>
                                         <div id="strikerActions">
-                                            {{-- <button class="btn btn-danger btn-sm"
-                                                onclick="markAsOut('striker')">Out</button> --}}
+                                            {{-- <button class="btn btn-danger btn-sm" onclick="selectBatsman()">On Strike</button> --}}
                                         </div>
                                     </div>
                                 </div>
                             </div>
-
                             {{-- Player 2 --}}
                             <div class="col-md-6">
                                 <div class="card mb-3 border-info border-1">
@@ -441,14 +483,15 @@
                                                     id="nonStrikerBallsFaced">0</span> balls)</span></p>
                                         </div>
                                         <div class="d-flex flex-column" id="nonStrikerActions">
-                                            {{-- <button class="btn btn-danger btn-sm mb-1"
-                                                onclick="markAsOut('nonStriker')">Out</button> --}}
+                                            {{-- button will be injected here dynamically --}}
                                         </div>
                                     </div>
                                 </div>
                             </div>
+                        </div>
 
-                            {{-- Scoring buttons --}}
+                        {{-- Scoring buttons --}}
+                        <div class="row">
                             <div class="col-12">
                                 <div class="d-flex flex-wrap gap-3 mt-3">
                                     {{-- Runs --}}
@@ -663,7 +706,6 @@
                         </div>
                     </div>
 
-                    {{-- Right Sidebar: Yet to Bat --}}
                     <div class="col-md-4">
                         <h4 style="font-weight: bold;">Yet to Bat</h4>
                         <div class="form-group mb-3">
@@ -697,8 +739,10 @@
                         <button class="btn btn-outline-danger btn-wicket-type" data-wicket="Caught">Catch</button>
                         <button class="btn btn-outline-danger btn-wicket-type" data-wicket="Run Out">Run Out</button>
                         <button class="btn btn-outline-danger btn-wicket-type" data-wicket="Stumped">Stumped</button>
-                        <button class="btn btn-outline-danger btn-wicket-type" data-wicket="Hit-Wicket">Hit-Wicket</button>
-                        <button class="btn btn-outline-danger btn-wicket-type" data-wicket="Retired-Hurt">Retired-Hurt</button>
+                        <button class="btn btn-outline-danger btn-wicket-type"
+                            data-wicket="Hit-Wicket">Hit-Wicket</button>
+                        <button class="btn btn-outline-danger btn-wicket-type"
+                            data-wicket="Retired-Hurt">Retired-Hurt</button>
                         <button class="btn btn-outline-danger btn-wicket-type" data-wicket="LBW">LBW</button>
                     </div>
 
@@ -706,9 +750,9 @@
                     <div id="runOutOptions" class="mt-3 d-none wicket-extra">
                         <p>Select Batsman Out:</p>
                         <div class="d-flex flex-column gap-2">
-                            <button class="btn btn-outline-secondary btn-batsman-out"
-                                data-batsman="Striker">Striker</button>
-                            <button class="btn btn-outline-secondary btn-batsman-out"
+                            <button class="btn btn-outline-secondary btn-batsman-out striker-btn"
+                                data-batsman="striker">Striker</button>
+                            <button class="btn btn-outline-secondary btn-batsman-out nonstriker-btn"
                                 data-batsman="Non-Striker">Non-Striker</button>
                         </div>
                     </div>
@@ -741,10 +785,19 @@
             let selectedTeam = null;
             let selectedDecision = null;
             let matchId = $('input[name="toss_match_id"]').val();
+            let bowlingTeamPlayers = [];
+            let matchState = {
+                striker: null,
+                nonStriker: null,
+                battingTeamId: null
+            };
 
             let strikerId = null;
             let nonStrikerId = null;
 
+            // ------------------------
+            // 🔹 Extra Runs
+            // ------------------------
             document.querySelectorAll('.btn-extra').forEach(btn => {
                 btn.addEventListener('click', function() {
                     let extra = this.dataset.extra;
@@ -753,9 +806,12 @@
                 });
             });
 
-            function switchStrike() {
+            // ------------------------
+            // 🔹 Strike Switch
+            // ------------------------
+            window.switchStrike = function() {
                 fetch("{{ route('admin.cricket-matches.scoreboard.switch-strike') }}", {
-                        method: "POST", // must be POST
+                        method: "POST",
                         headers: {
                             "Content-Type": "application/json",
                             "X-CSRF-TOKEN": document.querySelector('meta[name="csrf-token"]').content
@@ -768,35 +824,29 @@
                     .then(data => {
                         if (!data.success) throw new Error(data.message || 'Failed to switch strike');
 
-                        // ✅ Update local IDs
-                        strikerId = data.data.striker.id;
-                        nonStrikerId = data.data.nonStriker.id;
-
-                        // ✅ Update frontend UI
-                        updatePlayerUI(data.data.striker, 'striker');
-                        updatePlayerUI(data.data.nonStriker, 'nonStriker');
-                        updateStrikeButtons();
-
-                        // ✅ Update localStorage
-                        const saved = JSON.parse(localStorage.getItem("match_state_" + matchId) || "{}");
-                        saved.striker = {
+                        // Update local state
+                        matchState.striker = {
                             id: data.data.striker.id,
                             name: data.data.striker.name,
                             runs: data.data.striker.runs ?? 0,
                             balls: data.data.striker.balls ?? 0
                         };
-                        saved.nonStriker = {
+                        matchState.nonStriker = {
                             id: data.data.nonStriker.id,
                             name: data.data.nonStriker.name,
                             runs: data.data.nonStriker.runs ?? 0,
                             balls: data.data.nonStriker.balls ?? 0
                         };
-                        localStorage.setItem("match_state_" + matchId, JSON.stringify(saved));
+
+                        // Update UI
+                        updatePlayerCard(matchState.striker, 'striker');
+                        updatePlayerCard(matchState.nonStriker, 'nonStriker');
+
+                        saveMatchState();
                     })
                     .catch(err => console.error("Error switching strike:", err));
             }
 
-            // Strike button logic
             function updateStrikeButtons() {
                 document.querySelectorAll('.on-strike-btn').forEach(btn => btn.remove());
 
@@ -810,14 +860,29 @@
             }
 
             // Helper to update player UI
-            function updatePlayerUI(playerData, type) {
-                document.getElementById(type + 'Name').innerText = playerData.name;
-                document.getElementById(type + 'Runs').innerText = playerData.runs ?? 0;
-                document.getElementById(type + 'BallsFaced').innerText = playerData.balls ?? 0;
+            function updatePlayerCard(player, type) {
+                const cardId = type === 'striker' ? 'strikerName' : 'nonStrikerName';
+                const runsId = type === 'striker' ? 'strikerRuns' : 'nonStrikerRuns';
+                const ballsId = type === 'striker' ? 'strikerBallsFaced' : 'nonStrikerBallsFaced';
+                const actionsId = type === 'striker' ? 'strikerActions' : 'nonStrikerActions';
 
-                const imgEl = document.getElementById(type + 'Img');
-                if (imgEl && playerData.img) {
-                    imgEl.src = playerData.img;
+                if (player) {
+                    document.getElementById(cardId).innerText = player.name;
+                    document.getElementById(runsId).innerText = player.runs ?? 0;
+                    document.getElementById(ballsId).innerText = player.balls ?? 0;
+
+                    if (type === 'nonStriker') {
+                        document.getElementById(actionsId).innerHTML = `
+                            <button class="btn btn-danger btn-sm" onclick="switchStrike()">On Strike</button>
+                        `;
+                    } else {
+                        document.getElementById(actionsId).innerHTML = ''; // remove button for striker
+                    }
+                } else {
+                    document.getElementById(cardId).innerText = 'Choose Player';
+                    document.getElementById(runsId).innerText = '00';
+                    document.getElementById(ballsId).innerText = '0';
+                    document.getElementById(actionsId).innerHTML = '';
                 }
             }
 
@@ -825,6 +890,7 @@
             // 🔹 Save match state to localStorage
             // ------------------------
             function saveMatchState() {
+                localStorage.removeItem("match_state_" + matchId);
                 const state = {
                     striker: strikerId ? {
                         id: strikerId,
@@ -876,20 +942,31 @@
             }
 
             function populateMatchState(state) {
+                // Striker
                 if (state.striker) {
                     strikerId = state.striker.id;
+                    $('.btn-batsman-out.striker-btn').attr('data-batsman', strikerId);
                     document.getElementById("strikerName").innerText = state.striker.name;
                     document.getElementById("strikerRuns").innerText = state.striker.runs;
                     document.getElementById("strikerBallsFaced").innerText = state.striker.balls;
                 }
 
+                // Non-striker
                 if (state.nonStriker) {
                     nonStrikerId = state.nonStriker.id;
+                    $('.btn-batsman-out.nonstriker-btn').attr('data-batsman', nonStrikerId);
                     document.getElementById("nonStrikerName").innerText = state.nonStriker.name;
                     document.getElementById("nonStrikerRuns").innerText = state.nonStriker.runs;
                     document.getElementById("nonStrikerBallsFaced").innerText = state.nonStriker.balls;
+
+                    document.getElementById("nonStrikerActions").innerHTML = `
+                        <button class="btn btn-danger btn-sm" onclick="switchStrike()">On Strike</button>
+                    `;
+                } else {
+                    document.getElementById("nonStrikerActions").innerHTML = '';
                 }
 
+                // Team info
                 if (state.team) {
                     document.getElementById("battingTeamName").innerText = state.team.name;
                     document.getElementById("currentScore").innerText = state.team.score + " / " + (state.team
@@ -899,6 +976,7 @@
                     document.getElementById("projectedScore").innerText = state.team.projected;
                 }
 
+                // Current bowler
                 if (state.currentBowler) {
                     const bowlerId = parseInt(state.currentBowler);
                     $('input[name="current-bowler"]').each(function() {
@@ -1006,40 +1084,79 @@
             // 🔹 Select Batsman
             // ------------------------
             window.selectBatsman = function(playerId) {
-                const playerCard = document.querySelector(`[data-playerid="${playerId}"]`);
-                if (!playerCard) return;
+                const matchState = JSON.parse(localStorage.getItem("match_state_" + matchId) || "{}");
+                const battingTeamId = matchState.battingTeamId;
 
-                const playerName = playerCard.getAttribute("data-player-name");
-                const playerImg = playerCard.querySelector("img").src;
-                const teamId = $('input[name="battingTeamId"]').val();
+                let role = null;
 
-                if (!strikerId) {
-                    saveBatsman(matchId, teamId, playerId, "on-strike", () => {
-                        saveMatchState();
-                        strikerId = playerId;
-                        document.getElementById("strikerName").innerText = playerName;
-                        // document.getElementById("strikerImg").src = playerImg;
-
-                        playerCard.closest(".player-card").remove();
-                    });
+                // Determine role based on which player slot is empty
+                if (!matchState.striker) {
+                    role = 'on-strike';
+                } else if (!matchState.nonStriker) {
+                    role = 'batting';
+                } else {
+                    Swal.fire('Both striker and non-striker are already selected.');
                     return;
                 }
 
-                if (!nonStrikerId) {
+                fetch("{{ route('admin.cricket-matches.scoreboard.select-batsman') }}", {
+                        method: "POST",
+                        headers: {
+                            "Content-Type": "application/json",
+                            "X-CSRF-TOKEN": document.querySelector('meta[name="csrf-token"]').content
+                        },
+                        body: JSON.stringify({
+                            match_id: matchId,
+                            team_id: battingTeamId,
+                            player_id: playerId,
+                            role: role
+                        })
+                    })
+                    .then(res => res.json())
+                    .then(data => {
+                        if (!data.success) throw new Error(data.message);
 
-                    saveBatsman(matchId, teamId, playerId, "batting", () => {
-                        saveMatchState();
-                        nonStrikerId = playerId;
-                        document.getElementById("nonStrikerName").innerText = playerName;
-                        // document.getElementById("nonStrikerImg").src = playerImg;
+                        const player = data.data.match_player;
 
-                        playerCard.closest(".player-card").remove();
+                        if (role === 'on-strike') {
+                            matchState.striker = {
+                                id: player.player_id,
+                                name: player.player?.user?.full_name || player.full_name,
+                                runs: 0,
+                                balls: 0
+                            };
+                        } else if (role === 'batting') {
+                            matchState.nonStriker = {
+                                id: player.player_id,
+                                name: player.player?.user?.full_name || player.full_name,
+                                runs: 0,
+                                balls: 0
+                            };
+                        }
+
+                        localStorage.setItem("match_state_" + matchId, JSON.stringify(matchState));
+
+                        // Update UI
+                        if (role === 'on-strike') {
+                            document.getElementById("strikerName").innerText = matchState.striker.name;
+                            document.getElementById("strikerRuns").innerText = "00";
+                            document.getElementById("strikerBallsFaced").innerText = "0";
+                        } else {
+                            document.getElementById("nonStrikerName").innerText = matchState.nonStriker
+                                .name;
+                            document.getElementById("nonStrikerRuns").innerText = "00";
+                            document.getElementById("nonStrikerBallsFaced").innerText = "0";
+                        }
+
+                        // Remove player from Yet-To-Bat list
+                        const card = document.querySelector(`[data-player-id="${playerId}"]`);
+                        if (card) card.remove();
+                    })
+                    .catch(err => {
+                        console.error(err);
+                        Swal.fire('Error', err.message, 'error');
                     });
-                    return;
-                }
-
-                alert("Both striker and non-striker are already selected.");
-            };
+            }
 
             function saveBatsman(matchId, teamId, playerId, status, callback) {
                 fetch("{{ route('admin.cricket-matches.scoreboard.select-batsman') }}", {
@@ -1274,52 +1391,109 @@
             // ------------------------
             document.querySelectorAll('.btn-wicket').forEach(btn => {
                 btn.addEventListener('click', e => {
-                    const wicketType = e.target.dataset.wicket; // 'Run Out', 'Bowled', etc.
+                    const wicketType = e.target.dataset.wicket;
                     currentWicket = wicketType;
 
-                    // Show modal to choose batsman
                     const modal = new bootstrap.Modal(document.getElementById('wicketModal'));
-                    document.getElementById('runOutOptionsWicket').classList.toggle(wicketType ===
-                        'Run Out' ? 'd-none' : 'd-none', false); // show run out option
+
+                    // Show run-out options only for Run Out
+                    document.getElementById('runOutOptions').classList.toggle('d-none',
+                        wicketType !== 'Run Out');
+
+                    // Load players for caught/stumped
+                    if (wicketType === 'Caught') loadBowlingTeamPlayers('caughtBySelect');
+                    if (wicketType === 'Stumped') loadBowlingTeamPlayers('stumpedBySelect');
+
                     modal.show();
                 });
             });
 
             document.querySelectorAll(".btn-wicket-type").forEach(btn => {
-                btn.addEventListener("click", function () {
+                btn.addEventListener("click", function() {
                     const type = this.dataset.wicket;
 
-                    // 🔥 Hide all other buttons except the one clicked
-                    document.querySelectorAll(".btn-wicket-type").forEach(b => {
-                        if (b !== this) b.classList.add("d-none");
-                    });
-
-                    // Hide all extra option sections first
-                    document.querySelectorAll(".wicket-extra").forEach(el => el.classList.add("d-none"));
+                    // Hide all extra sections first
+                    document.querySelectorAll(".wicket-extra").forEach(el => el.classList.add(
+                        "d-none"));
 
                     if (type === "Run Out") {
                         document.getElementById("runOutOptions").classList.remove("d-none");
-                    } 
-                    else if (type === "Caught") {
+                    } else if (type === "Caught") {
                         document.getElementById("caughtOptions").classList.remove("d-none");
-                        loadBowlingTeamPlayers("caughtBySelect"); // helper to load list
-                    } 
-                    else if (type === "Stumped") {
+                    } else if (type === "Stumped") {
                         document.getElementById("stumpedOptions").classList.remove("d-none");
-                        loadBowlingTeamPlayers("stumpedBySelect"); // helper to load list
-                    } 
-                    else {
-                        // Bowled or LBW: no extra inputs → directly finalize
+                    } else {
                         finalizeWicket({
                             type: type,
-                            batsmanOut: "Striker",  // striker is out
-                            bowlerId: currentBowlerId
+                            batsmanOut: $('.btn-batsman-out.striker-btn').attr(
+                                'data-batsman')
                         });
                     }
                 });
             });
 
-            $('#btn-reset-wicket-form').on('click', function () {
+            // Run Out buttons
+            document.querySelectorAll('.btn-batsman-out').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    const batsmanOutId = Number(btn.dataset.batsman);
+                    finalizeWicket({
+                        type: 'Run Out',
+                        batsmanOut: batsmanOut
+                    });
+                });
+            });
+
+            // Caught/Stumped finalization
+            function finalizeCaughtOrStumped(type) {
+                let batsmanOut = 'Striker';
+                let fielderId = null;
+                if (type === 'Caught') {
+                    fielderId = document.getElementById('caughtBySelect').value;
+                } else if (type === 'Stumped') {
+                    fielderId = document.getElementById('stumpedBySelect').value;
+                }
+
+                finalizeWicket({
+                    type: type,
+                    batsmanOut: batsmanOut,
+                    fielderId: fielderId
+                });
+            }
+
+            function finalizeWicket({
+                type,
+                batsmanOut,
+                fielderId = null
+            }) {
+                let extra = null;
+
+                if (type === 'Run Out') {
+                    extra = {
+                        run_out: true
+                    };
+                } else if (type === 'Caught') {
+                    extra = {
+                        caught_by: fielderId
+                    };
+                } else if (type === 'Stumped') {
+                    extra = {
+                        stumped_by: fielderId
+                    };
+                }
+
+                addDelivery({
+                    runs: 0, // or set runs
+                    extra: extra,
+                    wicket: type,
+                    batsmanOut: batsmanOut,
+                    legalBall: true
+                });
+
+                // close modal
+                bootstrap.Modal.getInstance(document.getElementById('wicketModal')).hide();
+            }
+
+            $('#btn-reset-wicket-form').on('click', function() {
                 document.querySelectorAll(".btn-wicket-type").forEach(btn => {
                     btn.classList.remove("active");
                     btn.classList.remove("d-none"); // show them again if previously hidden
@@ -1328,7 +1502,7 @@
                 document.querySelectorAll(".wicket-extra").forEach(el => {
                     el.classList.add("d-none");
                 });
-                
+
                 $('#wicketModal select').val('').trigger('change'); // reset dropdowns
                 $('#wicketModal input').val(''); // reset inputs
                 window.currentWicketData = null;
@@ -1337,7 +1511,11 @@
             // Example function to populate dropdown from bowling team
             function loadBowlingTeamPlayers(selectId) {
                 const select = document.getElementById(selectId);
-                select.innerHTML = ""; // reset
+                select.innerHTML = ""; // clear previous
+                if (!bowlingTeamPlayers.length) {
+                    select.innerHTML = `<option value="">No players available</option>`;
+                    return;
+                }
                 bowlingTeamPlayers.forEach(player => {
                     const opt = document.createElement("option");
                     opt.value = player.id;
@@ -1362,9 +1540,6 @@
                     .then(data => {
                         if (!data.success) throw new Error(data.message || 'Failed to record delivery');
 
-                        loadCurrentStats(matchId);
-                        loadCurrentOver();
-
                         const saved = JSON.parse(localStorage.getItem("match_state_" + matchId) || "{}");
                         saved.striker = data.updated_state.striker;
                         saved.nonStriker = data.updated_state.nonStriker;
@@ -1378,7 +1553,15 @@
                             showConfirmButton: false,
                             timer: 2500,
                             timerProgressBar: true
+                        }).then(() => {
+                            if (data.isInningsEnded) {
+                                window.location.reload();
+                            } else {
+                                loadCurrentStats(matchId);
+                                loadCurrentOver();
+                            }
                         });
+
                     })
                     .catch(err => console.error("Error recording delivery:", err));
             }
@@ -1392,7 +1575,7 @@
                     .then(res => res.json())
                     .then(data => {
                         if (!data.success) return console.error(data.message);
-
+                        console.log(data)
                         const container = document.getElementById('currentOverDetails');
                         container.innerHTML = '';
 
@@ -1430,37 +1613,48 @@
                     .then(data => {
                         if (!data.success) return;
 
+                        matchState.battingTeamId = data.battingTeamId;
+
                         const list = document.getElementById('yetToBatList');
                         list.innerHTML = '';
-                        $('input[name="battingTeamId"]').val(data.battingTeamId);
 
-                        if (data.players.length) {
-                            data.players.forEach(player => {
-                                const card = document.createElement('div');
-                                card.className = 'card mb-2 player-card';
-
-                                card.innerHTML = `
-                                    <div class="align-items-center p-2 border flt-attribute" 
-                                        data-player-name="${player.full_name}" 
-                                        style="display: flex;" 
-                                        data-playerid="${player.id}">
-                                        <img src="${player.image}" alt="${player.full_name}" 
-                                            class="rounded-circle me-3" width="48" height="48" 
-                                            style="object-fit: cover;">
-                                        <div class="flex-grow-1">
-                                            <h6 class="mb-0">${player.short_name}</h6>
-                                            <small class="text-muted">${player.role}</small>
-                                        </div>
-                                        <button class="btn btn-sm btn-primary" onclick="selectBatsman('${player.id}')">Select to Bat</button>
-                                    </div>
-                                `;
-                                list.appendChild(card);
-                            });
-                        } else {
+                        if (!data.players.length) {
                             list.innerHTML = '<li class="list-group-item text-muted">All players batted</li>';
+                            return;
                         }
+
+                        data.players.forEach(player => {
+                            const card = document.createElement('div');
+                            card.className = 'card mb-2 player-card';
+                            card.dataset.playerId = player.id;
+                            card.dataset.playerName = player.full_name;
+                            card.innerHTML = `
+                                <div class="align-items-center p-2 border flt-attribute" 
+                                    style="display: flex;">
+                                    <img src="${player.image}" alt="${player.full_name}" 
+                                        class="rounded-circle me-3" width="48" height="48" 
+                                        style="object-fit: cover;">
+                                    <div class="flex-grow-1">
+                                        <h6 class="mb-0">${player.short_name}</h6>
+                                        <small class="text-muted">${player.role}</small>
+                                    </div>
+                                    <button class="btn btn-sm btn-primary select-player-btn">Select</button>
+                                </div>
+                            `;
+                            list.appendChild(card);
+                        });
                     });
             }
+
+            // ------------------------
+            // 🔹 Select Players From Yet To Bat
+            // ------------------------
+            document.getElementById('yetToBatList').addEventListener('click', function(e) {
+                if (!e.target.classList.contains('select-player-btn')) return;
+                const card = e.target.closest('.player-card');
+                const playerId = card.dataset.playerId;
+                selectBatsman(playerId);
+            });
 
             // ------------------------
             // 🔹 Search Filter
@@ -1582,6 +1776,26 @@
                     .then(res => res.json())
                     .then(data => {
                         if (data.success) {
+                            if (data.isMatchEnded) {
+                                Swal.fire({
+                                    icon: 'info',
+                                    title: 'Match Ended',
+                                    text: 'All innings are complete.',
+                                    confirmButtonText: 'OK'
+                                });
+                                return;
+                            }
+                            console.log(data)
+
+                            if (data.targetScore && data.targetScore > 0) {
+                                $('#targetScore').text(data.targetScore); // Set the target score
+                                $('#requiredRunRate').text(data.requiredRunRate); // Set the target score
+                                $('.tagetscore-container').removeClass('d-none'); // Show the container
+                                $('.requiredRunRate-container').removeClass('d-none'); // Show the container
+                            } else {
+                                $('.tagetscore-container').addClass('d-none'); // Hide if no target
+                                $('.requiredRunRate-container').addClass('d-none'); // Hide if no target
+                            }
                             $('input[name="innings"]').val(data.innings);
                             $('#bowling_team_id').val(data.bowling_team_id);
 
@@ -1595,18 +1809,21 @@
                             const tbody = document.querySelector('#batting-stats');
                             tbody.innerHTML = '';
 
-                            data.batting.forEach(player => {
-                                const tr = document.createElement('tr');
-                                tr.innerHTML = `
-                                    <td>${player.name}</td>
-                                    <td class='text-center'>${player.runs}</td>
-                                    <td class='text-center'>${player.balls}</td>
-                                    <td class='text-center'>${player.fours}</td>
-                                    <td class='text-center'>${player.sixes}</td>
-                                    <td class='text-center'>${player.strike_rate}</td>
-                                `;
-                                tbody.appendChild(tr);
-                            });
+                            if (data.batting) {
+                                data.batting.forEach(player => {
+                                    const tr = document.createElement('tr');
+                                    tr.innerHTML = `
+                                        <td>${player.name}</td>
+                                        <td class='text-center'>${player.runs}</td>
+                                        <td class='text-center'>${player.balls}</td>
+                                        <td class='text-center'>${player.fours}</td>
+                                        <td class='text-center'>${player.sixes}</td>
+                                        <td class='text-center'>${player.strike_rate}</td>
+                                    `;
+                                    tbody.appendChild(tr);
+                                });
+                            }
+
 
                             // 🏏 Update bowling table
                             const state = JSON.parse(localStorage.getItem("match_state_" + matchId) || "{}");
@@ -1615,23 +1832,25 @@
                             const bowlingTbody = document.querySelector('#bowling-stats');
                             bowlingTbody.innerHTML = '';
 
-                            data.bowling.forEach((player, index) => {
-                                const tr = document.createElement('tr');
-                                tr.innerHTML = `
-                                    <td style="vertical-align: middle;display: flex;align-items: center;">
-                                        ${player.name}
-                                        <div class="form-check">
-                                            <input class="form-check-input" type="radio" data-playerid="${player.id}" name="current-bowler" style="margin-left: 10px;" ${bowlerId == player.id ? 'checked' : ''}>
-                                        </div>
-                                    </td>
-                                    <td class='text-center'>${player.overs}</td>
-                                    <td class='text-center'>${player.maidens ?? 0}</td>
-                                    <td class='text-center'>${player.runs_conceded}</td>
-                                    <td class='text-center'>${player.wickets}</td>
-                                    <td class='text-center'>${player.economy_rate}</td>
-                                `;
-                                bowlingTbody.appendChild(tr);
-                            });
+                            if (data.bowling) {
+                                data.bowling.forEach((player, index) => {
+                                    const tr = document.createElement('tr');
+                                    tr.innerHTML = `
+                                        <td style="vertical-align: middle;display: flex;align-items: center;">
+                                            ${player.name}
+                                            <div class="form-check">
+                                                <input class="form-check-input" type="radio" data-playerid="${player.id}" name="current-bowler" style="margin-left: 10px;" ${bowlerId == player.id ? 'checked' : ''}>
+                                            </div>
+                                        </td>
+                                        <td class='text-center'>${player.overs}</td>
+                                        <td class='text-center'>${player.maidens ?? 0}</td>
+                                        <td class='text-center'>${player.runs_conceded}</td>
+                                        <td class='text-center'>${player.wickets}</td>
+                                        <td class='text-center'>${player.economy_rate}</td>
+                                    `;
+                                    bowlingTbody.appendChild(tr);
+                                });
+                            }
 
                             // Listen for current bowler selection
                             bowlingTbody.addEventListener('change', (e) => {
@@ -1686,13 +1905,12 @@
                                 </tr>`;
                             }
 
-                            // // Update fall of wickets
+                            // Update fall of wickets
                             const fallWicketsList = document.querySelector('#fallofwickets-stats');
                             fallWicketsList.innerHTML = '';
 
                             if (data.fall_of_wickets && data.fall_of_wickets.length > 0) {
                                 data.fall_of_wickets.forEach(w => {
-                                    // w should have: player_name, runs, balls, over
                                     const tr = document.createElement('tr');
 
                                     tr.innerHTML = `
@@ -1709,8 +1927,6 @@
                                 fallWicketsList.appendChild(tr);
                             }
 
-
-
                             loadMatchState();
                         } else {
                             console.error('Failed to load stats:', data.message);
@@ -1718,6 +1934,31 @@
                     })
                     .catch(err => console.error('Error fetching stats:', err));
             }
+
+            $('.btn-complete-innings').on('click', function() {
+                $.get("{{ route('admin.cricket-matches.scoreboard.mark-innings-complete') }}", {
+                        match_id: matchId
+                    })
+                    .done(function(data) {
+                        if (data.success) {
+                            Swal.fire({
+                                icon: 'success',
+                                title: data.message,
+                                toast: true,
+                                position: 'top-end',
+                                showConfirmButton: false,
+                                timer: 2000
+                            });
+
+                            loadCurrentStats(matchId);
+                        } else {
+                            Swal.fire('Error', data.message, 'error');
+                        }
+                    })
+                    .fail(function() {
+                        Swal.fire('Error', 'Something went wrong', 'error');
+                    });
+            });
 
             // ------------------------
             // 🔹 Init

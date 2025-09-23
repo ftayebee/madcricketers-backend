@@ -303,10 +303,8 @@ class UserController extends Controller
                 throw new Exception('Unauthorized Access');
             }
 
-            Log::info($request->all());
-
             $validator = Validator::make($request->all(), [
-                'general.profile_picture' => 'nullable|mimes:jpg,jpeg,png|max:1024',
+                'general.profile_picture' => 'nullable|string',
                 'general.full_name'       => 'required|string|max:255',
                 'general.nickname'        => 'nullable|string|max:255',
                 'general.email'           => 'required|email|email|max:255',
@@ -322,11 +320,10 @@ class UserController extends Controller
                 'general.national_id'     => 'nullable|digits_between:10,17',
             ]);
 
-            
-
             $user = User::findOrFail($id);
 
             if ($validator->fails()) {
+                Log::info($validator->errors());
                 return redirect()->back()->withErrors($validator)->withInput();
             }
 
@@ -364,39 +361,24 @@ class UserController extends Controller
             $user->role_id      = $request->input('general.role_id');
 
             // Handle profile picture
-            if ($request->hasFile('general.profile_picture')) {
-                $file = $request->file('general.profile_picture');
-                $filename = 'user_' . time() . '.' . $file->getClientOriginalExtension();
-                $image = Image::make($file);
+            $profilePicture = $request->input('general.profile_picture');
 
-                // Resize if large
-                if ($image->filesize() > 200 * 1024) {
-                    $image->resize(800, null, function ($constraint) {
-                        $constraint->aspectRatio();
-                        $constraint->upsize();
-                    })->encode($file->getClientOriginalExtension(), 75);
-                }
+            if ($profilePicture) {
+                $imageData = preg_replace('/^data:image\/\w+;base64,/', '', $profilePicture);
+                $imageData = str_replace(' ', '+', $imageData);
+                $imageBinary = base64_decode($imageData);
 
-                // Compress
-                $quality = 75;
-                while (strlen((string) $image) > 200 * 1024 && $quality > 10) {
-                    $image->encode($file->getClientOriginalExtension(), $quality);
-                    $quality -= 5;
-                }
+                $extension = explode('/', mime_content_type($profilePicture))[1]; // png, jpg, etc.
+                $filename = 'user_' . time() . '.' . $extension;
 
-                // Save image
                 $basePath = storage_path('app/public/uploads');
-
-                if ($user->hasRole('player')) {
-                    $uploadPath = $basePath . '/players';
-                } else {
-                    $uploadPath = $basePath . '/users';
-                }
+                $uploadPath = $user->hasRole('player') ? $basePath . '/players' : $basePath . '/users';
 
                 if (!file_exists($uploadPath)) {
                     mkdir($uploadPath, 0775, true);
                 }
-                $image->save($uploadPath . '/' . $filename);
+
+                file_put_contents($uploadPath . '/' . $filename, $imageBinary);
 
                 $user->image = $filename;
             }

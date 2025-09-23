@@ -79,7 +79,7 @@ Route::prefix('admin')->name('admin.')->group(function(){
         Route::post('/generate-fixtures', [TournamentController::class, 'generateFixtures'])->name('generate-fixtures');
     });
 
-    Route::prefix('/cricket-matches')->name('cricket-matches.')->group(function(){
+    Route::prefix('cricket-matches')->name('cricket-matches.')->group(function(){
         Route::get('/', [CricketMatchController::class, 'index'])->name('index');
         Route::get('/loader', [CricketMatchController::class, 'tableLoader'])->name('loader');
         Route::get('/create', [CricketMatchController::class, 'create'])->name('create');
@@ -96,6 +96,7 @@ Route::prefix('admin')->name('admin.')->group(function(){
             Route::post('/select-batsman', [CricketMatchController::class, 'selectBatsman'])->name('select-batsman');
             Route::post('/set-striker', [CricketMatchController::class, 'setStriker'])->name('set-striker');
             Route::get('/load-current-stats', [CricketMatchController::class, 'loadCurrentStats'])->name('load-current-stats');
+            Route::get('/mark-innings-complete', [CricketMatchController::class, 'setInningsStatus'])->name('mark-innings-complete');
             Route::get('/match-info', [CricketMatchController::class, 'getMatchInfo'])->name('match-info');
             Route::post('/switch-strike', [CricketMatchController::class, 'switchStrike'])->name('switch-strike');
             Route::get('/change-bowler', [CricketMatchController::class, 'changeBowler'])->name('change-bowler');

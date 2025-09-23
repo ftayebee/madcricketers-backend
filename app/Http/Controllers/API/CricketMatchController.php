@@ -326,9 +326,7 @@ class CricketMatchController extends Controller
     {
         try {
             // 1. Get latest innings scoreboard
-            $scoreboard = MatchScoreBoard::where('match_id', $matchId)
-                            ->where('innings', 1)
-                            ->first();
+            $scoreboard = MatchScoreBoard::where('match_id', $matchId)->where('status', 'running')->first();
 
             if (!$scoreboard) {
                 return response()->json(['message' => 'No scoreboard found for this match', 'success' => false], 404);
