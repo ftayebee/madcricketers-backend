@@ -325,21 +325,35 @@ class CricketMatchController extends Controller
     public function getYetToBat(Request $request, $matchId)
     {
         try {
-            // 1. Get latest innings scoreboard
-            $scoreboard = MatchScoreBoard::where('match_id', $matchId)->where('status', 'running')->first();
+            // Get running scoreboard or latest scoreboard if match completed
+            $scoreboard = MatchScoreBoard::where('match_id', $matchId)
+                ->where('status', 'running')
+                ->first();
 
             if (!$scoreboard) {
-                return response()->json(['message' => 'No scoreboard found for this match', 'success' => false], 404);
+                // fallback to latest innings
+                $scoreboard = MatchScoreBoard::where('match_id', $matchId)
+                    ->orderByDesc('innings')
+                    ->first();
+            }
+
+            if (!$scoreboard) {
+                return response()->json([
+                    'message' => 'No scoreboard found for this match',
+                    'success' => false,
+                    'players' => [],
+                    'battingTeamId' => null
+                ], 404);
             }
 
             $battingTeamId = $scoreboard->team_id;
 
-            // 2. Get all players of the batting team
+            // Get all players of the batting team
             $teamPlayerIds = DB::table('player_team')
                 ->where('team_id', $battingTeamId)
                 ->pluck('player_id');
 
-            // 3. Get players from match_players who have batted (i.e., runs_scored or balls_faced not null)
+            // Get players who have already batted
             $battedPlayerIds = DB::table('match_players')
                 ->where('match_id', $matchId)
                 ->where('team_id', $battingTeamId)
@@ -347,33 +361,34 @@ class CricketMatchController extends Controller
                     $query->whereNotNull('runs_scored')
                         ->orWhereNotNull('balls_faced');
                 })
+                ->where('status', '!=', 'retired-hurt')
                 ->pluck('player_id');
 
-            // 4. Get players who are in the team but have not batted yet
+            // Players yet to bat
             $yetToBatPlayers = Player::with('user')
-                                ->whereIn('id', $teamPlayerIds)
-                                ->whereNotIn('id', $battedPlayerIds)
-                                ->get()
-                                ->map(function ($player) {
-                                    $fullName = $player->user->full_name;
-                                    $nameParts = explode(' ', trim($fullName));
-                                    $lastName = array_pop($nameParts);
-                                    $initials = implode('.', array_map(function ($n) {
-                                        return mb_substr($n, 0, 1);
-                                    }, $nameParts));
+                ->whereIn('id', $teamPlayerIds)
+                ->whereNotIn('id', $battedPlayerIds)
+                ->get()
+                ->map(function ($player) {
+                    $fullName = $player->user->full_name ?? 'Unknown';
+                    $nameParts = explode(' ', trim($fullName));
+                    $lastName = array_pop($nameParts);
+                    $initials = implode('.', array_map(function ($n) {
+                        return mb_substr($n, 0, 1);
+                    }, $nameParts));
 
-                                    return [
-                                        'id' => $player->id,
-                                        'full_name' => $fullName,
-                                        'short_name' => $initials ? $initials . '. ' . $lastName : $lastName,
-                                        'role' => ucwords(str_replace('-', ' ', $player->player_role)),
-                                        'image' => $player->image ?? asset('storage/assets/images/users/dummy-avatar.jpg'),
-                                    ];
-                                });
+                    return [
+                        'id' => $player->id,
+                        'full_name' => $fullName,
+                        'short_name' => $initials ? $initials . '. ' . $lastName : $lastName,
+                        'role' => ucwords(str_replace('-', ' ', $player->player_role ?? '')),
+                        'image' => $player->image ?? asset('storage/assets/images/users/dummy-avatar.jpg'),
+                    ];
+                });
 
             return response()->json([
                 'success' => true,
-                'message' => 'Player Found.',
+                'message' => 'Players Found.',
                 'players' => $yetToBatPlayers,
                 'battingTeamId' => $battingTeamId
             ]);
@@ -385,10 +400,13 @@ class CricketMatchController extends Controller
 
             return response()->json([
                 'success' => false,
-                'message' => 'Failed to retrieve data.'
+                'message' => 'Failed to retrieve data.',
+                'players' => [],
+                'battingTeamId' => null
             ]);
         }
     }
+
 
     public function getLiveScore(Request $request, $id){
 

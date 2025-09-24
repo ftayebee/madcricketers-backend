@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Admin;
 use Exception;
 use Carbon\Carbon;
 use App\Models\Team;
+use App\Models\Player;
 use App\Models\PlayerStat;
 use App\Models\Tournament;
 use App\Models\MatchPlayer;
@@ -367,6 +368,40 @@ class CricketMatchController extends Controller
         }
     }
 
+    public function viewScoreBoard($id){
+        try {
+            if (!Auth::user()->can($this->module . '-start')) {
+                throw new Exception('Unauthorized Access');
+            }
+
+            $match = CricketMatch::with(['teamA', 'teamB', 'tournament'])->findOrFail($id);
+
+            return view('admin.pages.cricket-matches.scoreboard', compact('match'))->with([
+                'success' => true,
+                'message' => 'Match Scoreboard Showing.',
+            ]);
+        } catch (ModelNotFoundException $e) {
+            Log::error("Cricket match not found", [
+                'message' => $e->getMessage(),
+                'match_id' => $id,
+            ]);
+            return redirect()->back()->with([
+                'success' => false,
+                'message' => 'Match not found.',
+            ]);
+        } catch (Exception $e) {
+            Log::error("Error starting cricket match", [
+                'line' => $e->getLine(),
+                'file' => $e->getFile(),
+                'message' => $e->getMessage(),
+            ]);
+            return redirect()->back()->with([
+                'success' => false,
+                'message' => 'Failed to start match.',
+            ]);
+        }
+    }
+
     public function startCricketMatch($id)
     {
         try {
@@ -417,7 +452,7 @@ class CricketMatchController extends Controller
                 );
             }
 
-            return view('admin.pages.cricket-matches.scoreboard', compact('match'))->with([
+            return response()->json([
                 'success' => true,
                 'message' => 'Match started successfully.',
             ]);
@@ -549,16 +584,17 @@ class CricketMatchController extends Controller
                     }
                 }
 
-                // 🔹 Create new partnership with surviving player + new player
-                Partnership::create([
-                    'match_id'    => $matchId,
-                    'team_id'     => $teamId,
-                    'batter_1_id' => $player2Id,
-                    'batter_2_id' => $playerId,
-                    'runs'        => 0,
-                    'balls'       => 0,
-                    'start_over'  => 0.0,
-                ]);
+                if ($player2Id) {
+                    Partnership::create([
+                        'match_id'    => $matchId,
+                        'team_id'     => $teamId,
+                        'batter_1_id' => $player2Id,
+                        'batter_2_id' => $playerId,
+                        'runs'        => 0,
+                        'balls'       => 0,
+                        'start_over'  => 0.0,
+                    ]);
+                }
             } else {
                 if (!$activePartnership->batter_2_id) {
                     $activePartnership->update(['batter_2_id' => $playerId]);
@@ -618,180 +654,191 @@ class CricketMatchController extends Controller
         }
     }
 
-    public function loadCurrentStats(Request $request)
+    public function selectBowler(Request $request)
     {
         try {
-            $matchId = $request->match_id;
-            $match   = CricketMatch::findOrFail($matchId);
+            $validator = Validator::make($request->all(), [
+                'match_id'  => 'required|exists:cricket_matches,id',
+                'team_id'   => 'required|exists:teams,id', // batting team id from frontend
+                'player_id' => 'required|exists:players,id',
+            ]);
 
-            // ✅ Get the active innings scoreboard
-            $scoreboard = MatchScoreBoard::where('match_id', $matchId)->where('status', 'running')->first();
-            Log::info($scoreboard);
-
-            if (!$scoreboard) {
+            if ($validator->fails()) {
                 return response()->json([
                     'success' => false,
-                    'message' => 'No active innings found.'
+                    'message' => 'Failed to select bowler.',
+                    'errors'  => $validator->errors()
+                ]);
+            }
+
+            $matchId       = $request->match_id;
+            $battingTeamId = $request->team_id;
+            $playerId      = $request->player_id;
+
+            // 🔹 Get the match scoreboard
+            $scoreboard = MatchScoreboard::where('match_id', $matchId)->get();
+
+            if ($scoreboard->isEmpty()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Scoreboard not found for this match.',
                 ], 404);
             }
 
-            $currentInnings  = $scoreboard->innings;
+            // 🔹 Determine bowling team (the one that is not batting and has ended)
+            $bowlingTeamId = $scoreboard
+                ->where('team_id', '!=', $battingTeamId)
+                ->where('status', 'ended')
+                ->first()?->team_id;
+
+            if (!$bowlingTeamId) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Bowling team not determined.',
+                ], 400);
+            }
+
+            // 🔹 Get all existing MatchPlayer records for the bowling team in this match
+            $existingPlayers = MatchPlayer::where('match_id', $matchId)
+                ->where('team_id', $bowlingTeamId)
+                ->get();
+
+            foreach ($existingPlayers as $player) {
+                $status = $player->player_id == $playerId ? 'bowling' : 'fielding';
+
+                $player->update([
+                    'status' => $status,
+                ]);
+            }
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Bowler selected successfully.',
+            ]);
+        } catch (\Exception $e) {
+            Log::error("Error selecting bowler", [
+                'line'    => $e->getLine(),
+                'file'    => $e->getFile(),
+                'message' => $e->getMessage(),
+            ]);
+
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to select bowler.',
+            ], 500);
+        }
+    }
+
+    public function getMatchInfo(Request $request)
+    {
+        try {
+            $matchId = $request->match_id;
+            $match = CricketMatch::findOrFail($matchId);
+
+            // Try to get the running scoreboard
+            $scoreboard = MatchScoreBoard::where('match_id', $matchId)
+                ->where('status', 'running')
+                ->first();
+
+            if (!$scoreboard) {
+                // No running scoreboard → match might be completed
+                // Use latest scoreboard to show final stats
+                $scoreboard = MatchScoreBoard::where('match_id', $matchId)
+                    ->orderByDesc('innings')
+                    ->first();
+
+                if (!$scoreboard) {
+                    // No scoreboard at all
+                    return response()->json([
+                        'success' => false,
+                        'message' => 'No scoreboards found for this match.'
+                    ], 404);
+                }
+            }
+
+            $currentInnings = $scoreboard->innings ?? 1;
             $batting_team_id = $scoreboard->team_id;
-            $bowling_team_id = ($batting_team_id == $match->team_a_id) ? $match->team_b_id : $match->team_a_id;
 
-            // 1️⃣ Current batting players
-            $batting = MatchPlayer::with('player.user')
-                ->where('match_id', $matchId)
-                ->where('team_id', $batting_team_id)
-                ->whereIn('status', ['batting', 'on-strike'])
-                ->get()
-                ->map(function ($mp) {
-                    $user = $mp->player?->user;
-                    return [
-                        'id'          => $mp->player_id,
-                        'name'        => $user?->full_name ?? 'Unknown',
-                        'runs'        => $mp->runs_scored ?? 0,
-                        'balls'       => $mp->balls_faced ?? 0,
-                        'fours'       => $mp->fours ?? 0,
-                        'sixes'       => $mp->sixes ?? 0,
-                        'strike_rate' => $mp->balls_faced
-                            ? round(($mp->runs_scored / $mp->balls_faced) * 100, 2)
-                            : 0,
-                    ];
-                });
+            $bowling_scoreboard = MatchScoreBoard::where('match_id', $matchId)
+                ->where('team_id', '!=', $batting_team_id)
+                ->first();
 
-            // 2️⃣ Current bowling players
-            $bowling = MatchPlayer::with('player.user')
-                ->where('match_id', $matchId)
-                ->where('team_id', $bowling_team_id)
-                ->where('overs_bowled', '>=', 0)
-                ->get()
-                ->map(function ($mp) {
-                    $user = $mp->player?->user;
-                    $oversBowled = $mp->overs_bowled ?? 0;
-                    $overPart    = floor($oversBowled);
-                    $ballPart    = round(($oversBowled - $overPart) * 10);
-                    $decimalOvers = $overPart + ($ballPart / 6);
+            $bowling_team_id = $bowling_scoreboard ? $bowling_scoreboard->team_id : null;
 
-                    return [
-                        'id'           => $mp->player_id,
-                        'name'         => $user?->full_name ?? 'Unknown',
-                        'overs'        => $mp->overs_bowled,
-                        'runs_conceded' => $mp->runs_conceded,
-                        'wickets'      => $mp->wickets_taken,
-                        'economy_rate' => $decimalOvers > 0
-                            ? round($mp->runs_conceded / $decimalOvers, 2)
-                            : 0,
-                    ];
-                });
+            $totalOvers = $match->max_overs ?? 50;
+            $runs = $scoreboard->runs ?? 0;
+            $wickets = $scoreboard->wickets ?? 0;
+            $overs = $scoreboard->overs ?? '0.0';
 
-            // 3️⃣ Partnerships (only active one for current innings)
-            $partnerships = Partnership::with(['batter1.user', 'batter2.user'])
-                ->where('match_id', $matchId)
-                ->where('team_id', $batting_team_id)
-                ->get()
-                ->map(function ($p) {
-                    $totalRuns = max(1, $p->player1_runs + $p->player2_runs);
-                    $batter1Percent = round(($p->player1_runs / $totalRuns) * 100);
-                    $batter2Percent = 100 - $batter1Percent;
-
-                    return [
-                        'batter1' => [
-                            'id'      => $p->batter_1_id,
-                            'name'    => $p->batter1?->user?->full_name ?? 'Unknown',
-                            'role'    => $p->batter1?->batting_style ?? 'Unknown',
-                            'img'     => $p->batter1->image ?? asset('storage/assets/images/users/dummy-avatar.jpg'),
-                            'runs'    => $p->player1_runs,
-                            'balls'   => $p->batter_1_balls ?? 0,
-                            'percent' => $batter1Percent,
-                        ],
-                        'batter2' => $p->batter2 ? [
-                            'id'      => $p->batter_2_id,
-                            'name'    => $p->batter2?->user?->full_name ?? 'Unknown',
-                            'role'    => $p->batter2?->batting_style ?? 'Unknown',
-                            'img'     => $p->batter2->image ?? asset('storage/assets/images/users/dummy-avatar.jpg'),
-                            'runs'    => $p->player2_runs,
-                            'balls'   => $p->batter_2_balls ?? 0,
-                            'percent' => $batter2Percent,
-                        ] : null,
-                        'start_over' => $p->start_over,
-                        'end_over'   => $p->end_over,
-                        'runs'       => $p->runs,
-                        'balls'      => $p->balls,
-                    ];
-                });
-
-            // 4️⃣ Fall of wickets (for this innings)
-            $fallOfWickets = FallOfWicket::with('batter.user')
-                ->where('match_id', $matchId)
-                ->where('team_id', $batting_team_id)
-                ->orderBy('wicket_number')
-                ->get()
-                ->map(function ($w) {
-                    return [
-                        'player_name'   => $w->batter?->user?->full_name ?? 'Unknown',
-                        'runs'          => $w->runs,
-                        'balls'         => $w->balls ?? 0,
-                        'over'          => $w->overs,
-                        'wicket_number' => $w->wicket_number,
-                        'dismissal_type' => $w->dismissal_type,
-                    ];
-                });
-
-            // 5️⃣ Scoreboard for current innings
-            $totalOvers = $match->max_overs;
-            $oversParts = explode('.', $scoreboard->overs);
+            $oversParts = explode('.', $overs);
             $completedOvers = intval($oversParts[0]);
             $balls = isset($oversParts[1]) ? intval($oversParts[1]) : 0;
             $oversBowled = $completedOvers + ($balls / 6);
 
-            $currentRate = $oversBowled > 0
-                ? round($scoreboard->runs / $oversBowled, 2)
-                : 0;
-            $projected = round($currentRate * $totalOvers);
+            $currentCRR = $oversBowled > 0 ? round($runs / $oversBowled, 2) : 0;
+            $projected = round($currentCRR * $totalOvers);
 
-            $finalScoreBoard = [
-                'runs'       => $scoreboard->runs,
-                'wickets'    => $scoreboard->wickets,
-                'overs'      => $scoreboard->overs,
-                'totalOvers' => $totalOvers,
-                'currentCRR' => $currentRate,
-                'projected'  => $projected,
+            $battingTeam = Team::find($batting_team_id);
+
+            $striker = MatchPlayer::where('match_id', $matchId)
+                ->where('team_id', $batting_team_id)
+                ->where('status', 'on-strike')
+                ->first();
+
+            $nonStriker = MatchPlayer::where('match_id', $matchId)
+                ->where('team_id', $batting_team_id)
+                ->where('status', 'batting')
+                ->first();
+
+            $currentBowler = $bowling_team_id
+                ? MatchPlayer::where('match_id', $matchId)
+                ->where('status', 'bowling')
+                ->where('team_id', $bowling_team_id)
+                ->orderByDesc('overs_bowled')
+                ->first()
+                : null;
+
+            $bowlerId = $currentBowler ? $currentBowler->player_id : null;
+
+            $matchState = [
+                'striker' => $striker ? [
+                    'id' => $striker->player_id,
+                    'name' => $striker->player->user->full_name ?? 'Unknown',
+                    'img' => $striker->player->image ?? asset('storage/assets/images/users/dummy-avatar.jpg'),
+                    'runs' => $striker->runs_scored ?? 0,
+                    'balls' => $striker->balls_faced ?? 0,
+                ] : null,
+                'nonStriker' => $nonStriker ? [
+                    'id' => $nonStriker->player_id,
+                    'name' => $nonStriker->player->user->full_name ?? 'Unknown',
+                    'img' => $nonStriker->player->image ?? asset('storage/assets/images/users/dummy-avatar.jpg'),
+                    'runs' => $nonStriker->runs_scored ?? 0,
+                    'balls' => $nonStriker->balls_faced ?? 0,
+                ] : null,
+                'team' => $battingTeam ? [
+                    'id' => $battingTeam->id,
+                    'name' => $battingTeam->name,
+                    'score' => $runs,
+                    'wickets' => $wickets,
+                    'overs' => $overs,
+                    'totalOvers' => $totalOvers,
+                    'crr' => $currentCRR,
+                    'projected' => $projected,
+                ] : null,
+                'currentBowler' => $bowlerId,
+                'battingTeamId' => $batting_team_id,
+                'bowlingTeamId' => $bowling_team_id,
+                'currentInnings' => $currentInnings
             ];
 
-            // 6️⃣ Current bowler
-            $currentBowler = MatchPlayer::where('status', 'bowling')
-                ->where('match_id', $matchId)
-                ->where('team_id', $bowling_team_id)
-                ->orderByDesc('updated_at')
-                ->first();
-
-            $bowlerId = $currentBowler?->player_id;
-            $firstInningsComplete = MatchScoreBoard::where('match_id', $matchId)
-                ->where('status', 'ended')
-                ->where('innings', 1)
-                ->first();
-            $targetScore = $firstInningsComplete ? $firstInningsComplete->runs + 1 : 0;
-            $requiredRunRate = $targetScore > 0 ? number_format($targetScore / $totalOvers, 2) : 0;
-
             return response()->json([
-                'success'          => true,
-                'batting'          => $batting,
-                'bowling'          => $bowling,
-                'partnerships'     => $partnerships,
-                'fall_of_wickets'  => $fallOfWickets,
-                'innings'          => $currentInnings,
-                'batting_team_id'  => $batting_team_id,
-                'bowling_team_id'  => $bowling_team_id,
-                'scoreboard'       => $finalScoreBoard,
-                'bowlerId'         => $bowlerId,
-                'targetScore'      => $targetScore,
-                'requiredRunRate'  => $requiredRunRate,
+                'success' => true,
+                'match_state' => $matchState
             ]);
         } catch (\Exception $e) {
-            Log::error('Error loading current stats', [
+            Log::error('Error loading match state', [
                 'message' => $e->getMessage(),
-                'line'    => $e->getLine()
+                'line' => $e->getLine()
             ]);
 
             return response()->json([
@@ -800,6 +847,201 @@ class CricketMatchController extends Controller
             ]);
         }
     }
+
+
+    public function loadCurrentStats(Request $request)
+    {
+        try {
+            $matchId = $request->match_id;
+            $match   = CricketMatch::findOrFail($matchId);
+
+            // Load all scoreboards for the match, ordered by innings
+            $scoreboards = MatchScoreBoard::where('match_id', $matchId)
+                ->orderBy('innings')
+                ->get();
+
+            $allInnings = [];
+
+            // If scoreboards exist, map their data
+            if ($scoreboards->isNotEmpty()) {
+                foreach ($scoreboards as $scoreboard) {
+                    $inningsNo      = $scoreboard->innings;
+                    $batting_team_id = $scoreboard->team_id;
+                    $bowling_team_id = ($batting_team_id == $match->team_a_id) ? $match->team_b_id : $match->team_a_id;
+
+                    // Batting
+                    $batting = MatchPlayer::with('player.user')
+                        ->where('match_id', $matchId)
+                        ->where('team_id', $batting_team_id)
+                        ->get()
+                        ->map(function ($mp) {
+                            $user = $mp->player?->user;
+                            return [
+                                'id'          => $mp->player_id,
+                                'name'        => $user?->full_name ?? 'Unknown',
+                                'runs'        => $mp->runs_scored ?? 0,
+                                'balls'       => $mp->balls_faced ?? 0,
+                                'fours'       => $mp->fours ?? 0,
+                                'sixes'       => $mp->sixes ?? 0,
+                                'status'      => $mp->status ?? '---',
+                                'strike_rate' => $mp->balls_faced
+                                    ? round(($mp->runs_scored / $mp->balls_faced) * 100, 2)
+                                    : 0,
+                            ];
+                        });
+
+                    // Bowling
+                    $bowling = MatchPlayer::with('player.user')
+                        ->where('match_id', $matchId)
+                        ->where('team_id', $bowling_team_id)
+                        ->where('overs_bowled', '>=', 0)
+                        ->get()
+                        ->map(function ($mp) {
+                            $user = $mp->player?->user;
+                            $oversBowled = $mp->overs_bowled ?? 0;
+                            $overPart    = floor($oversBowled);
+                            $ballPart    = round(($oversBowled - $overPart) * 10);
+                            $decimalOvers = $overPart + ($ballPart / 6);
+
+                            return [
+                                'id'           => $mp->player_id,
+                                'name'         => $user?->full_name ?? 'Unknown',
+                                'overs'        => $mp->overs_bowled,
+                                'runs_conceded' => $mp->runs_conceded,
+                                'wickets'      => $mp->wickets_taken,
+                                'economy_rate' => $decimalOvers > 0
+                                    ? round($mp->runs_conceded / $decimalOvers, 2)
+                                    : 0,
+                            ];
+                        });
+
+                    // Partnerships
+                    $partnerships = Partnership::with(['batter1.user', 'batter2.user'])
+                        ->where('match_id', $matchId)
+                        ->where('team_id', $batting_team_id)
+                        ->where('innings', $inningsNo)
+                        ->get()
+                        ->map(function ($p) {
+                            $totalRuns = max(1, $p->player1_runs + $p->player2_runs);
+                            $batter1Percent = round(($p->player1_runs / $totalRuns) * 100);
+                            $batter2Percent = 100 - $batter1Percent;
+
+                            return [
+                                'batter1' => [
+                                    'id'      => $p->batter_1_id,
+                                    'name'    => $p->batter1?->user?->full_name ?? 'Unknown',
+                                    'role'    => strtoupper(str_replace('-', ' ', $p->batter1?->batting_style)) ?? 'Unknown',
+                                    'runs'    => $p->player1_runs,
+                                    'balls'   => $p->batter_1_balls ?? 0,
+                                    'percent' => $batter1Percent,
+                                    'img'     => $p->batter1?->user?->image ?? 'https://coffective.com/wp-content/uploads/2018/06/default-featured-image.png.jpg',
+                                ],
+                                'batter2' => $p->batter2 ? [
+                                    'id'      => $p->batter_2_id,
+                                    'name'    => $p->batter2?->user?->full_name ?? 'Unknown',
+                                    'role'    => strtoupper(str_replace('-', ' ', $p->batter2?->batting_style)) ?? 'Unknown',
+                                    'runs'    => $p->player2_runs,
+                                    'balls'   => $p->batter_2_balls ?? 0,
+                                    'percent' => $batter2Percent,
+                                    'img'     => $p->batter2?->user?->image ?? 'https://coffective.com/wp-content/uploads/2018/06/default-featured-image.png.jpg',
+                                ] : null,
+                                'runs'      => $p->runs,
+                                'balls'     => $p->balls,
+                                'start_over' => $p->start_over,
+                                'end_over'  => $p->end_over,
+                            ];
+                        });
+
+                    // Fall of wickets
+                    $fallOfWickets = FallOfWicket::with('batter.user')
+                        ->where('match_id', $matchId)
+                        ->where('team_id', $batting_team_id)
+                        ->where('innings', $inningsNo)
+                        ->orderBy('wicket_number')
+                        ->get()
+                        ->map(function ($w) {
+                            return [
+                                'player_name'   => $w->batter?->user?->full_name ?? 'Unknown',
+                                'runs'          => $w->runs,
+                                'over'          => $w->overs,
+                                'wicket_number' => $w->wicket_number,
+                                'dismissal_type' => $w->dismissal_type,
+                            ];
+                        });
+
+                    // Scoreboard calculations
+                    $totalOvers = $match->max_overs;
+                    $oversParts = explode('.', $scoreboard->overs ?? '0.0');
+                    $completedOvers = intval($oversParts[0]);
+                    $balls = isset($oversParts[1]) ? intval($oversParts[1]) : 0;
+                    $oversBowled = $completedOvers + ($balls / 6);
+
+                    $currentRate = $oversBowled > 0
+                        ? round($scoreboard->runs / $oversBowled, 2)
+                        : 0;
+                    $projected = round($currentRate * $totalOvers);
+
+                    $targetScore = 0;
+                    $requiredRunRate = 0;
+
+                    if ($inningsNo == 2) {
+                        $firstInnings = $scoreboards->where('innings', 1)->first();
+                        if ($firstInnings) {
+                            $targetScore = $firstInnings->runs + 1;
+                            $oversLeft = $totalOvers - $oversBowled;
+                            $requiredRunRate = $oversLeft > 0
+                                ? round(($targetScore - $scoreboard->runs) / $oversLeft, 2)
+                                : 0;
+                        }
+                    }
+
+                    $allInnings[] = [
+                        'innings'        => $inningsNo,
+                        'batting_team_id' => $batting_team_id,
+                        'bowling_team_id' => $bowling_team_id,
+                        'scoreboard'     => [
+                            'runs'        => $scoreboard->runs ?? 0,
+                            'wickets'     => $scoreboard->wickets ?? 0,
+                            'overs'       => $scoreboard->overs ?? '0.0',
+                            'totalOvers'  => $totalOvers,
+                            'currentCRR'  => $currentRate,
+                            'projected'   => $projected,
+                            'target'      => $targetScore,
+                            'requiredRR'  => $requiredRunRate,
+                        ],
+                        'batting'        => $batting,
+                        'bowling'        => $bowling,
+                        'partnerships'   => $partnerships,
+                        'fall_of_wickets' => $fallOfWickets,
+                    ];
+                }
+            }
+
+            // Always return match_result even if scoreboards are empty
+            Log::info($match->status);
+            return response()->json([
+                'success' => true,
+                'match_id' => $matchId,
+                'innings' => $allInnings,
+                'match_result' => $match->status === 'completed' ? [
+                    'winning_team_id' => $match->winning_team_id,
+                    'winning_team'    => $match->winningTeam?->name ?? 'Unknown',
+                    'summary'         => $match->result_summary ?? '',
+                ] : null,
+            ]);
+        } catch (\Exception $e) {
+            Log::error('Error loading full match stats', [
+                'message' => $e->getMessage(),
+                'line'    => $e->getLine()
+            ]);
+
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to load match stats.'
+            ]);
+        }
+    }
+
 
     public function getTeamBPlayers($matchId)
     {
@@ -819,8 +1061,6 @@ class CricketMatchController extends Controller
     public function chooseBowler(Request $request)
     {
         try {
-            Log::info("Request Received: ", ['request' => $request->all()]);
-
             $validator = Validator::make($request->all(), [
                 'match_id' => 'required|exists:cricket_matches,id',
                 'bowler_id' => 'required|exists:players,id',
@@ -923,115 +1163,24 @@ class CricketMatchController extends Controller
         }
     }
 
-    public function getMatchInfo(Request $request)
-    {
-        try {
-            $matchId = $request->match_id;
-            $match = CricketMatch::findOrFail($matchId);
-
-            // ✅ Get current scoreboard
-            $scoreboard = MatchScoreBoard::where('match_id', $matchId)
-                ->where('status', 'running')
-                ->firstOrFail();
-
-            // 🔹 Get current innings and batting team from scoreboard
-            $currentInnings = $scoreboard->innings ?? 1;
-            $batting_team_id = $scoreboard->team_id;
-
-            $totalOvers = $match->max_overs ?? 50;
-            $runs = $scoreboard->runs ?? 0;
-            $wickets = $scoreboard->wickets ?? 0;
-            $overs = $scoreboard->overs ?? '0.0';
-
-            // Parse overs like 5.3 → 5 + 3/6 = 5.5
-            $oversParts = explode('.', $overs);
-            $completedOvers = intval($oversParts[0]);
-            $balls = isset($oversParts[1]) ? intval($oversParts[1]) : 0;
-            $oversBowled = $completedOvers + ($balls / 6);
-
-            $currentCRR = $oversBowled > 0 ? round($runs / $oversBowled, 2) : 0;
-            $projected = round($currentCRR * $totalOvers);
-
-            $battingTeam = Team::find($batting_team_id);
-
-            // Get striker and non-striker for the batting team
-            $striker = MatchPlayer::where('match_id', $matchId)
-                ->where('team_id', $batting_team_id)
-                ->where('status', 'on-strike')
-                ->first();
-
-            $nonStriker = MatchPlayer::where('match_id', $matchId)
-                ->where('team_id', $batting_team_id)
-                ->where('status', 'batting')
-                ->first();
-
-            // Get current bowler
-            $currentBowler = MatchPlayer::where('match_id', $matchId)
-                ->where('status', 'bowling')
-                ->orderByDesc('overs_bowled')
-                ->first();
-
-            $bowlerId = $currentBowler ? $currentBowler->player_id : null;
-
-            $matchState = [
-                'striker' => $striker ? [
-                    'id' => $striker->player_id,
-                    'name' => $striker->player->user->full_name ?? 'Unknown',
-                    'img' => $striker->player->image ?? asset('storage/assets/images/users/dummy-avatar.jpg'),
-                    'runs' => $striker->runs_scored ?? 0,
-                    'balls' => $striker->balls_faced ?? 0,
-                ] : null,
-                'nonStriker' => $nonStriker ? [
-                    'id' => $nonStriker->player_id,
-                    'name' => $nonStriker->player->user->full_name ?? 'Unknown',
-                    'img' => $nonStriker->player->image ?? asset('storage/assets/images/users/dummy-avatar.jpg'),
-                    'runs' => $nonStriker->runs_scored ?? 0,
-                    'balls' => $nonStriker->balls_faced ?? 0,
-                ] : null,
-                'team' => $battingTeam ? [
-                    'id' => $battingTeam->id,
-                    'name' => $battingTeam->name,
-                    'score' => $runs,
-                    'wickets' => $wickets,
-                    'overs' => $overs,
-                    'totalOvers' => $totalOvers,
-                    'crr' => $currentCRR,
-                    'projected' => $projected,
-                ] : null,
-                'currentBowler' => $bowlerId,
-                'battingTeamId' => $batting_team_id,
-                'currentInnings' => $currentInnings
-            ];
-
-            return response()->json([
-                'success' => true,
-                'match_state' => $matchState
-            ]);
-        } catch (\Exception $e) {
-            Log::error('Error loading match state', [
-                'message' => $e->getMessage(),
-                'line' => $e->getLine()
-            ]);
-
-            return response()->json([
-                'success' => false,
-                'message' => 'Failed to load current stats.'
-            ]);
-        }
-    }
-
-
     public function getCurrentOver($matchId)
     {
         try {
-            $scoreboard = MatchScoreBoard::where('match_id', $matchId)
-                ->where('status', 'running')
-                ->firstOrFail();
+            $scoreboard = MatchScoreBoard::where('match_id', $matchId)->where('status', 'running')->first();
+
+            if (!$scoreboard) {
+                return response()->json([
+                    'success' => true,
+                    'current_over' => null,
+                    'balls' => []
+                ]);
+            }
+
             $lastDelivery = MatchDelivery::where('match_id', $matchId)
                 ->where('innings', $scoreboard->innings)
                 ->orderByDesc('id')
                 ->first();
-            Log::info($scoreboard->innings);
+
             $currentOverNumber = $lastDelivery ? $lastDelivery->over_number : 1;
 
             $deliveries = MatchDelivery::where('match_id', $matchId)
@@ -1500,14 +1649,14 @@ class CricketMatchController extends Controller
             $striker->save();
 
             // update bowler overs (store as over.ball decimal)
-            $overPart = floor($bowlerInfo->overs_bowled);
-            $ballPart = (int) round(($bowlerInfo->overs_bowled - $overPart) * 10);
+            $overPart  = floor($bowlerInfo->overs_bowled); // completed overs
+            $ballPart  = round(($bowlerInfo->overs_bowled - $overPart) * 10); // balls in current over
 
             if ($legalBall) {
-                $ballPart++;
+                $ballPart++; // add this ball
                 if ($ballPart >= 6) {
                     $overPart++;
-                    $ballPart = 1;
+                    $ballPart = 0; // reset ball to 0, NOT 1
                 }
             }
 
@@ -1595,12 +1744,6 @@ class CricketMatchController extends Controller
                 }
             }
 
-            // ---------- Update playerStat ----------
-            $playerStat = PlayerStat::firstOrCreate(['player_id' => $strikerId]);
-            $playerStat->total_runs += $runs;
-            $playerStat->balls_faced += $legalBall ? 1 : 0;
-            $playerStat->save();
-
             // ---------- Strike rotation ----------
             if ($legalBall && ($runs % 2 !== 0)) {
                 $striker->status = 'batting';
@@ -1618,9 +1761,114 @@ class CricketMatchController extends Controller
             $wasLastLegalBallOfInnings = $legalBall && ($over == $maxOvers) && ($ball == 6);
             $isInningsEnded = false;
 
-            if ($wasLastLegalBallOfInnings) {
+            if ($wasLastLegalBallOfInnings || ($isWicket && $scoreboard->wickets >= 10)) {
                 $this->switchTeam($match, $scoreboard);
                 $isInningsEnded = true;
+
+                // 🔹 Check if match is finished (after 2 innings)
+                $completedInnings = MatchScoreBoard::where('match_id', $matchId)
+                    ->whereIn('status', ['ended'])
+                    ->count();
+
+                if ($completedInnings >= 2) {
+                    $innings1 = MatchScoreBoard::where('match_id', $matchId)->where('innings', 1)->first();
+                    $innings2 = MatchScoreBoard::where('match_id', $matchId)->where('innings', 2)->first();
+
+                    if ($innings1 && $innings2) {
+                        if ($innings2->runs > $innings1->runs) {
+                            $remainingWickets = 10 - $innings2->wickets;
+                            $match->winning_team_id = $innings2->team_id;
+                            $match->result_summary = $match->teamB->name . " won by {$remainingWickets} wickets";
+                        } elseif ($innings2->runs < $innings1->runs && $innings2->overs >= $maxOvers) {
+                            $margin = $innings1->runs - $innings2->runs;
+                            $match->winning_team_id = $innings1->team_id;
+                            $match->result_summary = $match->teamA->name . " won by {$margin} runs";
+                        } elseif ($innings2->runs == $innings1->runs) {
+                            $match->winning_team_id = null;
+                            $match->result_summary = "Match tied";
+                        }
+
+                        $match->status = 'completed';
+                        $match->save();
+                    }
+                }
+            }
+
+            // ---------- Check if chasing team has already won (target reached early) ----------
+            if ($innings == 2) {
+                $innings1 = MatchScoreBoard::where('match_id', $matchId)->where('innings', 1)->first();
+                $target   = $innings1->runs + 1;
+
+                if ($scoreboard->runs >= $target) {
+                    $remainingWickets = $scoreboard->team->players->count() - $scoreboard->wickets;
+
+                    $match->winning_team_id = $scoreboard->team_id;
+                    $match->result_summary  = $scoreboard->team->name . " won by {$remainingWickets} wickets";
+                    $match->status          = 'completed';
+                    $match->save();
+
+                    // end the innings immediately
+                    $scoreboard->status = 'ended';
+                    $scoreboard->save();
+
+                    $isInningsEnded = true;
+                }
+            }
+
+            // ---------- Update Player Statistics ----------
+
+            // ✅ Update striker stats
+            if ($strikerId) {
+                $strikerStat = PlayerStat::firstOrCreate(['player_id' => $strikerId]);
+
+                $strikerStat->total_runs   += $runs;
+                $strikerStat->balls_faced  += $legalBall ? 1 : 0;
+                $strikerStat->fours        += ($runs == 4) ? 1 : 0;
+                $strikerStat->sixes        += ($runs == 6) ? 1 : 0;
+
+                if ($strikerStat->balls_faced > 0) {
+                    $strikerStat->strike_rate = round(($strikerStat->total_runs / $strikerStat->balls_faced) * 100, 2);
+                }
+
+                $strikerStat->save();
+            }
+
+            // ✅ Update non-striker stats (only if he faced a ball in a run-out OR extras credited)
+            if ($nonStrikerId) {
+                $nonStrikerStat = PlayerStat::firstOrCreate(['player_id' => $nonStrikerId]);
+
+                // ⚡ generally non-striker doesn’t face balls here,
+                // but handle run-outs/extras if needed later
+                $nonStrikerStat->save();
+            }
+
+            // ✅ Update bowler stats
+            if ($bowlerId) {
+                $bowlerStat = PlayerStat::firstOrCreate(['player_id' => $bowlerId]);
+
+                // increment innings bowled if this is his first ball of the innings
+                if ($legalBall && $bowlerStat->overs_bowled == 0) {
+                    $bowlerStat->innings_bowled += 1;
+                }
+
+                // convert overs to balls
+                $bowlerStat->overs_bowled += $legalBall ? 1 : 0;
+                $bowlerStat->runs_conceded += $runs + (in_array($deliveryType, ['no-ball', 'wide']) ? 1 : 0);
+                if ($isWicket && $wicketType != 'run_out') {
+                    $bowlerStat->wickets += 1;
+                }
+
+                // derived bowling metrics
+                if ($bowlerStat->overs_bowled > 0) {
+                    $oversAsFloat = $bowlerStat->overs_bowled / 6; // convert balls back to overs
+                    $bowlerStat->economy_rate = round($bowlerStat->runs_conceded / $oversAsFloat, 2);
+
+                    if ($bowlerStat->wickets > 0) {
+                        $bowlerStat->bowling_average = round($bowlerStat->runs_conceded / $bowlerStat->wickets, 2);
+                    }
+                }
+
+                $bowlerStat->save();
             }
 
             DB::commit();

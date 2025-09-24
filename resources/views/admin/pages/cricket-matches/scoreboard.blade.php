@@ -303,29 +303,35 @@
                                         {{ $match->teamA->name ?? 'Team A' }}
                                         <span class="text-muted">vs</span>
                                         {{ $match->teamB->name ?? 'Team B' }}
-
-                                        <span
-                                            class="badge bg-{{ $match->status == 'completed' ? 'success' : ($match->status == 'live' ? 'danger' : 'secondary') }}">
-                                            {{ ucfirst($match->status) }}
-                                        </span>
                                     </h4>
 
                                     <table class="table">
                                         <tr>
-                                            <td width="8%" class="p-2">Match Date</td>
-                                            <td width="2%" class="p-2">:</td>
-                                            <td width="90%" class="p-2">
+                                            <td width="8%" class="p-2 fs-16">Match Date</td>
+                                            <td width="2%" class="p-2 fs-16">:</td>
+                                            <td width="90%" class="p-2 fs-16">
                                                 {{ \Carbon\Carbon::parse($match->date)->format('d M, Y') ?? 'N/A' }}</td>
                                         </tr>
                                         <tr>
-                                            <td width="8%" class="p-2">Tournament</td>
-                                            <td width="2%" class="p-2">:</td>
-                                            <td width="90%" class="p-2">{{ $match->tournament->name ?? 'N/A' }}</td>
+                                            <td width="8%" class="p-2 fs-16">Tournament</td>
+                                            <td width="2%" class="p-2 fs-16">:</td>
+                                            <td width="90%" class="p-2 fs-16">{{ $match->tournament->name ?? 'N/A' }}</td>
                                         </tr>
                                         <tr>
-                                            <td width="8%" class="p-2">Venue</td>
-                                            <td width="2%" class="p-2">:</td>
-                                            <td width="90%" class="p-2">{{ $match->venue ?? 'No Venue available.' }}
+                                            <td width="8%" class="p-2 fs-16">Venue</td>
+                                            <td width="2%" class="p-2 fs-16">:</td>
+                                            <td width="90%" class="p-2 fs-16">{{ $match->venue ?? 'No Venue available.' }}
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <td width="8%" class="p-2 align-middle fs-16">Status</td>
+                                            <td width="2%" class="p-2 align-middle fs-16">:</td>
+                                            <td width="90%" class="p-2 fs-16">
+                                                <select name="start-match" id="start-match" class="form-control select2 w-25 border-cyan">
+                                                    <option value="live">Live</option>
+                                                    <option value="completed">Completed</option>
+                                                    <option value="upcoming">Upcoming</option>
+                                                </select>
                                             </td>
                                         </tr>
                                     </table>
@@ -398,57 +404,57 @@
                 </div>
             </div>
 
-            <div class="card">
-                <div class="card shadow-sm border-0">
-                    <div class="card-body p-3">
-                        <div class="d-flex justify-content-between align-items-center flex-wrap">
+            <div class="card" id="match-scoreboard" class="d-block">
+                <div class="card-body p-3">
+                    <div class="d-flex justify-content-between align-items-center flex-wrap">
 
-                            <!-- Left: Team & Score Info -->
-                            <div class="me-3 flex-grow-1">
-                                <h4 class="mb-3 fw-bold text-primary d-flex align-items-center">
-                                    <i class="ri-trophy-line me-3 fs-28"></i>
-                                    <span id="battingTeamName">Team A</span>
-                                </h4>
+                        <!-- Left: Team & Score Info -->
+                        <div class="me-3 flex-grow-1">
+                            <h4 class="mb-3 fw-bold text-primary d-flex align-items-center">
+                                <i class="ri-trophy-line me-3 fs-28"></i>
+                                <span id="battingTeamName">Team A</span>
+                            </h4>
 
-                                <div class="d-flex flex-wrap gap-3">
-                                    <div class="score-badge bg-success text-white px-4 py-2 rounded">
-                                        <strong>Score</strong><br>
-                                        <span id="currentScore" class="fs-18">0 / 0</span>
-                                    </div>
+                            <div class="d-flex flex-wrap gap-3">
+                                <div class="score-badge bg-success text-white px-4 py-2 rounded">
+                                    <strong>Score</strong><br>
+                                    <span id="currentScore" class="fs-18">0 / 0</span>
+                                </div>
 
-                                    <div class="score-badge bg-info text-white px-4 py-2 rounded">
-                                        <strong>Overs</strong><br>
-                                        <span id="currentOvers" class="fs-18">0.0</span>
-                                    </div>
+                                <div class="score-badge bg-info text-white px-4 py-2 rounded">
+                                    <strong>Overs</strong><br>
+                                    <span id="currentOvers" class="fs-18">0.0</span>
+                                </div>
 
-                                    <div class="score-badge bg-warning text-dark px-4 py-2 rounded">
-                                        <strong>CRR</strong><br>
-                                        <span id="currentCRR" class="fs-18">0.0</span>
-                                    </div>
+                                <div class="score-badge bg-warning text-dark px-4 py-2 rounded">
+                                    <strong>CRR</strong><br>
+                                    <span id="currentCRR" class="fs-18">0.0</span>
+                                </div>
 
-                                    <div class="score-badge bg-secondary text-white px-4 py-2 rounded">
-                                        <strong>Projected</strong><br>
-                                        <span id="projectedScore" class="fs-18">00</span>
-                                    </div>
+                                <div class="score-badge bg-secondary text-white px-4 py-2 rounded">
+                                    <strong>Projected</strong><br>
+                                    <span id="projectedScore" class="fs-18">00</span>
+                                </div>
 
-                                    <div class="score-badge bg-primary text-white px-4 py-2 rounded tagetscore-container d-none">
-                                        <strong>Target</strong><br>
-                                        <span id="targetScore" class="fs-18">00</span>
-                                    </div>
+                                <div
+                                    class="score-badge bg-primary text-white px-4 py-2 rounded tagetscore-container d-none">
+                                    <strong>Target</strong><br>
+                                    <span id="targetScore" class="fs-18">00</span>
+                                </div>
 
-                                    <div class="score-badge bg-primary text-white px-4 py-2 rounded requiredRunRate-container d-none">
-                                        <strong>RR</strong><br>
-                                        <span id="requiredRunRate" class="fs-18">00</span>
-                                    </div>
+                                <div
+                                    class="score-badge bg-primary text-white px-4 py-2 rounded requiredRunRate-container d-none">
+                                    <strong>RR</strong><br>
+                                    <span id="requiredRunRate" class="fs-18">00</span>
                                 </div>
                             </div>
+                        </div>
 
-                            <!-- Right: Action Button -->
-                            <div class="ms-auto mt-2 mt-md-0">
-                                <button class="btn btn-outline-danger btn-complete-innings btn-lg shadow-sm">
-                                    Complete Innings
-                                </button>
-                            </div>
+                        <!-- Right: Action Button -->
+                        <div class="ms-auto mt-2 mt-md-0">
+                            <button class="btn btn-outline-danger btn-complete-innings btn-lg shadow-sm">
+                                Complete Innings
+                            </button>
                         </div>
                     </div>
                 </div>
@@ -718,6 +724,10 @@
                     </div>
                 </div>
             </div>
+
+            <div class="card" id="match-result" class="d-none">
+
+            </div>
         </div>
     </div>
 
@@ -794,6 +804,43 @@
 
             let strikerId = null;
             let nonStrikerId = null;
+            const stateKey = "match_state_" + matchId;
+
+            $("#start-match").select2({
+                placeholder: "Select Status",
+                width: "25%",
+                minimumResultsForSearch: -1
+            });
+
+            $('#start-match').on('change', function() {
+                var selectedStatus = $(this).val();
+                console.log("Selected status:", selectedStatus);
+
+                $.ajax({
+                    url: '/admin/cricket-matches/start/'+matchId,
+                    method: 'GET',
+                    data: {
+                        status: selectedStatus,
+                    },
+                    success: function(response) {
+                        if(response.success){
+                            Swal.fire({
+                                icon: 'success',
+                                title: 'Status Updated!',
+                                text: `Match status has been changed to "${selectedStatus}".`,
+                                timer: 2000,
+                                showConfirmButton: false
+                            });
+                        } else {
+                            Swal.fire('Error', response.message, 'error');
+                        }
+                    },
+                    error: function(err) {
+                        Swal.fire('Error', 'Failed to update match status.', 'error');
+                    }
+                });
+            });
+
 
             // ------------------------
             // 🔹 Extra Runs
@@ -808,7 +855,7 @@
 
             // ------------------------
             // 🔹 Strike Switch
-            // ------------------------
+            // -----------------------
             window.switchStrike = function() {
                 fetch("{{ route('admin.cricket-matches.scoreboard.switch-strike') }}", {
                         method: "POST",
@@ -1151,6 +1198,7 @@
                         // Remove player from Yet-To-Bat list
                         const card = document.querySelector(`[data-player-id="${playerId}"]`);
                         if (card) card.remove();
+                        window.location.reload();
                     })
                     .catch(err => {
                         console.error(err);
@@ -1212,6 +1260,42 @@
                         console.error("Error saving player:", err);
                     });
             }
+
+            // ------------------------
+            // 🔹 Select Bowler
+            // ------------------------
+            window.selectBowler = function(playerId) {
+                const state = JSON.parse(localStorage.getItem(stateKey) || "{}");
+                state.currentBowler = playerId;
+                localStorage.setItem(stateKey, JSON.stringify(state));
+                fetch("{{ route('admin.cricket-matches.scoreboard.select-bowler') }}", {
+                        method: "POST",
+                        headers: {
+                            "Content-Type": "application/json",
+                            "X-CSRF-TOKEN": document.querySelector('meta[name="csrf-token"]').content
+                        },
+                        body: JSON.stringify({
+                            match_id: matchId,
+                            team_id: state.battingTeamId,
+                            player_id: playerId,
+                        })
+                    })
+                    .then(res => res.json())
+                    .then(data => {
+                        if (!data.success) throw new Error(data.message);
+                        window.location.reload();
+                    })
+                    .catch(err => {
+                        console.error(err);
+                        Swal.fire('Error', err.message, 'error');
+                    });
+            }
+
+            // Use delegation from the table body (or any static parent)
+            $('#bowling-stats').on('change', 'input[name="current-bowler"]', function() {
+                const playerId = $(this).data('playerid');
+                selectBowler(playerId);
+            });
 
             // ------------------------
             // 🔹 STORE RUNS & DELIVERIES
@@ -1465,32 +1549,37 @@
                 batsmanOut,
                 fielderId = null
             }) {
-                let extra = null;
-
-                if (type === 'Run Out') {
-                    extra = {
-                        run_out: true
-                    };
-                } else if (type === 'Caught') {
-                    extra = {
-                        caught_by: fielderId
-                    };
-                } else if (type === 'Stumped') {
-                    extra = {
-                        stumped_by: fielderId
-                    };
+                const wicketModalEl = document.getElementById('wicketModal');
+                let modalInstance = bootstrap.Modal.getInstance(wicketModalEl);
+                if (!modalInstance) {
+                    modalInstance = new bootstrap.Modal(wicketModalEl);
                 }
 
+                modalInstance.hide();
+                setTimeout(() => {
+                    document.querySelectorAll('.modal-backdrop').forEach(el => el.remove());
+                    document.body.classList.remove('modal-open'); // remove modal-open class if stuck
+                }, 100);
+
+                let extra = null;
+                if (type === 'Run Out') extra = {
+                    run_out: true
+                };
+                else if (type === 'Caught') extra = {
+                    caught_by: fielderId
+                };
+                else if (type === 'Stumped') extra = {
+                    stumped_by: fielderId
+                };
+
+                // Add delivery
                 addDelivery({
-                    runs: 0, // or set runs
+                    runs: 0,
                     extra: extra,
                     wicket: type,
                     batsmanOut: batsmanOut,
                     legalBall: true
                 });
-
-                // close modal
-                bootstrap.Modal.getInstance(document.getElementById('wicketModal')).hide();
             }
 
             $('#btn-reset-wicket-form').on('click', function() {
@@ -1554,12 +1643,9 @@
                             timer: 2500,
                             timerProgressBar: true
                         }).then(() => {
-                            if (data.isInningsEnded) {
-                                window.location.reload();
-                            } else {
-                                loadCurrentStats(matchId);
-                                loadCurrentOver();
-                            }
+                            loadCurrentStats(matchId);
+                            loadCurrentOver();
+                            window.location.reload();
                         });
 
                     })
@@ -1575,7 +1661,7 @@
                     .then(res => res.json())
                     .then(data => {
                         if (!data.success) return console.error(data.message);
-                        console.log(data)
+
                         const container = document.getElementById('currentOverDetails');
                         container.innerHTML = '';
 
@@ -1684,7 +1770,6 @@
                             text: `${p.name} - ${p.style}`
                         }));
 
-                        // Initialize Select2
                         $('#bowler-select').select2({
                             data: options,
                             placeholder: "Select a bowler",
@@ -1769,13 +1854,62 @@
             }
 
             // ------------------------
-            // Load Batting Player List
+            // Load Current Statistics
             // ------------------------
             function loadCurrentStats(matchId) {
                 fetch("{{ route('admin.cricket-matches.scoreboard.load-current-stats') }}?match_id=" + matchId)
                     .then(res => res.json())
                     .then(data => {
                         if (data.success) {
+                            console.log(data.match_result)
+                            if (data.match_result) {
+                                // Show alert repeatedly until dismissed
+                                const showMatchResultAlert = () => {
+                                    Swal.fire({
+                                        title: `<span style="color:#155724;">🏆 ${data.match_result.winning_team}</span>`,
+                                        html: `<h4 style="margin-top:10px;">${data.match_result.summary}</h4>`,
+                                        icon: 'success',
+                                        background: '#f0f9f4',
+                                        color: '#155724',
+                                        confirmButtonColor: '#198754',
+                                        confirmButtonText: 'Celebrate 🎉',
+                                        allowOutsideClick: false, // prevent closing by clicking outside
+                                        allowEscapeKey: false, // prevent closing with ESC
+                                        showClass: {
+                                            popup: 'animate__animated animate__fadeInDown'
+                                        },
+                                        hideClass: {
+                                            popup: 'animate__animated animate__fadeOutUp'
+                                        }
+                                    }).then(() => {
+                                        // 💥 Confetti effect
+                                        if (typeof confetti === "function") {
+                                            confetti({
+                                                particleCount: 200,
+                                                spread: 100,
+                                                origin: {
+                                                    y: 0.6
+                                                }
+                                            });
+                                        }
+                                        // After closing, re-show the alert
+                                        showMatchResultAlert();
+                                    });
+                                };
+
+                                // Initial call
+                                showMatchResultAlert();
+
+                                return; // stop rendering stats if match already ended
+                            }
+
+                            const currentInnings = data.innings[data.innings.length - 1];
+                            const batting = currentInnings.batting;
+                            const bowling = currentInnings.bowling;
+                            const scoreboard = currentInnings.scoreboard;
+                            const partnerships = currentInnings.partnerships;
+                            const fallOfWickets = currentInnings.fall_of_wickets;
+
                             if (data.isMatchEnded) {
                                 Swal.fire({
                                     icon: 'info',
@@ -1785,32 +1919,31 @@
                                 });
                                 return;
                             }
-                            console.log(data)
 
-                            if (data.targetScore && data.targetScore > 0) {
-                                $('#targetScore').text(data.targetScore); // Set the target score
-                                $('#requiredRunRate').text(data.requiredRunRate); // Set the target score
-                                $('.tagetscore-container').removeClass('d-none'); // Show the container
-                                $('.requiredRunRate-container').removeClass('d-none'); // Show the container
+                            if (scoreboard.target && scoreboard.target > 0) {
+                                $('#targetScore').text(scoreboard.target);
+                                $('#requiredRunRate').text(scoreboard.requiredRR);
+                                $('.tagetscore-container').removeClass('d-none');
+                                $('.requiredRunRate-container').removeClass('d-none');
                             } else {
-                                $('.tagetscore-container').addClass('d-none'); // Hide if no target
-                                $('.requiredRunRate-container').addClass('d-none'); // Hide if no target
+                                $('.tagetscore-container').addClass('d-none');
+                                $('.requiredRunRate-container').addClass('d-none');
                             }
-                            $('input[name="innings"]').val(data.innings);
-                            $('#bowling_team_id').val(data.bowling_team_id);
 
-                            // update scoreboard
-                            const scoreboard = data.scoreboard;
+                            $('input[name="innings"]').val(currentInnings.innings);
+                            $('#bowling_team_id').val(currentInnings.bowling_team_id);
+
+                            // ✅ Scoreboard update
                             $('#currentScore').text(scoreboard.runs + " / " + scoreboard.wickets);
                             $('#currentOvers').text(scoreboard.overs + " / " + scoreboard.totalOvers);
                             $('#currentCRR').text(scoreboard.currentCRR);
                             $('#projectedScore').text(scoreboard.projected);
 
+                            // ✅ Batting table
                             const tbody = document.querySelector('#batting-stats');
                             tbody.innerHTML = '';
-
-                            if (data.batting) {
-                                data.batting.forEach(player => {
+                            if (batting) {
+                                batting.forEach(player => {
                                     const tr = document.createElement('tr');
                                     tr.innerHTML = `
                                         <td>${player.name}</td>
@@ -1824,22 +1957,20 @@
                                 });
                             }
 
-
-                            // 🏏 Update bowling table
+                            // ✅ Bowling table
                             const state = JSON.parse(localStorage.getItem("match_state_" + matchId) || "{}");
                             const bowlerId = state?.currentBowler ?? null;
 
                             const bowlingTbody = document.querySelector('#bowling-stats');
                             bowlingTbody.innerHTML = '';
-
-                            if (data.bowling) {
-                                data.bowling.forEach((player, index) => {
+                            if (bowling) {
+                                bowling.forEach(player => {
                                     const tr = document.createElement('tr');
                                     tr.innerHTML = `
                                         <td style="vertical-align: middle;display: flex;align-items: center;">
                                             ${player.name}
                                             <div class="form-check">
-                                                <input class="form-check-input" type="radio" data-playerid="${player.id}" name="current-bowler" style="margin-left: 10px;" ${bowlerId == player.id ? 'checked' : ''}>
+                                                <input class="form-check-input" type="radio" value="${player.id}" data-playerid="${player.id}" name="current-bowler" style="margin-left: 10px;" ${bowlerId == player.id ? 'checked' : ''}>
                                             </div>
                                         </td>
                                         <td class='text-center'>${player.overs}</td>
@@ -1852,7 +1983,7 @@
                                 });
                             }
 
-                            // Listen for current bowler selection
+                            // ✅ Bowler selection listener
                             bowlingTbody.addEventListener('change', (e) => {
                                 if (e.target.name === 'current-bowler') {
                                     const currentBowlerId = e.target.value;
@@ -1860,43 +1991,40 @@
                                 }
                             });
 
-                            // Update partnerships
+                            // ✅ Partnerships
                             const partnershipList = document.querySelector('#partnership-stats');
                             partnershipList.innerHTML = '';
-
-                            if (data.partnerships.length > 0) {
-                                data.partnerships.forEach(p => {
+                            if (partnerships && partnerships.length > 0) {
+                                partnerships.forEach(p => {
                                     let trContent = `<tr>
-                                                <th>
-                                                    <div class="d-flex align-items-center p-2">
-                                                        <img src="${p.batter1.img || ''}" alt="${p.batter1.name}" class="rounded-circle me-3" width="48" height="48" style="object-fit: cover;">
-                                                        <div class="flex-grow-1">
-                                                            <h6 class="mb-0">${p.batter1.name}</h6>
-                                                            <small class="text-muted">${p.batter1.role}</small>
-                                                        </div>
-                                                    </div>
-                                                </th>
-                                                <td class="text-center">
-                                                    <div class="mb-1">
-                                                        <small>${p.runs} (${p.balls} balls)</small>
-                                                    </div>
-                                                    <div class="progress" style="height: 10px;">
-                                                        <div class="progress-bar bg-success" role="progressbar" style="width: ${p.batter1.percent}%" aria-valuenow="${p.batter1.percent}" aria-valuemin="0" aria-valuemax="100"></div>
-                                                        <div class="progress-bar bg-primary" role="progressbar" style="width: ${p.batter2.percent}%" aria-valuenow="${p.batter2.percent}" aria-valuemin="0" aria-valuemax="100"></div>
-                                                    </div>
-                                                </td>
-                                                <td class="text-right">
-                                                    <div class="d-flex align-items-center p-2">
-                                                        <div class="flex-grow-1 mr-2">
-                                                            <h6 class="mb-0">${p.batter2.name}</h6>
-                                                            <small class="text-muted">${p.batter2.role}</small>
-                                                        </div>
-                                                        <img src="${p.batter2.img || ''}" alt="${p.batter2.name}" class="rounded-circle" width="48" height="48" style="object-fit: cover; margin-left: 15px;">
-                                                    </div>
-                                                </td>
-                                            </tr>`;
-
-                                    // Append each row to the table
+                                        <th>
+                                            <div class="d-flex align-items-center p-2">
+                                                <img src="${p.batter1.img || ''}" alt="${p.batter1.name}" class="rounded-circle me-3" width="48" height="48" style="object-fit: cover;">
+                                                <div class="flex-grow-1">
+                                                    <h5 class="mb-2">${p.batter1.name}</h5>
+                                                    <h6 class="text-muted">${p.batter1.role}</h6>
+                                                </div>
+                                            </div>
+                                        </th>
+                                        <td class="text-center">
+                                            <div class="mb-1">
+                                                <small>${p.runs} (${p.balls} balls)</small>
+                                            </div>
+                                            <div class="progress" style="height: 10px;">
+                                                <div class="progress-bar" role="progressbar" style="background: #F4991A!important;width: ${p.batter1.percent}%" aria-valuenow="${p.batter1.percent}" aria-valuemin="0" aria-valuemax="100"></div>
+                                                <div class="progress-bar" role="progressbar" style="background: #84994F!important;width: ${p.batter2?.percent ?? 0}%" aria-valuenow="${p.batter2?.percent ?? 0}" aria-valuemin="0" aria-valuemax="100"></div>
+                                            </div>
+                                        </td>
+                                        <td class="text-right">
+                                            <div class="d-flex align-items-center p-2">
+                                                <div class="flex-grow-1 mr-2">
+                                                    <h5 class="mb-2">${p.batter2?.name ?? ''}</h5>
+                                                    <h6 class="text-muted">${p.batter2?.role ?? ''}</h6>
+                                                </div>
+                                                ${p.batter2 ? `<img src="${p.batter2.img || ''}" alt="${p.batter2.name}" class="rounded-circle" width="48" height="48" style="object-fit: cover; margin-left: 15px;">` : ''}
+                                            </div>
+                                        </td>
+                                    </tr>`;
                                     partnershipList.innerHTML += trContent;
                                 });
                             } else {
@@ -1905,20 +2033,17 @@
                                 </tr>`;
                             }
 
-                            // Update fall of wickets
+                            // ✅ Fall of wickets
                             const fallWicketsList = document.querySelector('#fallofwickets-stats');
                             fallWicketsList.innerHTML = '';
-
-                            if (data.fall_of_wickets && data.fall_of_wickets.length > 0) {
-                                data.fall_of_wickets.forEach(w => {
+                            if (fallOfWickets && fallOfWickets.length > 0) {
+                                fallOfWickets.forEach(w => {
                                     const tr = document.createElement('tr');
-
                                     tr.innerHTML = `
                                         <th>${w.player_name}</th>
-                                        <td class="text-center">${w.runs}-${w.balls}</td>
+                                        <td class="text-center">${w.runs}-${w.wicket_number}</td>
                                         <td class="text-center">${w.over}</td>
                                     `;
-
                                     fallWicketsList.appendChild(tr);
                                 });
                             } else {
@@ -1934,6 +2059,7 @@
                     })
                     .catch(err => console.error('Error fetching stats:', err));
             }
+
 
             $('.btn-complete-innings').on('click', function() {
                 $.get("{{ route('admin.cricket-matches.scoreboard.mark-innings-complete') }}", {

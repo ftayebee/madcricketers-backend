@@ -1,4 +1,4 @@
-<link rel="shortcut icon" href="{{ asset('storage/assets/images/favicon.ico') }}">
+<link rel="shortcut icon" href="{{ asset('storage/assets/images/main-favicon.png') }}">
 <link href="{{ asset('storage/assets/css/vendor.min.css') }}" rel="stylesheet" type="text/css" />
 <link href="{{ asset('storage/assets/css/icons.min.css') }}" rel="stylesheet" type="text/css" />
 <link href="https://cdn.datatables.net/1.13.6/css/dataTables.bootstrap5.min.css" rel="stylesheet" />

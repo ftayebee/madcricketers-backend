@@ -1,30 +1,12 @@
-[2025-09-23 13:02:32] local.INFO: array (
-  'match_id' => '13',
-)  
-[2025-09-23 13:03:18] local.INFO: {"id":83,"match_id":13,"team_id":7,"innings":1,"runs":49,"wickets":4,"overs":5,"status":"running","created_at":"2025-09-23T07:04:33.000000Z","updated_at":"2025-09-23T12:44:04.000000Z"}  
-[2025-09-23 13:03:43] local.INFO: {"id":83,"match_id":13,"team_id":7,"innings":1,"runs":49,"wickets":4,"overs":5,"status":"ended","created_at":"2025-09-23T07:04:33.000000Z","updated_at":"2025-09-23T13:03:43.000000Z"}  
-[2025-09-23 13:05:31] local.INFO: {"id":84,"match_id":13,"team_id":3,"innings":2,"runs":0,"wickets":0,"overs":0,"status":"running","created_at":"2025-09-23T07:04:33.000000Z","updated_at":"2025-09-23T13:03:43.000000Z"}  
-[2025-09-23 13:13:06] local.INFO: {"id":84,"match_id":13,"team_id":3,"innings":2,"runs":0,"wickets":0,"overs":0,"status":"running","created_at":"2025-09-23T07:04:33.000000Z","updated_at":"2025-09-23T13:03:43.000000Z"}  
-[2025-09-23 13:17:36] local.INFO: {"id":84,"match_id":13,"team_id":3,"innings":2,"runs":0,"wickets":0,"overs":0,"status":"running","created_at":"2025-09-23T07:04:33.000000Z","updated_at":"2025-09-23T13:03:43.000000Z"}  
-[2025-09-23 13:18:04] local.INFO: {"id":84,"match_id":13,"team_id":3,"innings":2,"runs":0,"wickets":0,"overs":0,"status":"running","created_at":"2025-09-23T07:04:33.000000Z","updated_at":"2025-09-23T13:03:43.000000Z"}  
-[2025-09-23 13:18:04] local.INFO:   
-[2025-09-23 13:18:51] local.INFO: {"id":84,"match_id":13,"team_id":3,"innings":2,"runs":0,"wickets":0,"overs":0,"status":"running","created_at":"2025-09-23T07:04:33.000000Z","updated_at":"2025-09-23T13:03:43.000000Z"}  
-[2025-09-23 13:18:51] local.INFO:   
-[2025-09-23 13:19:15] local.INFO: {"id":84,"match_id":13,"team_id":3,"innings":2,"runs":0,"wickets":0,"overs":0,"status":"running","created_at":"2025-09-23T07:04:33.000000Z","updated_at":"2025-09-23T13:03:43.000000Z"}  
-[2025-09-23 13:19:16] local.INFO: 2  
-[2025-09-23 13:20:11] local.INFO: {"id":84,"match_id":13,"team_id":3,"innings":2,"runs":0,"wickets":0,"overs":0,"status":"running","created_at":"2025-09-23T07:04:33.000000Z","updated_at":"2025-09-23T13:03:43.000000Z"}  
-[2025-09-23 13:20:12] local.INFO: 2  
-[2025-09-23 13:22:18] local.INFO: {"id":84,"match_id":13,"team_id":3,"innings":2,"runs":0,"wickets":0,"overs":0,"status":"running","created_at":"2025-09-23T07:04:33.000000Z","updated_at":"2025-09-23T13:03:43.000000Z"}  
-[2025-09-23 13:22:18] local.INFO: 2  
-[2025-09-23 13:23:59] local.INFO: {"id":84,"match_id":13,"team_id":3,"innings":2,"runs":0,"wickets":0,"overs":0,"status":"running","created_at":"2025-09-23T07:04:33.000000Z","updated_at":"2025-09-23T13:03:43.000000Z"}  
-[2025-09-23 13:23:59] local.INFO: 2  
-[2025-09-23 13:25:08] local.INFO: {"id":84,"match_id":13,"team_id":3,"innings":2,"runs":0,"wickets":0,"overs":0,"status":"running","created_at":"2025-09-23T07:04:33.000000Z","updated_at":"2025-09-23T13:03:43.000000Z"}  
-[2025-09-23 13:25:08] local.INFO: 2  
-[2025-09-23 13:27:35] local.INFO: {"id":84,"match_id":13,"team_id":3,"innings":2,"runs":0,"wickets":0,"overs":0,"status":"running","created_at":"2025-09-23T07:04:33.000000Z","updated_at":"2025-09-23T13:03:43.000000Z"}  
-[2025-09-23 13:27:35] local.INFO: 2  
-[2025-09-23 13:28:58] local.INFO: {"id":84,"match_id":13,"team_id":3,"innings":2,"runs":0,"wickets":0,"overs":0,"status":"running","created_at":"2025-09-23T07:04:33.000000Z","updated_at":"2025-09-23T13:03:43.000000Z"}  
-[2025-09-23 13:28:59] local.INFO: 2  
-[2025-09-23 13:30:04] local.INFO: {"id":84,"match_id":13,"team_id":3,"innings":2,"runs":0,"wickets":0,"overs":0,"status":"running","created_at":"2025-09-23T07:04:33.000000Z","updated_at":"2025-09-23T13:03:43.000000Z"}  
-[2025-09-23 13:30:04] local.INFO: 2  
-[2025-09-23 13:30:26] local.INFO: {"id":84,"match_id":13,"team_id":3,"innings":2,"runs":0,"wickets":0,"overs":0,"status":"running","created_at":"2025-09-23T07:04:33.000000Z","updated_at":"2025-09-23T13:03:43.000000Z"}  
-[2025-09-23 13:30:26] local.INFO: 2  
+[2025-09-24 13:16:06] local.ERROR: Cricket match not found {"message":"No query results for model [App\\Models\\CricketMatch] match-info","match_id":"match-info"} 
+[2025-09-24 13:16:06] local.ERROR: Cricket match not found {"message":"No query results for model [App\\Models\\CricketMatch] load-current-stats","match_id":"load-current-stats"} 
+[2025-09-24 13:18:21] local.ERROR: Cricket match not found {"message":"No query results for model [App\\Models\\CricketMatch] match-info","match_id":"match-info"} 
+[2025-09-24 13:18:22] local.ERROR: Cricket match not found {"message":"No query results for model [App\\Models\\CricketMatch] load-current-stats","match_id":"load-current-stats"} 
+[2025-09-24 13:18:45] local.ERROR: Cricket match not found {"message":"No query results for model [App\\Models\\CricketMatch] match-info","match_id":"match-info"} 
+[2025-09-24 13:18:45] local.ERROR: Cricket match not found {"message":"No query results for model [App\\Models\\CricketMatch] load-current-stats","match_id":"load-current-stats"} 
+[2025-09-24 13:21:30] local.ERROR: Cricket match not found {"message":"No query results for model [App\\Models\\CricketMatch] match-info","match_id":"match-info"} 
+[2025-09-24 13:21:31] local.ERROR: Cricket match not found {"message":"No query results for model [App\\Models\\CricketMatch] load-current-stats","match_id":"load-current-stats"} 
+[2025-09-24 13:22:12] local.ERROR: Cricket match not found {"message":"No query results for model [App\\Models\\CricketMatch] match-info","match_id":"match-info"} 
+[2025-09-24 13:22:12] local.ERROR: Cricket match not found {"message":"No query results for model [App\\Models\\CricketMatch] load-current-stats","match_id":"load-current-stats"} 
+[2025-09-24 13:22:15] local.ERROR: Cricket match not found {"message":"No query results for model [App\\Models\\CricketMatch] match-info","match_id":"match-info"} 
+[2025-09-24 13:22:15] local.ERROR: Cricket match not found {"message":"No query results for model [App\\Models\\CricketMatch] load-current-stats","match_id":"load-current-stats"} 

@@ -93,7 +93,9 @@ Route::prefix('admin')->name('admin.')->group(function(){
         Route::post('/toss/store', [CricketMatchController::class, 'storeToss'])->name('toss.store');
 
         Route::prefix('scoreboard')->name('scoreboard.')->group(function(){
+            Route::get('/{id}', [CricketMatchController::class, 'viewScoreBoard'])->name('viewScoreBoard');
             Route::post('/select-batsman', [CricketMatchController::class, 'selectBatsman'])->name('select-batsman');
+            Route::post('/select-bowler', [CricketMatchController::class, 'selectBowler'])->name('select-bowler');
             Route::post('/set-striker', [CricketMatchController::class, 'setStriker'])->name('set-striker');
             Route::get('/load-current-stats', [CricketMatchController::class, 'loadCurrentStats'])->name('load-current-stats');
             Route::get('/mark-innings-complete', [CricketMatchController::class, 'setInningsStatus'])->name('mark-innings-complete');

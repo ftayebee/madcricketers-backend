@@ -6,18 +6,11 @@ use Illuminate\Support\Facades\Schema;
 
 class CreatePlayerStatsTable extends Migration
 {
-    /**
-     * Run the migrations.
-     *
-     * @return void
-     */
     public function up()
     {
         Schema::create('player_statistics', function (Blueprint $table) {
             $table->bigIncrements('id');
-            $table->unsignedBigInteger('player_id')->unique(); // One record per player
-
-            // Batting
+            $table->unsignedBigInteger('player_id')->unique();
             $table->unsignedInteger('matches_played')->default(0);
             $table->unsignedInteger('innings_batted')->default(0);
             $table->unsignedInteger('total_runs')->default(0);
@@ -28,8 +21,6 @@ class CreatePlayerStatsTable extends Migration
             $table->unsignedInteger('fours')->default(0);
             $table->float('strike_rate')->default(0); // Calculated as (runs / balls) * 100
             $table->float('average')->default(0); // runs / dismissals
-
-            // Bowling
             $table->unsignedInteger('innings_bowled')->default(0);
             $table->unsignedInteger('overs_bowled')->default(0);
             $table->unsignedInteger('runs_conceded')->default(0);
@@ -48,11 +39,6 @@ class CreatePlayerStatsTable extends Migration
         });
     }
 
-    /**
-     * Reverse the migrations.
-     *
-     * @return void
-     */
     public function down()
     {
         Schema::dropIfExists('player_stats');
