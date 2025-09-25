@@ -35,7 +35,7 @@
     @endpush
     <div class="row">
         <div class="col-sm-12 col-md-12">
-            <div class="card shadow">
+            <div class="card shadow custom-card-border">
                 <div class="card-header bg-primary text-white d-flex align-items-center justify-content-between">
                     <h4 class="mb-0">Player Profile</h4>
                     <div>

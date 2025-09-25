@@ -1,0 +1,451 @@
+.player-wrapper {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 15px;
+}
+
+.input-card {
+    position: relative;
+    flex: 1 1 calc(50% - 15px);
+    /* 2 cards per row with gap */
+    background: #f9f9f9;
+    border-radius: 12px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    transition: transform 0.3s, box-shadow 0.3s;
+    cursor: pointer;
+    min-height: 100px;
+    padding: 15px;
+}
+
+.input-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 8px 12px rgba(0, 0, 0, 0.15);
+}
+
+.input {
+    position: absolute;
+    opacity: 0;
+    width: 100%;
+    height: 100%;
+    cursor: pointer;
+    z-index: 2;
+}
+
+.check::before {
+    content: "";
+    position: absolute;
+    top: 15px;
+    right: 15px;
+    width: 20px;
+    height: 20px;
+    border: 2px solid #ccc;
+    border-radius: 50%;
+    background: #fff;
+    z-index: 1;
+}
+
+.input:checked + .check::after {
+    content: "";
+    position: absolute;
+    top: 19px;
+    right: 19px;
+    width: 12px;
+    height: 12px;
+    background-color: #007bff;
+    border-radius: 50%;
+    z-index: 1;
+}
+
+.label {
+    position: relative;
+    z-index: 0;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    height: 100%;
+}
+
+.label .title {
+    font-weight: 700;
+    font-size: 16px;
+    color: #333;
+    margin-bottom: 5px;
+}
+
+.label .score {
+    font-weight: 500;
+    font-size: 14px;
+    color: #555;
+}
+
+.over-display {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.ball {
+    width: 35px;
+    height: 35px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+    font-size: 16px;
+    color: white;
+    box-shadow: 0 3px 6px rgba(0, 0, 0, 0.15);
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.ball:hover {
+    transform: scale(1.15);
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+}
+
+.dot-ball {
+    background-color: #b0b0b0;
+}
+
+.run-ball {
+    background-color: #28a745;
+}
+
+.extra-ball {
+    background-color: #f08b51;
+}
+
+.six-ball {
+    background-color: #16c47f;
+}
+
+.four-ball {
+    background-color: #1e93ab;
+}
+
+.wicket-ball {
+    background-color: #dc3545;
+}
+
+.text-right {
+    text-align: right !important;
+}
+
+.radio-inputs {
+    display: flex;
+    flex-direction: row;
+    justify-content: center;
+    align-items: center;
+    max-width: 100%;
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+}
+
+.radio-inputs > * {
+    margin: 10px 0;
+    /* Add vertical spacing between options */
+}
+
+.radio-input:checked + .radio-tile {
+    border-color: #328e6e;
+    box-shadow: 0 5px 10px rgba(0, 0, 0, 0.1);
+    color: #328e6e;
+}
+
+.radio-input:checked + .radio-tile:before {
+    transform: scale(1);
+    opacity: 1;
+    background-color: #328e6e;
+    border-color: #328e6e;
+}
+
+.radio-input:checked + .radio-tile .radio-icon svg {
+    fill: #328e6e;
+}
+
+.radio-input:checked + .radio-tile .radio-label {
+    color: #328e6e;
+}
+
+.radio-input:focus + .radio-tile {
+    border-color: #328e6e;
+    box-shadow: 0 5px 10px rgba(0, 0, 0, 0.1), 0 0 0 4px #b5c9fc;
+}
+
+.radio-input:focus + .radio-tile:before {
+    transform: scale(1);
+    opacity: 1;
+}
+
+.radio-tile {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: flex-start;
+    width: 180px;
+    /* Width of the pill */
+    min-height: 50px;
+    /* Height of the pill */
+    border-radius: 25px;
+    /* Full pill shape */
+    border: 2px solid #b5bfd9;
+    background-color: #fff;
+    box-shadow: 0 5px 10px rgba(0, 0, 0, 0.1);
+    transition: 0.15s ease;
+    cursor: pointer;
+    position: relative;
+    padding-left: 50px;
+    /* Space for the indicator */
+}
+
+.radio-tile:before {
+    content: "";
+    position: absolute;
+    display: block;
+    width: 20px;
+    /* Size of the indicator */
+    height: 20px;
+    /* Size of the indicator */
+    border: 2px solid #b5bfd9;
+    background-color: #fff;
+    border-radius: 50%;
+    /* Circle shape for the indicator */
+    left: 15px;
+    /* Position of the indicator */
+    transition: 0.25s ease;
+}
+
+.radio-tile:hover {
+    border-color: #328e6e;
+}
+
+.radio-tile:hover:before {
+    transform: scale(1);
+    opacity: 1;
+}
+
+.radio-icon {
+    margin-left: 10px;
+    /* Space between the indicator and icon */
+}
+
+.radio-icon svg {
+    width: 1.5rem;
+    height: 1.5rem;
+    fill: #494949;
+}
+
+.radio-label {
+    color: #707070;
+    transition: 0.375s ease;
+    text-align: left;
+    /* Align text to the left */
+    font-size: 13px;
+    margin-left: 10px;
+    /* Space between the icon and label */
+}
+
+.radio-input {
+    clip: rect(0 0 0 0);
+    -webkit-clip-path: inset(100%);
+    clip-path: inset(100%);
+    height: 1px;
+    overflow: hidden;
+    position: absolute;
+    white-space: nowrap;
+    width: 1px;
+}
+
+.score-badge {
+    min-width: 120px;
+    text-align: center;
+    font-weight: 600;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+    transition: transform 0.2s;
+}
+.match-info-card {
+    background: #f9f9f9;
+    border-left: 4px solid #1e3c72;
+    padding: 0 20px;
+}
+
+.info-row {
+    display: flex;
+    justify-content: space-between;
+    padding: 10px 0;
+    border-bottom: 1px dashed #ddd;
+    font-size: 18px;
+}
+
+.info-row:last-child {
+    border-bottom: none;
+}
+
+.info-label {
+    font-weight: 600;
+    color: #00203d;
+    display: flex;
+    align-items: center;
+}
+
+.info-value {
+    font-weight: 500;
+    color: #444;
+}
+.score-badge:hover {
+    transform: scale(1.05);
+}
+.gradient-text {
+    background: linear-gradient(180deg, #093280, #3d84ff);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text; 
+    font-weight: 900 !important;
+}
+
+.team-name {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 900 !important;
+}
+
+.team-versus {
+    width: 50px;
+    height: 50px;
+    border-radius: 100px;
+    background: radial-gradient(circle, #ffd154 0%, #da9500 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #fff !important;
+    font-size: 24px;
+    margin: 0 15px;
+    font-weight: bold;
+}
+.team-icon {
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    background-color: #198754;
+    color: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+    font-size: 20px;
+    text-transform: uppercase;
+    user-select: none;
+    flex-shrink: 0;
+    margin-right: 15px;
+    background: radial-gradient(circle, #529fce 0%, #0d3449 100%);
+}
+
+.team-details {
+    display: flex;
+    align-items: center;
+    justify-content: start;
+}
+
+.winner-wrap {
+    max-width: 100%;
+    min-height: 280px;
+    background: linear-gradient(180deg, #1e3c72, #2a5298);
+    margin: 0% auto 0;
+    position: relative;
+    border-radius: 15px;
+    padding: 1rem 2rem 6.5rem 2rem;
+    font-family: "Lato", sans-serif;
+    text-align: center;
+    cursor: pointer;
+    box-shadow: 0 0 12px 2px #00667442;
+}
+.match-show .winner-wrap{
+    max-width: 80%!important;
+}
+.winner-wrap:hover .right-ribbon {
+    right: -45px;
+    border-left: 20px solid #ffc400;
+    transition: all ease 0.3s;
+}
+
+.winner-wrap:hover .left-ribbon {
+    left: -45px;
+    border-right: 20px solid #ffc400;
+    transition: all ease 0.3s;
+}
+
+.winner-wrap:hover .winner-ribbon {
+    box-shadow: 0 3px 6px 0px rgba(0, 0, 0, 0.2);
+    transition: all ease 0.3s;
+}
+
+.medal-box {
+    width: 60px;
+    height: 60px;
+    background: #fff;
+    color: #ffc400;
+    border-radius: 50px;
+    line-height: 70px;
+    font-size: 2.3rem;
+    margin: 0.8rem auto 1rem;
+}
+
+.winner-wrap h1 {
+    color: #ffc400;
+    font-size: 1.4rem;
+    font-weight: 300;
+    text-transform: uppercase;
+    margin-bottom: 1rem;
+}
+
+.winner-wrap h2 {
+    color: #fff;
+    font-size: 1.2rem;
+    font-weight: 400;
+    text-transform: uppercase;
+    margin-bottom: 0.85rem;
+}
+
+.winner-ribbon {
+    width: 100%;
+    height: 60px;
+    background: #ffc400;
+    text-align: center;
+    font-family: "Bebas Neue", cursive;
+    font-size: 2.8rem;
+    color: rgb(82, 0, 23);
+    position: absolute;
+    bottom: 40px;
+    left: 0;
+    z-index: 99;
+    box-shadow: 0 10px 15px -7px rgba(0, 0, 0, 0.2);
+}
+
+.right-ribbon {
+    width: 0;
+    height: 0;
+    position: absolute;
+    right: -35px;
+    bottom: 30px;
+    border-top: 24px solid #ffc400;
+    border-bottom: 24px solid #ffc400;
+    border-left: 10px solid #ffc400;
+    border-right: 25px solid transparent;
+    transition: all ease 0.3s;
+}
+
+.left-ribbon {
+    width: 0;
+    height: 0;
+    position: absolute;
+    left: -35px;
+    bottom: 30px;
+    border-top: 24px solid #ffc400;
+    border-bottom: 24px solid #ffc400;
+    border-left: 25px solid transparent;
+    border-right: 10px solid #ffc400;
+    transition: all ease 0.3s;
+}

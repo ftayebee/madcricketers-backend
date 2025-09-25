@@ -1,12 +1,2 @@
-[2025-09-24 13:16:06] local.ERROR: Cricket match not found {"message":"No query results for model [App\\Models\\CricketMatch] match-info","match_id":"match-info"} 
-[2025-09-24 13:16:06] local.ERROR: Cricket match not found {"message":"No query results for model [App\\Models\\CricketMatch] load-current-stats","match_id":"load-current-stats"} 
-[2025-09-24 13:18:21] local.ERROR: Cricket match not found {"message":"No query results for model [App\\Models\\CricketMatch] match-info","match_id":"match-info"} 
-[2025-09-24 13:18:22] local.ERROR: Cricket match not found {"message":"No query results for model [App\\Models\\CricketMatch] load-current-stats","match_id":"load-current-stats"} 
-[2025-09-24 13:18:45] local.ERROR: Cricket match not found {"message":"No query results for model [App\\Models\\CricketMatch] match-info","match_id":"match-info"} 
-[2025-09-24 13:18:45] local.ERROR: Cricket match not found {"message":"No query results for model [App\\Models\\CricketMatch] load-current-stats","match_id":"load-current-stats"} 
-[2025-09-24 13:21:30] local.ERROR: Cricket match not found {"message":"No query results for model [App\\Models\\CricketMatch] match-info","match_id":"match-info"} 
-[2025-09-24 13:21:31] local.ERROR: Cricket match not found {"message":"No query results for model [App\\Models\\CricketMatch] load-current-stats","match_id":"load-current-stats"} 
-[2025-09-24 13:22:12] local.ERROR: Cricket match not found {"message":"No query results for model [App\\Models\\CricketMatch] match-info","match_id":"match-info"} 
-[2025-09-24 13:22:12] local.ERROR: Cricket match not found {"message":"No query results for model [App\\Models\\CricketMatch] load-current-stats","match_id":"load-current-stats"} 
-[2025-09-24 13:22:15] local.ERROR: Cricket match not found {"message":"No query results for model [App\\Models\\CricketMatch] match-info","match_id":"match-info"} 
-[2025-09-24 13:22:15] local.ERROR: Cricket match not found {"message":"No query results for model [App\\Models\\CricketMatch] load-current-stats","match_id":"load-current-stats"} 
+[2025-09-25 12:58:27] local.ERROR: Cricket match not found {"message":"No query results for model [App\\Models\\CricketMatch] {{ route('admin.cricket-matches.scoreboard.full-match-state', ['match_id' => '13']) }}","match_id":"{{ route('admin.cricket-matches.scoreboard.full-match-state', ['match_id' => '13']) }}"} 
+[2025-09-25 12:58:27] local.ERROR: Cricket match not found {"message":"No query results for model [App\\Models\\CricketMatch] {{ route('admin.cricket-matches.scoreboard.current-over', ['match' => '13']) }}","match_id":"{{ route('admin.cricket-matches.scoreboard.current-over', ['match' => '13']) }}"} 

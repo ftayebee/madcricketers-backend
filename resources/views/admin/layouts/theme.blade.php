@@ -21,7 +21,7 @@
         <!-- ==================================================== -->
         <!-- Start right Content here -->
         <!-- ==================================================== -->
-        <div class="page-content" style="background: #e9ffee;">
+        <div class="page-content" >
 
             <!-- Start Container Fluid -->
             <div class="container-fluid">

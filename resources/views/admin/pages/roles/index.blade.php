@@ -3,7 +3,7 @@
 @section('content')
     <div class="row">
         <div class="col-sm-12">
-            <div class="card">
+            <div class="card custom-card-border">
                 <div class="card-header d-flex justify-content-between align-items-center">
                     <h5 class="m-0">System Role List</h5>
                     <div>

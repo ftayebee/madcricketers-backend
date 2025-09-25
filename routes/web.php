@@ -93,11 +93,11 @@ Route::prefix('admin')->name('admin.')->group(function(){
         Route::post('/toss/store', [CricketMatchController::class, 'storeToss'])->name('toss.store');
 
         Route::prefix('scoreboard')->name('scoreboard.')->group(function(){
-            Route::get('/{id}', [CricketMatchController::class, 'viewScoreBoard'])->name('viewScoreBoard');
+            Route::get('/{id}', [CricketMatchController::class, 'viewScoreBoard'])->name('view');
             Route::post('/select-batsman', [CricketMatchController::class, 'selectBatsman'])->name('select-batsman');
             Route::post('/select-bowler', [CricketMatchController::class, 'selectBowler'])->name('select-bowler');
             Route::post('/set-striker', [CricketMatchController::class, 'setStriker'])->name('set-striker');
-            Route::get('/load-current-stats', [CricketMatchController::class, 'loadCurrentStats'])->name('load-current-stats');
+            Route::get('/full-match-state/{match_id}', [CricketMatchController::class, 'getFullMatchState'])->name('full-match-state');
             Route::get('/mark-innings-complete', [CricketMatchController::class, 'setInningsStatus'])->name('mark-innings-complete');
             Route::get('/match-info', [CricketMatchController::class, 'getMatchInfo'])->name('match-info');
             Route::post('/switch-strike', [CricketMatchController::class, 'switchStrike'])->name('switch-strike');

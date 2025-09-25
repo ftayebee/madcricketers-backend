@@ -243,7 +243,7 @@
                                                         <i class="fa fa-eye me-2"></i> View
                                                     </a>
                                                 </li>` : ''}
-                                        ${row.canScore ? `
+                                        ${row.canScore && row.status != 'Completed' ? `
                                             <li>
                                                 <a class="dropdown-item" href="${row.startUrl}">
                                                     <i class="fa fa-edit me-2"></i> Edit Scoreboard

@@ -48,7 +48,7 @@
                 @csrf
                 <input type="hidden" name="redirect"
                     value="{{ $user->hasRole('player') ? route('admin.players.index') : route('admin.settings.users.index') }}">
-                <div class="card">
+                <div class="card custom-card-border">
                     <div class="card-body" id="form-body">
                         <div class="row">
                             <div class="col-12">

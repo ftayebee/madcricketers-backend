@@ -3,7 +3,7 @@
 @section('content')
     <div class="row">
         <div class="col-sm-12">
-            <div class="card">
+            <div class="card custom-card-border">
                 <div class="card-header d-flex align-items-center justify-content-between flex-wrap row-gap-3">
                     <h5>Teams List</h5>
                     <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#add-tournament">

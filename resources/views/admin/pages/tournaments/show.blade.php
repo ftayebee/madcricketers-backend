@@ -39,7 +39,7 @@
     @endpush
     <div class="row">
         <div class="col-sm-12">
-            <div class="card">
+            <div class="card custom-card-border">
                 <div class="card-body">
                     <div class="row g-4 align-items-center">
                         {{-- Tournament Logo --}}
@@ -85,7 +85,7 @@
                 </div>
             </div>
 
-            <div class="card">
+            <div class="card custom-card-border">
                 <div class="card-body">
                     <ul class="nav nav-pills nav-justified p-1">
                         <li class="nav-item">

@@ -3,7 +3,7 @@
 @section('content')
     <div class="row">
         <div class="col-sm-12">
-            <div class="card">
+            <div class="card custom-card-border">
                 <div class="card-body">
                     <form action="{{ route('admin.settings.users.update', $user->id) }}" method="POST" enctype="multipart/form-data">
                         @csrf

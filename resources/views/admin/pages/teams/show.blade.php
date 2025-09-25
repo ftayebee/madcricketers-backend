@@ -3,7 +3,7 @@
 @section('content')
     <div class="row">
         <div class="col-sm-12">
-            <div class="card">
+            <div class="card custom-card-border">
                 <div class="card-body">
                     <div class="row g-4 align-items-center">
                         {{-- Team Logo --}}
@@ -43,7 +43,7 @@
         @endphp
         @foreach ($groupedPlayers as $role => $players)
             <div class="col-md-12">
-                <div class="card">
+                <div class="card custom-card-border">
                     <div class="card-header">
                         <h5 class="card-title mb-0">{{ ucfirst($role) }}s ({{ count($players) }})</h5>
                     </div>

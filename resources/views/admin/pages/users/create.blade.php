@@ -13,7 +13,7 @@
         <div class="col-sm-12">
             <form action="{{route('admin.settings.users.store')}}" method="post" enctype="multipart/form-data">
                 @csrf
-                <div class="card">
+                <div class="card custom-card-border">
                     <div class="card-body" id="form-body">
                         <div class="row">
                             <div class="col-12">
