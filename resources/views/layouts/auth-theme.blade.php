@@ -15,7 +15,8 @@
     <link href="{{ asset('storage/assets/css/icons.min.css') }}" rel="stylesheet" type="text/css" />
     <link href="{{ asset('storage/assets/css/app.min.css') }}" rel="stylesheet" type="text/css" />
     <script src="{{ asset('storage/assets/js/config.min.js') }}"></script>
-
+    <meta name="csrf-token" content="{{ csrf_token() }}">
+    @stack('styles')
 </head>
 
 <body class="authentication-bg" style="background: url('{{ asset('storage/assets/images/bg-home.png') }}');">
@@ -45,6 +46,7 @@
 
     <script src="{{ asset('storage/assets/js/vendor.js') }}"></script>
     <script src="{{ asset('storage/assets/js/app.js') }}"></script>
+    @stack('scripts')
 </body>
 
 </html>

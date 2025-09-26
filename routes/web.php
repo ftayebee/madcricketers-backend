@@ -1,9 +1,11 @@
 <?php
 
 use App\Http\Controllers\Admin\CricketMatchController;
+use App\Http\Controllers\Admin\MonthlyDonationController;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Admin\PageController;
+use App\Http\Controllers\Admin\PaymentController;
 use App\Http\Controllers\Admin\RoleController;
 use App\Http\Controllers\Admin\TeamController;
 use App\Http\Controllers\Admin\UserController;
@@ -16,10 +18,9 @@ Route::get('/', function () {
 });
 Auth::routes();
 
-// Route::get('/home', [App\Http\Controllers\HomeController::class, 'index'])->name('home');
 Route::prefix('admin')->name('admin.')->group(function(){
-    Route::get('/dashboard', [PageController::class, 'dashboard'])->name('dashboard'); // working
-    Route::get('/profile', [PageController::class, 'profile'])->name('profile'); // working
+    Route::get('/dashboard', [PageController::class, 'dashboard'])->name('dashboard');
+    Route::get('/profile', [PageController::class, 'profile'])->name('profile');
 
     Route::prefix('settings')->name('settings.')->group(function(){
         Route::prefix('roles')->name('roles.')->group(function(){
@@ -109,7 +110,10 @@ Route::prefix('admin')->name('admin.')->group(function(){
             Route::get('/{match}/current-over', [CricketMatchController::class, 'getCurrentOver'])->name('current-over');
         });
     });
-});
 
-// FRONTEND ROUTES
-// Route::get('/', [FrontendPageController::class, 'index'])->name('frontend.home'); // working
+    Route::resource('payments', PaymentController::class)->except(['create', 'edit', 'show']);
+    Route::prefix('payments')->name('payments.')->group(function(){
+        Route::get('/loader', [PaymentController::class, 'tableLoader'])->name('loader');
+    });
+    Route::resource('monthly-donations', MonthlyDonationController::class)->except(['create', 'edit']);
+});

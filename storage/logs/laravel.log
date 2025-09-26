@@ -1,2 +1,30 @@
-[2025-09-25 12:58:27] local.ERROR: Cricket match not found {"message":"No query results for model [App\\Models\\CricketMatch] {{ route('admin.cricket-matches.scoreboard.full-match-state', ['match_id' => '13']) }}","match_id":"{{ route('admin.cricket-matches.scoreboard.full-match-state', ['match_id' => '13']) }}"} 
-[2025-09-25 12:58:27] local.ERROR: Cricket match not found {"message":"No query results for model [App\\Models\\CricketMatch] {{ route('admin.cricket-matches.scoreboard.current-over', ['match' => '13']) }}","match_id":"{{ route('admin.cricket-matches.scoreboard.current-over', ['match' => '13']) }}"} 
+[2025-09-26 12:59:04] local.INFO: {"player_id":4,"payment_id":1,"type":"donation","amount":"30000.00","status":"paid","payment_date":"2025-09-26","tournament_name":null,"user":null}  
+[2025-09-26 12:59:04] local.INFO: {"player_id":3,"payment_id":null,"type":null,"amount":null,"status":null,"payment_date":null,"tournament_name":null,"user":null}  
+[2025-09-26 12:59:04] local.INFO: {"player_id":5,"payment_id":null,"type":null,"amount":null,"status":null,"payment_date":null,"tournament_name":null,"user":null}  
+[2025-09-26 12:59:04] local.INFO: {"player_id":6,"payment_id":null,"type":null,"amount":null,"status":null,"payment_date":null,"tournament_name":null,"user":null}  
+[2025-09-26 12:59:04] local.INFO: {"player_id":7,"payment_id":null,"type":null,"amount":null,"status":null,"payment_date":null,"tournament_name":null,"user":null}  
+[2025-09-26 12:59:04] local.INFO: {"player_id":8,"payment_id":null,"type":null,"amount":null,"status":null,"payment_date":null,"tournament_name":null,"user":null}  
+[2025-09-26 12:59:04] local.INFO: {"player_id":9,"payment_id":null,"type":null,"amount":null,"status":null,"payment_date":null,"tournament_name":null,"user":null}  
+[2025-09-26 12:59:04] local.INFO: {"player_id":10,"payment_id":null,"type":null,"amount":null,"status":null,"payment_date":null,"tournament_name":null,"user":null}  
+[2025-09-26 12:59:04] local.INFO: {"player_id":11,"payment_id":null,"type":null,"amount":null,"status":null,"payment_date":null,"tournament_name":null,"user":null}  
+[2025-09-26 12:59:04] local.INFO: {"player_id":12,"payment_id":null,"type":null,"amount":null,"status":null,"payment_date":null,"tournament_name":null,"user":null}  
+[2025-09-26 12:59:22] local.INFO: {"player_id":4,"payment_id":1,"type":"donation","amount":"30000.00","status":"paid","payment_date":"2025-09-26","tournament_name":null,"user":null}  
+[2025-09-26 12:59:22] local.INFO: {"player_id":3,"payment_id":null,"type":null,"amount":null,"status":null,"payment_date":null,"tournament_name":null,"user":null}  
+[2025-09-26 12:59:22] local.INFO: {"player_id":5,"payment_id":null,"type":null,"amount":null,"status":null,"payment_date":null,"tournament_name":null,"user":null}  
+[2025-09-26 12:59:22] local.INFO: {"player_id":6,"payment_id":null,"type":null,"amount":null,"status":null,"payment_date":null,"tournament_name":null,"user":null}  
+[2025-09-26 12:59:22] local.INFO: {"player_id":7,"payment_id":null,"type":null,"amount":null,"status":null,"payment_date":null,"tournament_name":null,"user":null}  
+[2025-09-26 12:59:22] local.INFO: {"player_id":8,"payment_id":null,"type":null,"amount":null,"status":null,"payment_date":null,"tournament_name":null,"user":null}  
+[2025-09-26 12:59:22] local.INFO: {"player_id":9,"payment_id":null,"type":null,"amount":null,"status":null,"payment_date":null,"tournament_name":null,"user":null}  
+[2025-09-26 12:59:22] local.INFO: {"player_id":10,"payment_id":null,"type":null,"amount":null,"status":null,"payment_date":null,"tournament_name":null,"user":null}  
+[2025-09-26 12:59:22] local.INFO: {"player_id":11,"payment_id":null,"type":null,"amount":null,"status":null,"payment_date":null,"tournament_name":null,"user":null}  
+[2025-09-26 12:59:22] local.INFO: {"player_id":12,"payment_id":null,"type":null,"amount":null,"status":null,"payment_date":null,"tournament_name":null,"user":null}  
+[2025-09-26 12:59:47] local.INFO:   
+[2025-09-26 12:59:47] local.INFO:   
+[2025-09-26 12:59:47] local.INFO:   
+[2025-09-26 12:59:47] local.INFO:   
+[2025-09-26 12:59:47] local.INFO:   
+[2025-09-26 12:59:47] local.INFO:   
+[2025-09-26 12:59:47] local.INFO:   
+[2025-09-26 12:59:47] local.INFO:   
+[2025-09-26 12:59:47] local.INFO:   
+[2025-09-26 12:59:47] local.INFO:   

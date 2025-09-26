@@ -34,4 +34,18 @@ class Player extends Model
     {
         return $this->belongsToMany(CricketMatch::class, 'match_players', 'match_id', 'player_id')->withTimestamps();
     }
+
+    public function payments()
+    {
+        return $this->hasMany(Payment::class, 'player_id', 'id');
+    }
+
+    public function monthlyDonations()
+    {
+        return $this->hasMany(MonthlyDonation::class, 'player_id', 'id');
+    }
+
+    public function statistics(){
+        return $this->hasOne(PlayerStat::class, 'player_id', 'id');
+    }
 }

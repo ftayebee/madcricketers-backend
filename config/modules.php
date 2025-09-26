@@ -14,4 +14,5 @@ return [
     'tournamentGroupTeams' => ['tournamentGroupTeams-view', 'tournamentGroupTeams-create', 'tournamentGroupTeams-edit', 'tournamentGroupTeams-delete'],
     'fallOfWickets' => ['fallOfWickets-view', 'fallOfWickets-create', 'fallOfWickets-edit', 'fallOfWickets-delete'],
     'partnerships' => ['partnerships-view', 'partnerships-create', 'partnerships-edit', 'partnerships-delete'],
+    'payments' =>  ['payments-view', 'payments-create', 'payments-edit', 'payments-delete'],
 ];

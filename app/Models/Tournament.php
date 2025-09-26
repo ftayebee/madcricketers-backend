@@ -34,4 +34,9 @@ class Tournament extends Model
     {
         return $this->belongsToMany(Team::class, 'tournament_group_teams', 'tournament_id', 'team_id');
     }
+
+    public function payments()
+    {
+        return $this->hasMany(Payment::class);
+    }
 }

@@ -5,7 +5,7 @@
     <p class="text-muted text-center mt-1 mb-4">Enter your email address and password to access admin panel.</p>
 
     <div class="px-4">
-        <form action="{{ route('login') }}" class="authentication-form" method="POST">
+        <form action="{{ route('login') }}" class="authentication-form" method="POST" id="login-form">
             @csrf
             <div class="mb-3">
                 <label class="form-label" for="example-email">Email</label>
