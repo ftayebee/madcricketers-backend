@@ -147,7 +147,13 @@
                                     </tr>
                                 </thead>
                                 <tbody></tbody>
-                                <tfoot></tfoot>
+                                <tfoot>
+                                    <tr>
+                                        <th colspan="3" style="text-align: right; font-size: 16px;font-weight: 700;">Total</th>
+                                        <th></th>
+                                        <th colspan="4"></th>
+                                    </tr>
+                                </tfoot>
                             </table>
                         </div>
                     </div>
@@ -317,7 +323,7 @@
                                     badgeClass = 'bg-secondary';
                                     break;
                             }
-                            return `<span class="badge fs-16 ${badgeClass}">${capitalize(data)}</span>`;
+                            return `<span class="badge fs-14 ${badgeClass}">${capitalize(data)}</span>`;
                         }
                     },
                     {
@@ -329,11 +335,11 @@
                         name: 'payments.status',
                         render: function(data, type, row) {
                             if (!data) {
-                                return `<span class="badge fs-16 bg-danger">Pending</span>`;
+                                return `<span class="badge fs-14 bg-danger">Pending</span>`;
                             }
 
                             let badgeClass = data === 'paid' ? 'bg-success' : 'bg-danger';
-                            return `<span class="badge fs-16 ${badgeClass}">${capitalize(data)}</span>`;
+                            return `<span class="badge fs-14 ${badgeClass}">${capitalize(data)}</span>`;
                         }
                     },
                     {
@@ -368,16 +374,14 @@
                                 break;
                             case 'jersey':
                                 totalRegistration += amount;
-                                break; // assuming jersey = registration
+                                break;
                             case 'other':
                                 totalOther += amount;
                                 break;
                         }
                     });
 
-                    $(api.column(3).footer()).html(
-                        `Donations: ${totalDonations} | Tournament: ${totalTournament} | Registration: ${totalRegistration} | Other: ${totalOther}`
-                    );
+                    $(api.column(3).footer()).html(totalDonations + totalTournament + totalRegistration + totalOther);
                 },
                 initComplete: function(settings, json) {
                     updateSummaryCards(json.summary, json.percentages, json.playerStatus);
