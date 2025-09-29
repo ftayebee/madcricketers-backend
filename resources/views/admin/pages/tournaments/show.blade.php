@@ -225,12 +225,11 @@
                                                     </div>
                                                     <div>
                                                         @if (Auth::user()->can('cricket-matches-start') && $match->status == 'upcoming')
-                                                            <a href="{{ route('admin.cricket-matches.start', ['id' => $match->id]) }}"
-                                                                class="btn btn-sm btn-info">Start Match</a>
+                                                            <button data-action="{{ route('admin.cricket-matches.start', ['id' => $match->id]) }}" data-forwardUrl="{{ route('admin.cricket-matches.scoreboard.view', ['id' => $match->id]) }}" data-match="{{$match->id}}" class="btn btn-sm btn-info btn-start-match">Start Match</button>
                                                         @endif
 
                                                         @if ($match->status == 'live')
-                                                            <a href="{{ route('admin.cricket-matches.start', ['id' => $match->id]) }}"
+                                                            <a href="{{ route('admin.cricket-matches.scoreboard.view', ['id' => $match->id]) }}"
                                                                 class="btn btn-sm btn-info">Scoreboard</a>
                                                         @endif
 
@@ -434,7 +433,36 @@
                 width: "100%",
                 dropdownParent: $('#create-fixture'),
                 minimumResultsForSearch: -1
-            })
+            });
+
+            $(".btn-start-match").on('click', function(){
+                const routeUrl = $(this).attr('data-action');
+                const forwardUrl = $(this).attr('data-forwardUrl');
+                const matchId = $(this).attr('data-match');
+
+                $.ajax({
+                    url: routeUrl,
+                    type: 'GET',
+                    success: function (response) {
+                        if(response.success){
+                            Swal.fire(
+                                'Information!',
+                                'Cricket Match Has Been Updated to Status LIVE',
+                                'success'
+                            ).then(function(){
+                                window.location.href = forwardUrl;
+                            });
+                        }
+                    },
+                    error: function (response) {
+                        Swal.fire(
+                            'Error!',
+                            'There was a problem deleting the tournament.',
+                            'error'
+                        );
+                    }
+                });
+            });
         });
     </script>
 @endpush

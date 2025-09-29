@@ -104,7 +104,7 @@
                                 <a class="sub-nav-link" href="{{ route('admin.tournaments.index') }}">All Tournaments</a>
                             </li>
                             <li class="sub-nav-item">
-                                <a class="sub-nav-link" href="dashboard-agent.html">Add New</a>
+                                <a class="sub-nav-link" href="{{ route('admin.tournaments.create') }}">Add New</a>
                             </li>
                         </ul>
                     </div>

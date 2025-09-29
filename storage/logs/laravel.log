@@ -1,30 +1,32 @@
-[2025-09-26 12:59:04] local.INFO: {"player_id":4,"payment_id":1,"type":"donation","amount":"30000.00","status":"paid","payment_date":"2025-09-26","tournament_name":null,"user":null}  
-[2025-09-26 12:59:04] local.INFO: {"player_id":3,"payment_id":null,"type":null,"amount":null,"status":null,"payment_date":null,"tournament_name":null,"user":null}  
-[2025-09-26 12:59:04] local.INFO: {"player_id":5,"payment_id":null,"type":null,"amount":null,"status":null,"payment_date":null,"tournament_name":null,"user":null}  
-[2025-09-26 12:59:04] local.INFO: {"player_id":6,"payment_id":null,"type":null,"amount":null,"status":null,"payment_date":null,"tournament_name":null,"user":null}  
-[2025-09-26 12:59:04] local.INFO: {"player_id":7,"payment_id":null,"type":null,"amount":null,"status":null,"payment_date":null,"tournament_name":null,"user":null}  
-[2025-09-26 12:59:04] local.INFO: {"player_id":8,"payment_id":null,"type":null,"amount":null,"status":null,"payment_date":null,"tournament_name":null,"user":null}  
-[2025-09-26 12:59:04] local.INFO: {"player_id":9,"payment_id":null,"type":null,"amount":null,"status":null,"payment_date":null,"tournament_name":null,"user":null}  
-[2025-09-26 12:59:04] local.INFO: {"player_id":10,"payment_id":null,"type":null,"amount":null,"status":null,"payment_date":null,"tournament_name":null,"user":null}  
-[2025-09-26 12:59:04] local.INFO: {"player_id":11,"payment_id":null,"type":null,"amount":null,"status":null,"payment_date":null,"tournament_name":null,"user":null}  
-[2025-09-26 12:59:04] local.INFO: {"player_id":12,"payment_id":null,"type":null,"amount":null,"status":null,"payment_date":null,"tournament_name":null,"user":null}  
-[2025-09-26 12:59:22] local.INFO: {"player_id":4,"payment_id":1,"type":"donation","amount":"30000.00","status":"paid","payment_date":"2025-09-26","tournament_name":null,"user":null}  
-[2025-09-26 12:59:22] local.INFO: {"player_id":3,"payment_id":null,"type":null,"amount":null,"status":null,"payment_date":null,"tournament_name":null,"user":null}  
-[2025-09-26 12:59:22] local.INFO: {"player_id":5,"payment_id":null,"type":null,"amount":null,"status":null,"payment_date":null,"tournament_name":null,"user":null}  
-[2025-09-26 12:59:22] local.INFO: {"player_id":6,"payment_id":null,"type":null,"amount":null,"status":null,"payment_date":null,"tournament_name":null,"user":null}  
-[2025-09-26 12:59:22] local.INFO: {"player_id":7,"payment_id":null,"type":null,"amount":null,"status":null,"payment_date":null,"tournament_name":null,"user":null}  
-[2025-09-26 12:59:22] local.INFO: {"player_id":8,"payment_id":null,"type":null,"amount":null,"status":null,"payment_date":null,"tournament_name":null,"user":null}  
-[2025-09-26 12:59:22] local.INFO: {"player_id":9,"payment_id":null,"type":null,"amount":null,"status":null,"payment_date":null,"tournament_name":null,"user":null}  
-[2025-09-26 12:59:22] local.INFO: {"player_id":10,"payment_id":null,"type":null,"amount":null,"status":null,"payment_date":null,"tournament_name":null,"user":null}  
-[2025-09-26 12:59:22] local.INFO: {"player_id":11,"payment_id":null,"type":null,"amount":null,"status":null,"payment_date":null,"tournament_name":null,"user":null}  
-[2025-09-26 12:59:22] local.INFO: {"player_id":12,"payment_id":null,"type":null,"amount":null,"status":null,"payment_date":null,"tournament_name":null,"user":null}  
-[2025-09-26 12:59:47] local.INFO:   
-[2025-09-26 12:59:47] local.INFO:   
-[2025-09-26 12:59:47] local.INFO:   
-[2025-09-26 12:59:47] local.INFO:   
-[2025-09-26 12:59:47] local.INFO:   
-[2025-09-26 12:59:47] local.INFO:   
-[2025-09-26 12:59:47] local.INFO:   
-[2025-09-26 12:59:47] local.INFO:   
-[2025-09-26 12:59:47] local.INFO:   
-[2025-09-26 12:59:47] local.INFO:   
+[2025-09-29 12:16:25] local.INFO: array (
+  'match_id' => '69',
+  'striker_id' => 14,
+  'non_striker_id' => 73,
+  'bowler_id' => 46,
+  'runs' => 0,
+  'extras' => 
+  array (
+    'type' => 'LB',
+    'runs' => 4,
+    'run_out' => false,
+  ),
+  'wicket' => NULL,
+  'batsman_out' => NULL,
+  'legal_ball' => false,
+)  
+[2025-09-29 12:20:19] local.INFO: array (
+  'match_id' => '69',
+  'striker_id' => 14,
+  'non_striker_id' => 73,
+  'bowler_id' => 46,
+  'runs' => 0,
+  'extras' => 
+  array (
+    'type' => 'LB',
+    'runs' => 4,
+    'run_out' => false,
+  ),
+  'wicket' => NULL,
+  'batsman_out' => NULL,
+  'legal_ball' => true,
+)  

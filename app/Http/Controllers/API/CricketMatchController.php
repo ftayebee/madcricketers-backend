@@ -331,7 +331,6 @@ class CricketMatchController extends Controller
                 ->first();
 
             if (!$scoreboard) {
-                // fallback to latest innings
                 $scoreboard = MatchScoreBoard::where('match_id', $matchId)
                     ->orderByDesc('innings')
                     ->first();
@@ -339,11 +338,11 @@ class CricketMatchController extends Controller
 
             if (!$scoreboard) {
                 return response()->json([
-                    'message' => 'No scoreboard found for this match',
-                    'success' => false,
+                    'success' => true,
+                    'message' => 'No scoreboard yet. Toss may not be done.',
                     'players' => [],
                     'battingTeamId' => null
-                ], 404);
+                ]);
             }
 
             $battingTeamId = $scoreboard->team_id;

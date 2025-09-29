@@ -111,6 +111,52 @@ class TournamentController extends Controller
         }
     }
 
+    public function create()
+    {
+        try {
+            if (!Auth::user()->can($this->module . '-create')) {
+                throw new Exception('Unauthorized Access');
+            }
+
+            session([
+                'title' => 'Tournaments Create',
+                'breadcrumbs' => [
+                    'home' => [
+                        'url' => route('admin.dashboard'),
+                        'name' => 'Dashboard'
+                    ],
+                    $this->module => [
+                        'url' => route('admin.tournaments.index'),
+                        'name' => 'Tournaments Management'
+                    ],
+                    $this->module . '-create' => [
+                        'url' => route('admin.tournaments.create'),
+                        'name' => 'Create New'
+                    ]
+                ]
+            ]);
+
+            $today = Carbon::today();
+            $teamsInFutureTournaments = TournamentGroupTeam::whereHas('group.tournament', function ($query) use ($today) {
+                $query->where('start_date', '>', $today);
+            })->pluck('team_id')->toArray();
+            $validTeams = Team::whereNotIn('id', $teamsInFutureTournaments)->get();
+
+            return view('admin.pages.tournaments.create', compact('validTeams'));
+        } catch (Exception $e) {
+            Log::error("Error Loading tournaments create", [
+                'line' => $e->getLine(),
+                'file' => $e->getFile(),
+                'message' => $e->getMessage()
+            ]);
+
+            return redirect()->back()->with([
+                'success' => false,
+                'message' => 'Error Loading tournaments create.'
+            ]);
+        }
+    }
+
     public function store(Request $request)
     {
         try {
@@ -130,6 +176,10 @@ class TournamentController extends Controller
                 'trophy_image'  => 'nullable|image|mimes:jpg,jpeg,png|max:2048',
                 'format'        => 'required|in:group,round-robin,knockout',
                 'group_count'   => 'nullable|numeric',
+                'team_id'       => 'nullable|array|min:1',
+                'team_id.*'     => 'exists:teams,id',
+                'seperate_teams' => 'nullable|in:on',
+                'overs_per_innings' => 'required|numeric',
             ]);
 
             $tournament = new Tournament();
@@ -142,8 +192,8 @@ class TournamentController extends Controller
             $tournament->status      = $validated['status'];
             $tournament->format      = $validated['format'];
             $tournament->group_count = $validated['format'] == 'group' ? $validated['group_count'] : null;
+            $tournament->overs_per_innings = $validated['overs_per_innings'];
 
-            // Handle logo upload
             if ($request->hasFile('logo')) {
                 $logo = $request->file('logo');
                 $logoFilename = 'tournament_logo_' . time() . '.' . $logo->getClientOriginalExtension();
@@ -157,7 +207,6 @@ class TournamentController extends Controller
                 $tournament->logo = $logoFilename;
             }
 
-            // Handle trophy image upload
             if ($request->hasFile('trophy_image')) {
                 $trophy = $request->file('trophy_image');
                 $trophyFilename = 'trophy_' . time() . '.' . $trophy->getClientOriginalExtension();
@@ -172,6 +221,49 @@ class TournamentController extends Controller
             }
 
             $tournament->save();
+            $tournament->refresh();
+
+            if (!empty($validated['team_id'])) {
+                $separate = $request->has('seperate_teams');
+
+                if ($separate && $tournament->format == 'group' && !empty($tournament->group_count)) {
+                    if ($tournament->groups()->count() === 0) {
+                        for ($i = 0; $i < $tournament->group_count; $i++) {
+                            $groupName = 'Group ' . chr(65 + $i);
+                            $tournament->groups()->create(['name' => $groupName]);
+                        }
+                        $tournament->load('groups');
+                    }
+
+                    $teams = $validated['team_id'];
+                    shuffle($teams);
+
+                    $groupCount = $tournament->groups->count();
+                    $groups = $tournament->groups;
+
+                    foreach ($teams as $index => $teamId) {
+                        $groupIndex = $index % $groupCount;
+                        TournamentGroupTeam::create([
+                            'group_id' => $groups[$groupIndex]->id,
+                            'team_id' => $teamId,
+                            'tournament_id' => $tournament->id,
+                        ]);
+                    }
+                } else {
+                    $group = TournamentGroup::create([
+                        'tournament_id' => $tournament->id,
+                        'name' => 'Group A',
+                    ]);
+
+                    foreach ($validated['team_id'] as $teamId) {
+                        TournamentGroupTeam::create([
+                            'group_id' => $group->id,
+                            'team_id' => $teamId,
+                            'tournament_id' => $tournament->id,
+                        ]);
+                    }
+                }
+            }
 
             return redirect()->route('admin.tournaments.index')->with([
                 'success' => true,
@@ -340,13 +432,13 @@ class TournamentController extends Controller
             ]);
 
             $tournament = Tournament::with('groups.teams')->findOrFail($validated['tournament_id']);
-            $stage = $validated['match_stage'];
-            $matches = [];
-            $startDate = Carbon::parse($tournament->start_date);
-            $endDate = Carbon::parse($tournament->end_date);
+            $stage      = $validated['match_stage'];
+            $matches    = [];
+            $startDate  = Carbon::parse($tournament->start_date);
+            $endDate    = Carbon::parse($tournament->end_date);
             $reservedDays = 4;
             $groupStageEnd = $endDate->copy()->subDays($reservedDays);
-            $period = CarbonPeriod::create($startDate, $groupStageEnd);
+            $period     = CarbonPeriod::create($startDate, $groupStageEnd);
 
             if ($stage === 'group') {
                 foreach ($tournament->groups as $group) {
@@ -360,23 +452,23 @@ class TournamentController extends Controller
                             $matchDate = $dates[array_rand($dates)];
 
                             $matches[] = [
-                                'title' => "{$teamA->name} vs {$teamB->name}",
-                                'team_a_id' => $teamA->id,
-                                'team_b_id' => $teamB->id,
+                                'title'         => "{$teamA->name} vs {$teamB->name}",
+                                'team_a_id'     => $teamA->id,
+                                'team_b_id'     => $teamB->id,
                                 'tournament_id' => $tournament->id,
-                                'match_date' => $matchDate->setTime(rand(9, 18), rand(0, 30)),
-                                'venue' => null,
-                                'match_type' => 'tournament',
-                                'status' => 'upcoming',
-                                'stage' => 'group',
-                                'created_at' => now(),
-                                'updated_at' => now(),
+                                'match_date'    => $matchDate->setTime(rand(9, 18), rand(0, 30)),
+                                'venue'         => null,
+                                'max_overs'     => $tournament->overs_per_innings,
+                                'match_type'    => 'tournament',
+                                'status'        => 'upcoming',
+                                'stage'         => 'group',
+                                'created_at'    => now(),
+                                'updated_at'    => now(),
                             ];
                         }
                     }
                 }
             } elseif ($stage === 'playoffs') {
-                // Get top 2 from each group based on TournamentTeamStat
                 $qualifiedTeams = collect();
 
                 foreach ($tournament->groups as $group) {
@@ -407,6 +499,7 @@ class TournamentController extends Controller
                             'tournament_id' => $tournament->id,
                             'match_date' => now()->addDays(rand(11, 15)), // later date
                             'venue' => null,
+                            'max_overs'     => $tournament->overs_per_innings,
                             'match_type' => 'tournament',
                             'status' => 'upcoming',
                             'stage' => 'playoffs',
@@ -417,7 +510,6 @@ class TournamentController extends Controller
                 }
             }
 
-            // Insert all matches in one go
             CricketMatch::insert($matches);
 
             return redirect()->back()->with([

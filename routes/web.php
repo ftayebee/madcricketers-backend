@@ -17,7 +17,7 @@ Route::get('/', function () {
     return redirect('/login');
 });
 Auth::routes();
-
+//admin/cricket-matches/scoreboard/select-batsman
 Route::prefix('admin')->name('admin.')->group(function(){
     Route::get('/dashboard', [PageController::class, 'dashboard'])->name('dashboard');
     Route::get('/profile', [PageController::class, 'profile'])->name('profile');

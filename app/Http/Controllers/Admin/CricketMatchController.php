@@ -652,11 +652,12 @@ class CricketMatchController extends Controller
         try {
             $validator = Validator::make($request->all(), [
                 'match_id'  => 'required|exists:cricket_matches,id',
-                'team_id'   => 'required|exists:teams,id', // batting team id from frontend
+                'team_id'   => 'required|exists:teams,id',
                 'player_id' => 'required|exists:players,id',
             ]);
 
             if ($validator->fails()) {
+                Log::error($validator->errors());
                 return response()->json([
                     'success' => false,
                     'message' => 'Failed to select bowler.',
@@ -735,9 +736,25 @@ class CricketMatchController extends Controller
 
             if ($scoreboards->isEmpty()) {
                 return response()->json([
-                    'success' => false,
-                    'message' => 'No scoreboards found for this match.'
-                ], 404);
+                    'success' => true,
+                    'match_id' => $matchId,
+                    'innings' => [],
+                    'match_state' => [
+                        'striker' => null,
+                        'nonStriker' => null,
+                        'team' => null,
+                        'currentBowler' => null,
+                        'battingTeamId' => null,
+                        'bowlingTeamId' => null,
+                        'currentInnings' => null,
+                    ],
+                    'match_result' => $match->status === 'completed' ? [
+                        'winning_team_id' => $match->winning_team_id,
+                        'winning_team'    => $match->winningTeam?->name ?? 'Unknown',
+                        'summary'         => $match->result_summary ?? '',
+                    ] : null,
+                    'message' => 'No toss yet, scoreboard not started.',
+                ]);
             }
 
             // --- Part 1: Build innings stats (same as loadCurrentStats) ---
@@ -772,7 +789,7 @@ class CricketMatchController extends Controller
                 $bowling = MatchPlayer::with('player.user')
                     ->where('match_id', $matchId)
                     ->where('team_id', $bowling_team_id)
-                    ->where('overs_bowled', '>=', 0)
+                    // ->where('overs_bowled', '>', 0)
                     ->get()
                     ->map(function ($mp) {
                         $user = $mp->player?->user;
@@ -858,14 +875,13 @@ class CricketMatchController extends Controller
 
                 $targetScore = 0;
                 $requiredRunRate = 0;
+
                 if ($inningsNo == 2) {
                     $firstInnings = $scoreboards->where('innings', 1)->first();
-                    if ($firstInnings) {
+                    if ($firstInnings && $firstInnings->status == 'ended') {
                         $targetScore = $firstInnings->runs + 1;
                         $oversLeft = $totalOvers - $oversBowled;
-                        $requiredRunRate = $oversLeft > 0
-                            ? round(($targetScore - $scoreboard->runs) / $oversLeft, 2)
-                            : 0;
+                        $requiredRunRate = $oversLeft > 0 ? round(($targetScore - $scoreboard->runs) / $oversLeft, 2) : 0;
                     }
                 }
 
@@ -990,58 +1006,94 @@ class CricketMatchController extends Controller
                 ], 422);
             }
 
-            $matchId = $request->match_id;
+            $matchId  = $request->match_id;
             $bowlerId = $request->bowler_id;
-            $teamId = $request->team_id;
+            $teamId   = $request->team_id;
 
-            // ✅ Update or create bowler in MatchPlayer
-            $bowler = MatchPlayer::updateOrCreate(
-                [
-                    'match_id'  => $matchId,
-                    'player_id' => $bowlerId
-                ],
-                [
-                    'team_id'         => $teamId,
-                    'status'          => 'bowling',
-                    'overs_bowled'    => 0,
-                    'runs_conceded'   => 0,
-                    'wickets_taken'   => 0,
-                    'maidens'         => 0,
-                ]
-            );
+            $match = CricketMatch::find($matchId);
 
-            // ✅ Ensure PlayerStat record exists
-            $playerStat = PlayerStat::firstOrCreate(
-                [
-                    'player_id' => $bowlerId,
-                ],
-                [
-                    'matches_played'   => 0,
-                    'innings_batted'   => 0,
-                    'total_runs'       => 0,
-                    'balls_faced'      => 0,
-                    'fifties'          => 0,
-                    'hundreds'         => 0,
-                    'sixes'            => 0,
-                    'fours'            => 0,
-                    'strike_rate'      => 0,
-                    'average'          => 0,
-                    'innings_bowled'   => 0,
-                    'overs_bowled'     => 0,
-                    'runs_conceded'    => 0,
-                    'wickets'          => 0,
-                    'bowling_average'  => 0,
-                    'economy_rate'     => 0,
-                    'catches'          => 0,
-                    'runouts'          => 0,
-                    'stumpings'        => 0,
-                ]
-            );
+            // Use transaction to keep consistency
+            DB::transaction(function () use ($matchId, $bowlerId, $teamId, $match) {
+                MatchPlayer::where('match_id', $matchId)
+                    ->where('team_id', $teamId)
+                    ->where('player_id', '<>', $bowlerId)
+                    ->update(['status' => 'fielding']);
 
-            // ✅ Return current bowling lineup
+                MatchPlayer::updateOrCreate(
+                    [
+                        'match_id'  => $matchId,
+                        'player_id' => $bowlerId
+                    ],
+                    [
+                        'team_id'       => $teamId,
+                        'status'        => 'bowling',
+                        'overs_bowled'  => 0,
+                        'runs_conceded' => 0,
+                        'wickets_taken' => 0,
+                        'maidens'       => 0,
+                    ]
+                );
+
+                PlayerStat::firstOrCreate(
+                    ['player_id' => $bowlerId],
+                    [
+                        'matches_played'   => 0,
+                        'innings_batted'   => 0,
+                        'total_runs'       => 0,
+                        'balls_faced'      => 0,
+                        'fifties'          => 0,
+                        'hundreds'         => 0,
+                        'sixes'            => 0,
+                        'fours'            => 0,
+                        'strike_rate'      => 0,
+                        'average'          => 0,
+                        'innings_bowled'   => 0,
+                        'overs_bowled'     => 0,
+                        'runs_conceded'    => 0,
+                        'wickets'          => 0,
+                        'bowling_average'  => 0,
+                        'economy_rate'     => 0,
+                        'catches'          => 0,
+                        'runouts'          => 0,
+                        'stumpings'        => 0,
+                    ]
+                );
+
+                if ($match->tournament_id) {
+                    TournamentPlayerStat::updateOrCreate(
+                        [
+                            'tournament_id' => $match->tournament_id,
+                            'player_id'     => $bowlerId
+                        ],
+                        [
+                            'matches_played'   => 0,
+                            'innings_batted'   => 0,
+                            'total_runs'       => 0,
+                            'balls_faced'      => 0,
+                            'fifties'          => 0,
+                            'hundreds'         => 0,
+                            'sixes'            => 0,
+                            'fours'            => 0,
+                            'strike_rate'      => 0,
+                            'average'          => 0,
+                            'innings_bowled'   => 0,
+                            'overs_bowled'     => 0,
+                            'runs_conceded'    => 0,
+                            'wickets'          => 0,
+                            'bowling_average'  => 0,
+                            'economy_rate'     => 0,
+                            'catches'          => 0,
+                            'runouts'          => 0,
+                            'stumpings'        => 0,
+                        ]
+                    );
+                }
+            });
+
+            
             $bowling = MatchPlayer::with(['player.user'])
                 ->where('match_id', $matchId)
-                ->where('status', 'bowling')
+                ->whereIn('status', ['bowling', 'fielding'])
                 ->get()
                 ->map(function ($mp) {
                     return [
@@ -1060,7 +1112,7 @@ class CricketMatchController extends Controller
 
             return response()->json([
                 'success' => true,
-                'message' => 'Bowler added/updated successfully',
+                'message' => 'Bowler selected successfully',
                 'bowling' => $bowling
             ]);
         } catch (\Exception $e) {
@@ -1071,7 +1123,7 @@ class CricketMatchController extends Controller
 
             return response()->json([
                 'success' => false,
-                'message' => 'Failed to add/update bowler',
+                'message' => 'Failed to select bowler',
                 'error'   => $e->getMessage()
             ], 500);
         }
@@ -1418,6 +1470,8 @@ class CricketMatchController extends Controller
                     'errors'  => $validator->errors()
                 ], 422);
             }
+
+            Log::info($request->all());
 
             DB::beginTransaction();
 

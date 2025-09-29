@@ -48,4 +48,8 @@ class Player extends Model
     public function statistics(){
         return $this->hasOne(PlayerStat::class, 'player_id', 'id');
     }
+
+    public function tournamentStatistic(){
+        return $this->hasMany(TournamentPlayerStat::class, 'player_id', 'id');
+    }
 }

@@ -1,15 +1,14 @@
 @extends('admin.layouts.theme')
 
 @push('styles')
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.11.2/css/all.min.css"/>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.11.2/css/all.min.css" />
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&display=swap" rel="stylesheet">
-    <link href="{{asset('storage/backend/css/scoreboard.css')}}" rel="stylesheet">
+    <link href="{{ asset('storage/backend/css/scoreboard.css') }}" rel="stylesheet">
 @endpush
 
-@section('content')  
-
+@section('content')
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <div class="row">
         <div class="col-sm-12">
@@ -60,10 +59,16 @@
                                             <td width="8%" class="p-2 align-middle fs-16">Status</td>
                                             <td width="2%" class="p-2 align-middle fs-16">:</td>
                                             <td width="90%" class="p-2 fs-16">
-                                                <select name="start-match" id="start-match" class="form-control select2 w-25 border-cyan">
-                                                    <option value="live" {{ $match->status == 'live' ? 'selected' : '' }}>Live</option>
-                                                    <option value="completed" {{ $match->status == 'completed' ? 'selected' : '' }}>Completed</option>
-                                                    <option value="upcoming" {{ $match->status == 'upcoming' ? 'selected' : '' }}>Upcoming</option>
+                                                <select name="start-match" id="start-match"
+                                                    class="form-control select2 w-25 border-cyan">
+                                                    <option value="live"
+                                                        {{ $match->status == 'live' ? 'selected' : '' }}>Live</option>
+                                                    <option value="completed"
+                                                        {{ $match->status == 'completed' ? 'selected' : '' }}>Completed
+                                                    </option>
+                                                    <option value="upcoming"
+                                                        {{ $match->status == 'upcoming' ? 'selected' : '' }}>Upcoming
+                                                    </option>
                                                 </select>
                                             </td>
                                         </tr>
@@ -74,8 +79,17 @@
                         <div class="col-4 text-center match-toss-container">
                             <h4 class="text-center"
                                 style="font-weight: bold; border-bottom: 2px solid #3f3f3f;border-top: 2px solid #3f3f3f; padding: 6px 20px;border-radius: 5px;margin-bottom: 15px;">
-                                Match Toss</h4>
-
+                                Match Toss
+                            </h4>
+                            <input type="hidden" name="is_toss_completed" value="{{ $match->toss ? 'true' : 'false' }}">
+                            <input type="hidden" name="toss_match_id" value="{{ $match->id }}">
+                            <input type="hidden" name="innings"
+                                value="{{ $match->scoreboard->where('status', 'running')->first()->innings }}">
+                            <input type="hidden" name="max_overs" value="{{ $match->max_overs }}">
+                            <input type="hidden" id="bowling_team_id"
+                                value="{{ $match->scoreboard->whereIn('status', ['waiting', 'ended'])->first()->team_id }}">
+                            <input type="hidden" name="battingTeamId"
+                                value="{{ $match->scoreboard->where('status', 'running')->first()->team_id }}">
                             <table>
                                 <tr>
                                     <td>
@@ -83,12 +97,6 @@
                                     </td>
                                     <td>
                                         <div class="radio-inputs d-flex">
-                                            <input type="hidden" name="toss_match_id" value="{{ $match->id }}">
-                                            <input type="hidden" name="innings" value="">
-                                            <input type="hidden" name="max_overs" value="{{ $match->max_overs }}">
-                                            <input type="hidden" id="bowling_team_id">
-                                            <input type="hidden" name="battingTeamId">
-
                                             <label style="margin-right: 15px;">
                                                 <input name="toss-team" type="radio" class="radio-input"
                                                     value="{{ $match->teamA->id }}"
@@ -262,98 +270,6 @@
                                         <button class="btn btn-outline-danger btn-wicket" data-bs-toggle="modal"
                                             data-bs-target="#wicketModal" data-type="W">W</button>
                                     </div>
-
-                                    <!-- Modal -->
-                                    <div class="modal fade" id="extraModal" tabindex="-1"
-                                        aria-labelledby="extraModalLabel" aria-hidden="true">
-                                        <div class="modal-dialog">
-                                            <div class="modal-content">
-                                                <form id="extraForm">
-                                                    <div class="modal-header">
-                                                        <h5 class="modal-title" id="extraModalLabel">Extra</h5>
-                                                        <button type="button" class="btn-close"
-                                                            data-bs-dismiss="modal"></button>
-                                                    </div>
-
-                                                    <div class="modal-body">
-
-                                                        {{-- NB Section --}}
-                                                        <div id="nbSection" class="d-none">
-                                                            <p><strong>No Ball:</strong> Select runs + run out option</p>
-                                                            <div>
-                                                                <label>Runs:</label>
-                                                                <div class="btn-group" role="group"
-                                                                    id="extraRunButtons">
-                                                                    @foreach ([0, 1, 2, 3, 4, 6] as $r)
-                                                                        <input type="radio" class="btn-check"
-                                                                            name="nbRuns" id="nbRun{{ $r }}"
-                                                                            value="{{ $r }}">
-                                                                        <label class="btn btn-outline-primary"
-                                                                            for="nbRun{{ $r }}">{{ $r }}</label>
-                                                                    @endforeach
-                                                                </div>
-                                                            </div>
-                                                            <div class="mt-3">
-                                                                <input type="checkbox" id="nbRunOut"
-                                                                    class="form-check-input">
-                                                                <label for="nbRunOut" class="form-check-label">Run
-                                                                    Out?</label>
-                                                            </div>
-                                                            <div id="nbBatsmanOut" class="mt-2 d-none">
-                                                                <label class="fs-14" style="font-weight: bold;">Batsman
-                                                                    Out:</label>
-                                                                <div class="player-wrapper">
-                                                                </div>
-                                                            </div>
-                                                        </div>
-
-                                                        {{-- WD Section --}}
-                                                        <div id="wdSection" class="d-none">
-                                                            <p><strong>Wide Ball:</strong> Default 1 run counted. Add extras
-                                                                if needed.</p>
-                                                            <div>
-                                                                <label>Extra Runs:</label>
-                                                                <div class="btn-group" role="group">
-                                                                    @foreach ([0, 1, 2, 3, 4, 5, 6] as $r)
-                                                                        <input type="radio" class="btn-check"
-                                                                            name="wdExtraRuns"
-                                                                            id="wdRun{{ $r }}"
-                                                                            value="{{ $r }}">
-                                                                        <label class="btn btn-outline-primary"
-                                                                            for="wdRun{{ $r }}">{{ $r }}</label>
-                                                                    @endforeach
-                                                                </div>
-                                                            </div>
-                                                        </div>
-
-                                                        {{-- LB Section --}}
-                                                        <div id="lbSection" class="d-none">
-                                                            <p><strong>Leg Bye:</strong> Select runs</p>
-                                                            <div>
-                                                                <label>Runs:</label>
-                                                                <div class="btn-group" role="group">
-                                                                    @foreach ([0, 1, 2, 3, 4] as $r)
-                                                                        <input type="radio" class="btn-check"
-                                                                            name="lbRuns" id="lbRun{{ $r }}"
-                                                                            value="{{ $r }}">
-                                                                        <label class="btn btn-outline-primary"
-                                                                            for="lbRun{{ $r }}">{{ $r }}</label>
-                                                                    @endforeach
-                                                                </div>
-                                                            </div>
-                                                        </div>
-
-                                                    </div>
-
-                                                    <div class="modal-footer">
-                                                        <button type="button" class="btn btn-secondary"
-                                                            data-bs-dismiss="modal">Cancel</button>
-                                                        <button type="submit" class="btn btn-primary">Submit</button>
-                                                    </div>
-                                                </form>
-                                            </div>
-                                        </div>
-                                    </div>
                                 </div>
 
                                 {{-- Over display --}}
@@ -461,7 +377,7 @@
             </div>
 
             <div class="card" id="match-result" class="d-none" style="padding: auto 90px; background: transparent;">
-                <div class="card-body" >
+                <div class="card-body">
                     <div class="winner-wrap" id="winner-wrap">
                         <div class="border"></div>
                         <div class="medal-box"><i class="fas fa-medal"></i></div>
@@ -476,7 +392,90 @@
         </div>
     </div>
 
-    {{-- Wicket Modal --}}
+    <!-- Modal -->
+    <div class="modal fade" id="extraModal" tabindex="-1" aria-labelledby="extraModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <form id="extraForm">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="extraModalLabel">Extra</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                    </div>
+
+                    <div class="modal-body">
+
+                        {{-- NB Section --}}
+                        <div id="nbSection" class="d-none">
+                            <p><strong>No Ball:</strong> Select runs + run out option</p>
+                            <div>
+                                <label>Runs:</label>
+                                <div class="btn-group" role="group" id="extraRunButtons">
+                                    @foreach ([0, 1, 2, 3, 4, 6] as $r)
+                                        <input type="radio" class="btn-check" name="nbRuns"
+                                            id="nbRun{{ $r }}" value="{{ $r }}">
+                                        <label class="btn btn-outline-primary"
+                                            for="nbRun{{ $r }}">{{ $r }}</label>
+                                    @endforeach
+                                </div>
+                            </div>
+                            <div class="mt-3">
+                                <input type="checkbox" id="nbRunOut" class="form-check-input">
+                                <label for="nbRunOut" class="form-check-label">Run
+                                    Out?</label>
+                            </div>
+                            <div id="nbBatsmanOut" class="mt-2 d-none">
+                                <label class="fs-14" style="font-weight: bold;">Batsman
+                                    Out:</label>
+                                <div class="player-wrapper">
+                                </div>
+                            </div>
+                        </div>
+
+                        {{-- WD Section --}}
+                        <div id="wdSection" class="d-none">
+                            <p><strong>Wide Ball:</strong> Default 1 run counted. Add extras
+                                if needed.</p>
+                            <div>
+                                <label>Extra Runs:</label>
+                                <div class="btn-group" role="group">
+                                    @foreach ([0, 1, 2, 3, 4, 5, 6] as $r)
+                                        <input type="radio" class="btn-check" name="wdExtraRuns"
+                                            id="wdRun{{ $r }}" value="{{ $r }}">
+                                        <label class="btn btn-outline-primary"
+                                            for="wdRun{{ $r }}">{{ $r }}</label>
+                                    @endforeach
+                                </div>
+                            </div>
+                        </div>
+
+                        {{-- LB Section --}}
+                        <div id="lbSection" class="d-none">
+                            <p><strong>Leg Bye:</strong> Select runs</p>
+                            <div>
+                                <label>Runs:</label>
+                                <div class="btn-group" role="group">
+                                    @foreach ([0, 1, 2, 3, 4] as $r)
+                                        <input type="radio" class="btn-check" name="lbRuns"
+                                            id="lbRun{{ $r }}" value="{{ $r }}">
+                                        <label class="btn btn-outline-primary"
+                                            for="lbRun{{ $r }}">{{ $r }}</label>
+                                    @endforeach
+                                </div>
+                            </div>
+                        </div>
+
+                    </div>
+
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                        <button type="submit" class="btn btn-primary">Submit</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+
     <div class="modal fade" id="wicketModal" tabindex="-1" aria-hidden="true">
         <div class="modal-dialog">
             <div class="modal-content">
@@ -535,5 +534,5 @@
 @endsection
 
 @push('scripts')
-    <script src="{{asset('storage/backend/js/scoreboard.js')}}"></script>
+    <script src="{{ asset('storage/backend/js/scoreboard.js') }}"></script>
 @endpush
