@@ -502,7 +502,6 @@ class CricketMatchController extends Controller
         return view('admin.pages.cricket-matches.show', compact('match', 'inningsData', 'match_result'));
     }
 
-
     public function selectBatsman(Request $request)
     {
         try {
@@ -543,10 +542,38 @@ class CricketMatchController extends Controller
                 ]
             );
 
-            PlayerStat::firstOrCreate(
-                ['player_id' => $playerId],
-                []
-            );
+            $playerStat = PlayerStat::firstOrNew(['player_id' => $playerId]);
+            if (!$playerStat->exists) {
+                $playerStat->total_runs            = 0;
+                $playerStat->balls_faced           = 0;
+                $playerStat->fours                 = 0;
+                $playerStat->sixes                 = 0;
+                $playerStat->strike_rate           = 0.0;
+                $playerStat->average               = 0.0;
+                $playerStat->innings_bowled        = 0;
+                $playerStat->overs_bowled          = 0;
+                $playerStat->runs_conceded         = 0;
+                $playerStat->wickets               = 0;
+                $playerStat->bowling_average       = 0.0;
+                $playerStat->economy_rate          = 0.0;
+                $playerStat->catches               = 0;
+                $playerStat->runouts               = 0;
+                $playerStat->stumpings             = 0;
+                $playerStat->matches_played        = 0;
+                $playerStat->innings_batted        = 0;
+            }
+
+            if ($playerStat->last_match_id != $matchId) {
+                $playerStat->matches_played += 1;
+                $playerStat->last_match_id  = $matchId;
+            }
+
+            if ($playerStat->last_batting_match_id != $matchId) {
+                $playerStat->innings_batted += 1;
+                $playerStat->last_batting_match_id = $matchId;
+            }
+
+            $playerStat->save();
 
             $activePartnership = Partnership::where('match_id', $matchId)
                 ->where('team_id', $teamId)
@@ -557,7 +584,6 @@ class CricketMatchController extends Controller
             $player2Id = null;
 
             if (!$activePartnership) {
-                // 🔹 Find the last partnership that ended with a wicket
                 $lastPartnership = Partnership::where('match_id', $matchId)
                     ->where('team_id', $teamId)
                     ->whereNotNull('wicket_id')
@@ -598,33 +624,44 @@ class CricketMatchController extends Controller
             if ($cricketMatch && $cricketMatch->tournament) {
                 $tournamentId = $cricketMatch->tournament->id;
 
-                TournamentPlayerStat::firstOrCreate(
-                    [
-                        'tournament_id' => $tournamentId,
-                        'player_id' => $playerId,
-                    ],
-                    [
-                        'matches_played'   => 0,
-                        'innings_batted'   => 0,
-                        'total_runs'       => 0,
-                        'balls_faced'      => 0,
-                        'fifties'          => 0,
-                        'hundreds'         => 0,
-                        'sixes'            => 0,
-                        'fours'            => 0,
-                        'strike_rate'      => 0.0,
-                        'average'          => 0.0,
-                        'innings_bowled'   => 0,
-                        'overs_bowled'     => 0,
-                        'runs_conceded'    => 0,
-                        'wickets'          => 0,
-                        'bowling_average'  => 0.0,
-                        'economy_rate'     => 0.0,
-                        'catches'          => 0,
-                        'runouts'          => 0,
-                        'stumpings'        => 0,
-                    ]
-                );
+                $playerTournamentStat = TournamentPlayerStat::firstOrNew([
+                    'tournament_id' => $tournamentId,
+                    'player_id'     => $playerId,
+                ]);
+
+                if (!$playerTournamentStat->exists) {
+                    $playerTournamentStat->matches_played   = 0;
+                    $playerTournamentStat->innings_batted   = 0;
+                    $playerTournamentStat->total_runs       = 0;
+                    $playerTournamentStat->balls_faced      = 0;
+                    $playerTournamentStat->fifties          = 0;
+                    $playerTournamentStat->hundreds         = 0;
+                    $playerTournamentStat->sixes            = 0;
+                    $playerTournamentStat->fours            = 0;
+                    $playerTournamentStat->strike_rate      = 0.0;
+                    $playerTournamentStat->average          = 0.0;
+                    $playerTournamentStat->innings_bowled   = 0;
+                    $playerTournamentStat->overs_bowled     = 0;
+                    $playerTournamentStat->runs_conceded    = 0;
+                    $playerTournamentStat->wickets          = 0;
+                    $playerTournamentStat->bowling_average  = 0.0;
+                    $playerTournamentStat->economy_rate     = 0.0;
+                    $playerTournamentStat->catches          = 0;
+                    $playerTournamentStat->runouts          = 0;
+                    $playerTournamentStat->stumpings        = 0;
+                }
+
+                if ($playerTournamentStat->last_match_id != $matchId) {
+                    $playerTournamentStat->matches_played += 1;
+                    $playerTournamentStat->last_match_id  = $matchId;
+                }
+
+                if ($playerTournamentStat->last_batting_match_id != $matchId) {
+                    $playerTournamentStat->innings_batted += 1;
+                    $playerTournamentStat->last_batting_match_id = $matchId;
+                }
+
+                $playerTournamentStat->save();
             }
 
             return response()->json([
@@ -669,7 +706,6 @@ class CricketMatchController extends Controller
             $battingTeamId = $request->team_id;
             $playerId      = $request->player_id;
 
-            // 🔹 Get the match scoreboard
             $scoreboard = MatchScoreboard::where('match_id', $matchId)->get();
 
             if ($scoreboard->isEmpty()) {
@@ -679,7 +715,6 @@ class CricketMatchController extends Controller
                 ], 404);
             }
 
-            // 🔹 Determine bowling team (the one that is not batting and has ended)
             $bowlingTeamId = $scoreboard
                 ->where('team_id', '!=', $battingTeamId)
                 ->where('status', 'ended')
@@ -692,7 +727,6 @@ class CricketMatchController extends Controller
                 ], 400);
             }
 
-            // 🔹 Get all existing MatchPlayer records for the bowling team in this match
             $existingPlayers = MatchPlayer::where('match_id', $matchId)
                 ->where('team_id', $bowlingTeamId)
                 ->get();
@@ -925,6 +959,11 @@ class CricketMatchController extends Controller
                 ->where('status', 'bowling')
                 ->orderByDesc('overs_bowled')
                 ->first();
+            $bowlingTeamPlayers = MatchPlayer::where('match_id', $matchId)
+                ->where('team_id', $bowling_team_id)
+                ->whereIn('status', ['bowling', 'fielding'])
+                ->with('player.user')
+                ->get();
 
             $matchState = [
                 'striker' => $striker ? [
@@ -943,6 +982,7 @@ class CricketMatchController extends Controller
                     'id' => $battingTeam->id,
                     'name' => $battingTeam->name,
                 ] : null,
+                'bowlingTeamPlayers' => $bowlingTeamPlayers,
                 'currentBowler' => $currentBowler ? $currentBowler->player_id : null,
                 'battingTeamId' => $batting_team_id,
                 'bowlingTeamId' => $bowling_team_id,
@@ -1012,7 +1052,6 @@ class CricketMatchController extends Controller
 
             $match = CricketMatch::find($matchId);
 
-            // Use transaction to keep consistency
             DB::transaction(function () use ($matchId, $bowlerId, $teamId, $match) {
                 MatchPlayer::where('match_id', $matchId)
                     ->where('team_id', $teamId)
@@ -1024,73 +1063,97 @@ class CricketMatchController extends Controller
                         'match_id'  => $matchId,
                         'player_id' => $bowlerId
                     ],
-                    [
-                        'team_id'       => $teamId,
-                        'status'        => 'bowling',
-                        'overs_bowled'  => 0,
-                        'runs_conceded' => 0,
-                        'wickets_taken' => 0,
-                        'maidens'       => 0,
-                    ]
+                    array_merge(
+                        ['team_id' => $teamId, 'status' => 'bowling'], // always set
+                        MatchPlayer::where('match_id', $matchId)->where('player_id', $bowlerId)->exists()
+                            ? []
+                            : [
+                                'overs_bowled'  => 0,
+                                'runs_conceded' => 0,
+                                'wickets_taken' => 0,
+                                'maidens'       => 0,
+                            ]
+                    )
                 );
 
-                PlayerStat::firstOrCreate(
-                    ['player_id' => $bowlerId],
-                    [
-                        'matches_played'   => 0,
-                        'innings_batted'   => 0,
-                        'total_runs'       => 0,
-                        'balls_faced'      => 0,
-                        'fifties'          => 0,
-                        'hundreds'         => 0,
-                        'sixes'            => 0,
-                        'fours'            => 0,
-                        'strike_rate'      => 0,
-                        'average'          => 0,
-                        'innings_bowled'   => 0,
-                        'overs_bowled'     => 0,
-                        'runs_conceded'    => 0,
-                        'wickets'          => 0,
-                        'bowling_average'  => 0,
-                        'economy_rate'     => 0,
-                        'catches'          => 0,
-                        'runouts'          => 0,
-                        'stumpings'        => 0,
-                    ]
-                );
+                $playerStat = PlayerStat::firstOrNew(['player_id' => $bowlerId]);
+
+                if (!$playerStat->exists) {
+                    $playerStat->matches_played   = 0;
+                    $playerStat->innings_batted   = 0;
+                    $playerStat->total_runs       = 0;
+                    $playerStat->balls_faced      = 0;
+                    $playerStat->fifties          = 0;
+                    $playerStat->hundreds         = 0;
+                    $playerStat->sixes            = 0;
+                    $playerStat->fours            = 0;
+                    $playerStat->strike_rate      = 0;
+                    $playerStat->average          = 0;
+                    $playerStat->innings_bowled   = 0;
+                    $playerStat->overs_bowled     = 0;
+                    $playerStat->runs_conceded    = 0;
+                    $playerStat->wickets          = 0;
+                    $playerStat->bowling_average  = 0;
+                    $playerStat->economy_rate     = 0;
+                    $playerStat->catches          = 0;
+                    $playerStat->runouts          = 0;
+                    $playerStat->stumpings        = 0;
+                }
+
+                if ($playerStat->last_match_id != $matchId) {
+                    $playerStat->matches_played += 1;
+                    $playerStat->last_match_id  = $matchId;
+                }
+
+                if ($playerStat->last_bowling_match_id != $matchId) {
+                    $playerStat->innings_bowled += 1;
+                    $playerStat->last_bowling_match_id = $matchId;
+                }
+
+                $playerStat->save();
 
                 if ($match->tournament_id) {
-                    TournamentPlayerStat::updateOrCreate(
-                        [
-                            'tournament_id' => $match->tournament_id,
-                            'player_id'     => $bowlerId
-                        ],
-                        [
-                            'matches_played'   => 0,
-                            'innings_batted'   => 0,
-                            'total_runs'       => 0,
-                            'balls_faced'      => 0,
-                            'fifties'          => 0,
-                            'hundreds'         => 0,
-                            'sixes'            => 0,
-                            'fours'            => 0,
-                            'strike_rate'      => 0,
-                            'average'          => 0,
-                            'innings_bowled'   => 0,
-                            'overs_bowled'     => 0,
-                            'runs_conceded'    => 0,
-                            'wickets'          => 0,
-                            'bowling_average'  => 0,
-                            'economy_rate'     => 0,
-                            'catches'          => 0,
-                            'runouts'          => 0,
-                            'stumpings'        => 0,
-                        ]
-                    );
+                    $playerTournamentStat = TournamentPlayerStat::firstOrNew([
+                        'tournament_id' => $match->tournament_id,
+                        'player_id'     => $bowlerId
+                    ]);
+
+                    if (!$playerTournamentStat->exists) {
+                        $playerTournamentStat->matches_played   = 0;
+                        $playerTournamentStat->innings_batted   = 0;
+                        $playerTournamentStat->total_runs       = 0;
+                        $playerTournamentStat->balls_faced      = 0;
+                        $playerTournamentStat->fifties          = 0;
+                        $playerTournamentStat->hundreds         = 0;
+                        $playerTournamentStat->sixes            = 0;
+                        $playerTournamentStat->fours            = 0;
+                        $playerTournamentStat->strike_rate      = 0;
+                        $playerTournamentStat->average          = 0;
+                        $playerTournamentStat->innings_bowled   = 0;
+                        $playerTournamentStat->overs_bowled     = 0;
+                        $playerTournamentStat->runs_conceded    = 0;
+                        $playerTournamentStat->wickets          = 0;
+                        $playerTournamentStat->bowling_average  = 0;
+                        $playerTournamentStat->economy_rate     = 0;
+                        $playerTournamentStat->catches          = 0;
+                        $playerTournamentStat->runouts          = 0;
+                        $playerTournamentStat->stumpings        = 0;
+                    }
+
+                    if ($playerTournamentStat->last_match_id != $matchId) {
+                        $playerTournamentStat->matches_played += 1;
+                        $playerTournamentStat->last_match_id  = $matchId;
+                    }
+
+                    if ($playerTournamentStat->last_bowling_match_id != $matchId) {
+                        $playerTournamentStat->innings_bowled += 1;
+                        $playerTournamentStat->last_bowling_match_id = $matchId;
+                    }
+
+                    $playerTournamentStat->save();
                 }
             });
 
-            
             $bowling = MatchPlayer::with(['player.user'])
                 ->where('match_id', $matchId)
                 ->whereIn('status', ['bowling', 'fielding'])
@@ -1464,6 +1527,7 @@ class CricketMatchController extends Controller
             ]);
 
             if ($validator->fails()) {
+                Log::error($validator->errors());
                 return response()->json([
                     'success' => false,
                     'message' => 'Invalid data',
@@ -1472,7 +1536,6 @@ class CricketMatchController extends Controller
             }
 
             Log::info($request->all());
-
             DB::beginTransaction();
 
             // ---------- Extract request ----------
@@ -1521,16 +1584,22 @@ class CricketMatchController extends Controller
                     case 'NB':
                         $deliveryType = 'no-ball';
                         $legalBall = false;
+                        $extraRuns = 1 + (int)($extras['runs'] ?? 0);
                         break;
                     case 'WD':
                         $deliveryType = 'wide';
                         $legalBall = false;
+                        $extraRuns = 1 + (int)($extras['runs'] ?? 0);
                         break;
                     case 'LB':
                         $deliveryType = 'leg-bye';
+                        $legalBall = true;
+                        $extraRuns = (int)($extras['runs'] ?? 0);
                         break;
                     case 'B':
                         $deliveryType = 'bye';
+                        $legalBall = true;
+                        $extraRuns = (int)($extras['runs'] ?? 0);
                         break;
                     default:
                         $deliveryType = 'normal';
@@ -1581,7 +1650,7 @@ class CricketMatchController extends Controller
 
             $legalBallsSoFar = MatchDelivery::where('match_id', $matchId)
                 ->where('innings', $innings)
-                ->where('delivery_type', 'normal')
+                ->whereNotIn('delivery_type', ['no-ball', 'wide'])
                 ->count();
 
             $legalBallsAfterThis = $legalBallsSoFar + ($legalBall ? 1 : 0);
@@ -1627,15 +1696,14 @@ class CricketMatchController extends Controller
 
             $striker->save();
 
-            // update bowler overs (store as over.ball decimal)
-            $overPart  = floor($bowlerInfo->overs_bowled); // completed overs
-            $ballPart  = round(($bowlerInfo->overs_bowled - $overPart) * 10); // balls in current over
+            $overPart  = floor($bowlerInfo->overs_bowled);
+            $ballPart  = round(($bowlerInfo->overs_bowled - $overPart) * 10);
 
-            if ($legalBall) {
-                $ballPart++; // add this ball
+            if (!in_array($deliveryType, ['no-ball', 'wide'])) {
+                $ballPart++;
                 if ($ballPart >= 6) {
                     $overPart++;
-                    $ballPart = 0; // reset ball to 0, NOT 1
+                    $ballPart = 0;
                 }
             }
 
@@ -1653,7 +1721,7 @@ class CricketMatchController extends Controller
 
             $legalBalls = MatchDelivery::where('match_id', $matchId)
                 ->where('innings', $innings)
-                ->where('delivery_type', 'normal')
+                ->whereNotIn('delivery_type', ['no-ball', 'wide'])
                 ->count();
 
             $oversFormatted = intval(intdiv($legalBalls, 6)) . '.' . ($legalBalls % 6);
@@ -1787,18 +1855,14 @@ class CricketMatchController extends Controller
                     $match->status          = 'completed';
                     $match->save();
 
-                    // end the innings immediately
                     $scoreboard->status = 'ended';
                     $scoreboard->save();
 
                     $isInningsEnded = true;
-                    Log::info("Match Completed: " . $match->result_summary);
                 }
             }
 
             // ---------- Update Player Statistics ----------
-
-            // ✅ Update striker stats
             if ($strikerId) {
                 $strikerStat = PlayerStat::firstOrCreate(['player_id' => $strikerId]);
 
@@ -1812,27 +1876,99 @@ class CricketMatchController extends Controller
                 }
 
                 $strikerStat->save();
+
+                if ($match->tournament) {
+                    $playerTournamentStat = TournamentPlayerStat::firstOrCreate([
+                        'tournament_id' => $match->tournament_id,
+                        'player_id'     => $strikerId
+                    ]);
+
+                    if (!$playerTournamentStat->matches_played || $playerTournamentStat->last_match_id != $match->id) {
+                        $playerTournamentStat->matches_played += 1;
+                        $playerTournamentStat->last_match_id  = $match->id;
+                    }
+
+                    if ($legalBall && $runs >= 0) {
+                        if (!$playerTournamentStat->innings_batted || $playerTournamentStat->last_batting_match_id != $match->id) {
+                            $playerTournamentStat->innings_batted += 1;
+                            $playerTournamentStat->last_batting_match_id = $match->id;
+                        }
+                    }
+
+                    $playerTournamentStat->total_runs   += $runs;
+                    $playerTournamentStat->balls_faced  += $legalBall ? 1 : 0;
+                    $playerTournamentStat->fours        += ($runs == 4) ? 1 : 0;
+                    $playerTournamentStat->sixes        += ($runs == 6) ? 1 : 0;
+
+                    if ($playerTournamentStat->balls_faced > 0) {
+                        $playerTournamentStat->strike_rate = round(($playerTournamentStat->total_runs / $playerTournamentStat->balls_faced) * 100, 2);
+                    }
+
+                    if ($playerTournamentStat->total_runs >= 50 && $playerTournamentStat->total_runs < 100) {
+                        $playerTournamentStat->fifties += 1;
+                    } elseif ($playerTournamentStat->total_runs >= 100) {
+                        $playerTournamentStat->hundreds += 1;
+                    }
+
+                    if ($playerTournamentStat->innings_batted > 0) {
+                        $playerTournamentStat->average = round($playerTournamentStat->total_runs / $playerTournamentStat->innings_batted, 2);
+                    }
+
+                    $playerTournamentStat->save();
+                }
             }
 
-            // ✅ Update non-striker stats (only if he faced a ball in a run-out OR extras credited)
             if ($nonStrikerId) {
                 $nonStrikerStat = PlayerStat::firstOrCreate(['player_id' => $nonStrikerId]);
-
-                // ⚡ generally non-striker doesn’t face balls here,
-                // but handle run-outs/extras if needed later
                 $nonStrikerStat->save();
+
+                if ($match->tournament) {
+                    $playerTournamentStat = TournamentPlayerStat::firstOrCreate([
+                        'tournament_id' => $match->tournament_id,
+                        'player_id'     => $nonStrikerId
+                    ]);
+
+                    if (!$playerTournamentStat->matches_played || $playerTournamentStat->last_match_id != $match->id) {
+                        $playerTournamentStat->matches_played += 1;
+                        $playerTournamentStat->last_match_id  = $match->id;
+                    }
+
+                    if ($legalBall && $runs >= 0) {
+                        if (!$playerTournamentStat->innings_batted || $playerTournamentStat->last_batting_match_id != $match->id) {
+                            $playerTournamentStat->innings_batted += 1;
+                            $playerTournamentStat->last_batting_match_id = $match->id;
+                        }
+                    }
+
+                    $playerTournamentStat->total_runs   += $runs;
+                    $playerTournamentStat->balls_faced  += $legalBall ? 1 : 0;
+                    $playerTournamentStat->fours        += ($runs == 4) ? 1 : 0;
+                    $playerTournamentStat->sixes        += ($runs == 6) ? 1 : 0;
+
+                    if ($playerTournamentStat->balls_faced > 0) {
+                        $playerTournamentStat->strike_rate = round(($playerTournamentStat->total_runs / $playerTournamentStat->balls_faced) * 100, 2);
+                    }
+
+                    if ($playerTournamentStat->total_runs >= 50 && $playerTournamentStat->total_runs < 100) {
+                        $playerTournamentStat->fifties += 1;
+                    } elseif ($playerTournamentStat->total_runs >= 100) {
+                        $playerTournamentStat->hundreds += 1;
+                    }
+
+                    if ($playerTournamentStat->innings_batted > 0) {
+                        $playerTournamentStat->average = round($playerTournamentStat->total_runs / $playerTournamentStat->innings_batted, 2);
+                    }
+
+                    $playerTournamentStat->save();
+                }
             }
 
-            // ✅ Update bowler stats
             if ($bowlerId) {
                 $bowlerStat = PlayerStat::firstOrCreate(['player_id' => $bowlerId]);
-
-                // increment innings bowled if this is his first ball of the innings
                 if ($legalBall && $bowlerStat->overs_bowled == 0) {
                     $bowlerStat->innings_bowled += 1;
                 }
 
-                // convert overs to balls
                 $bowlerStat->overs_bowled += $legalBall ? 1 : 0;
                 $bowlerStat->runs_conceded += $runs + (in_array($deliveryType, ['no-ball', 'wide']) ? 1 : 0);
                 if ($isWicket && $wicketType != 'run_out') {
@@ -1850,6 +1986,44 @@ class CricketMatchController extends Controller
                 }
 
                 $bowlerStat->save();
+
+                if ($match->tournament) {
+                    $playerTournamentStat = TournamentPlayerStat::firstOrCreate([
+                        'tournament_id' => $match->tournament_id,
+                        'player_id'     => $bowlerId
+                    ]);
+
+                    if (!$playerTournamentStat->matches_played || $playerTournamentStat->last_match_id != $match->id) {
+                        $playerTournamentStat->matches_played += 1;
+                        $playerTournamentStat->last_match_id  = $match->id;
+                    }
+
+                    if ($legalBall && (!$playerTournamentStat->last_bowling_match_id || $playerTournamentStat->last_bowling_match_id != $match->id)) {
+                        $playerTournamentStat->innings_bowled += 1;
+                        $playerTournamentStat->last_bowling_match_id = $match->id;
+                    }
+
+                    if (!in_array($deliveryType, ['no-ball', 'wide'])) {
+                        $playerTournamentStat->overs_bowled += 1; // count only legal balls
+                    }
+
+                    $playerTournamentStat->runs_conceded += $runs + (in_array($deliveryType, ['no-ball', 'wide']) ? 1 : 0);
+
+                    if ($isWicket && $wicketType != 'run_out') {
+                        $playerTournamentStat->wickets += 1;
+                    }
+
+                    if ($playerTournamentStat->overs_bowled > 0) {
+                        $oversAsFloat = $playerTournamentStat->overs_bowled / 6; // balls → overs
+                        $playerTournamentStat->economy_rate = round($playerTournamentStat->runs_conceded / $oversAsFloat, 2);
+                    }
+
+                    if ($playerTournamentStat->wickets > 0) {
+                        $playerTournamentStat->bowling_average = round($playerTournamentStat->runs_conceded / $playerTournamentStat->wickets, 2);
+                    }
+
+                    $playerTournamentStat->save();
+                }
             }
 
             DB::commit();

@@ -1,30 +1,91 @@
-[2025-09-29 12:16:25] local.INFO: array (
+[2025-10-01 10:02:34] local.INFO: array (
   'match_id' => '69',
-  'striker_id' => 14,
-  'non_striker_id' => 73,
-  'bowler_id' => 46,
+  'striker_id' => 66,
+  'non_striker_id' => 55,
+  'bowler_id' => 13,
   'runs' => 0,
   'extras' => 
   array (
-    'type' => 'LB',
-    'runs' => 4,
-    'run_out' => false,
+  ),
+  'wicket' => 'Run Out',
+  'batsman_out' => NULL,
+  'legal_ball' => true,
+)  
+[2025-10-01 10:02:34] local.ERROR: Error storing delivery {"message":"SQLSTATE[01000]: Warning: 1265 Data truncated for column 'wicket_type' at row 1 (SQL: insert into `match_deliveries` (`match_id`, `innings`, `over_number`, `ball_in_over`, `bowler_id`, `batsman_id`, `non_striker_id`, `batting_team_id`, `bowling_team_id`, `runs_batsman`, `runs_extras`, `delivery_type`, `is_wicket`, `wicket_type`, `wicket_player_id`, `updated_at`, `created_at`) values (69, 1, 4, 6, 13, 66, 55, 9, 10, 0, 0, normal, 1, run out, 66, 2025-10-01 10:02:34, 2025-10-01 10:02:34))","line":712} 
+[2025-10-01 10:02:34] local.INFO: array (
+  'match_id' => '69',
+  'striker_id' => 66,
+  'non_striker_id' => 55,
+  'bowler_id' => 13,
+  'runs' => 0,
+  'extras' => 
+  array (
+  ),
+  'wicket' => 'stumped',
+  'batsman_out' => NULL,
+  'legal_ball' => true,
+)  
+[2025-10-01 10:08:58] local.ERROR: Error loading match state {"message":"No query results for model [App\\Models\\CricketMatch] undefined","line":444} 
+[2025-10-01 10:09:10] local.INFO: array (
+  'match_id' => '69',
+  'striker_id' => 55,
+  'non_striker_id' => 26,
+  'bowler_id' => 48,
+  'runs' => 0,
+  'extras' => 
+  array (
   ),
   'wicket' => NULL,
   'batsman_out' => NULL,
-  'legal_ball' => false,
+  'legal_ball' => true,
 )  
-[2025-09-29 12:20:19] local.INFO: array (
+[2025-10-01 10:09:12] local.INFO: array (
   'match_id' => '69',
-  'striker_id' => 14,
-  'non_striker_id' => 73,
-  'bowler_id' => 46,
-  'runs' => 0,
+  'striker_id' => 55,
+  'non_striker_id' => 26,
+  'bowler_id' => 48,
+  'runs' => 6,
   'extras' => 
   array (
-    'type' => 'LB',
-    'runs' => 4,
-    'run_out' => false,
+  ),
+  'wicket' => NULL,
+  'batsman_out' => NULL,
+  'legal_ball' => true,
+)  
+[2025-10-01 10:09:16] local.INFO: array (
+  'match_id' => '69',
+  'striker_id' => 55,
+  'non_striker_id' => 26,
+  'bowler_id' => 48,
+  'runs' => 1,
+  'extras' => 
+  array (
+  ),
+  'wicket' => NULL,
+  'batsman_out' => NULL,
+  'legal_ball' => true,
+)  
+[2025-10-01 10:09:22] local.INFO: array (
+  'match_id' => '69',
+  'striker_id' => 26,
+  'non_striker_id' => 55,
+  'bowler_id' => 48,
+  'runs' => 6,
+  'extras' => 
+  array (
+  ),
+  'wicket' => NULL,
+  'batsman_out' => NULL,
+  'legal_ball' => true,
+)  
+[2025-10-01 10:09:25] local.INFO: array (
+  'match_id' => '69',
+  'striker_id' => 26,
+  'non_striker_id' => 55,
+  'bowler_id' => 48,
+  'runs' => 6,
+  'extras' => 
+  array (
   ),
   'wicket' => NULL,
   'batsman_out' => NULL,

@@ -151,6 +151,10 @@ $(document).ready(function () {
             fragment.appendChild(tr);
         });
         $elements.bowlingTbody[0].appendChild(fragment);
+
+        $elements.bowlingTbody.find('input[name="current-bowler"]').on('change', function () {
+            sendBowlerData(matchId, $('#bowling_team_id').val(), $(this).data('playerid'));
+        });
     };
 
     const renderPartnerships = (partnerships) => {
@@ -249,6 +253,37 @@ $(document).ready(function () {
 
         const $icon = $('.team-icon');
         $icon.text(initials.toUpperCase());
+    }
+
+    const sendBowlerData = (matchId, teamId, bowlerId) => {
+        const chooseBowlerRoute = `/admin/cricket-matches/scoreboard/${matchId}/add-bowler`;
+
+        $.ajax({
+            url: chooseBowlerRoute,
+            type: "POST",
+            contentType: "application/json",
+            headers: {
+                'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+            },
+            data: JSON.stringify({
+                match_id: matchId,
+                bowler_id: bowlerId,
+                team_id: teamId
+            }),
+            success: function (res) {
+                if (res.success) {
+                    loadFullMatchState();
+                    renderBowlingTable(res.bowling);
+                    showToast("Bowler Selected..");
+                } else {
+                    alert(res.message || "Something went wrong!");
+                }
+            },
+            error: function (xhr) {
+                console.error("Error saving bowler:", xhr.responseText);
+                alert("Error saving bowler.");
+            }
+        });
     }
 
 
@@ -366,6 +401,8 @@ $(document).ready(function () {
             batsman_out: batsmanOut || null,
             legal_ball: legalBall
         };
+
+        console.log(payload)
         sendDeliveryToServer(payload);
     };
 
@@ -395,8 +432,7 @@ $(document).ready(function () {
         fetchJSON(
             `/admin/cricket-matches/scoreboard/full-match-state/:match_id`.replace(':match_id', matchId))
             .then(data => {
-                if (!data.success) return console.error('Failed to load match state:', data
-                    .message);
+                if (!data.success) return console.error('Failed to load match state:', data.message);
                 if (data.match_result) {
                     document.getElementById('match-scoreboard').style.display = 'none';
                     document.getElementById('match-result').style.display = 'block';
@@ -421,8 +457,6 @@ $(document).ready(function () {
 
                     winnerWrap.onclick = () => winnerWrap.style.display = 'none';
                 } else {
-                    console.log(data);
-
                     document.getElementById('match-scoreboard').style.display = 'block';
                     document.getElementById('match-result').style.display = 'none';
 
@@ -430,7 +464,6 @@ $(document).ready(function () {
                     $elements.battingTeamName.text(`${data.match_state.team.name}`);
                     updateTeamIcon();
 
-                    // Populate players
                     updatePlayerCard(data.match_state.striker, 'striker');
                     updatePlayerCard(data.match_state.nonStriker, 'nonStriker');
 
@@ -448,6 +481,16 @@ $(document).ready(function () {
                     } else {
                         console.warn('Current innings data not found');
                     }
+
+                    $('.btn-batsman-out.striker-btn').attr(
+                        'data-batsman',
+                        data.match_state.striker?.id ?? "striker"
+                    );
+
+                    $('.btn-batsman-out.nonstriker-btn').attr(
+                        'data-batsman',
+                        data.match_state.nonStriker?.id ?? "nonStriker"
+                    );
                 }
             })
             .catch(err => console.error('Error fetching full match state:', err));
@@ -609,14 +652,7 @@ $(document).ready(function () {
     $(document).on('click', '.btn-wicket', function () {
         const wicketType = $(this).data('wicket');
         currentWicket = wicketType;
-
         const modal = new bootstrap.Modal(document.getElementById('wicketModal'));
-        document.getElementById('runOutOptions').classList.toggle('d-none', wicketType !==
-            'Run Out');
-
-        if (wicketType === 'Caught') loadBowlingTeamPlayers('caughtBySelect');
-        if (wicketType === 'Stumped') loadBowlingTeamPlayers('stumpedBySelect');
-
         modal.show();
     });
 
@@ -624,13 +660,23 @@ $(document).ready(function () {
         const type = $(this).data('wicket');
         $(".wicket-extra").addClass("d-none");
 
-        if (type === "Run Out") $("#runOutOptions").removeClass("d-none");
-        else if (type === "Caught") $("#caughtOptions").removeClass("d-none");
-        else if (type === "Stumped") $("#stumpedOptions").removeClass("d-none");
-        else finalizeWicket({
-            type,
-            batsmanOut: $('.btn-batsman-out.striker-btn').data('batsman')
-        });
+        if (type === "Run Out") {
+            document.getElementById('runOutOptions').classList.toggle('d-none', type !== 'Run Out');
+        }
+        else if (type === "Caught") {
+            $("#caughtOptions").removeClass("d-none");
+            loadBowlingTeamPlayers('caughtBySelect');
+        }
+        else if (type === "Stumped") {
+            $("#stumpedOptions").removeClass("d-none");
+            loadBowlingTeamPlayers('stumpedBySelect');
+        }
+        else {
+            finalizeWicket({
+                type,
+                batsmanOut: $('.btn-batsman-out.striker-btn').data('batsman')
+            });
+        }
     });
 
     $(document).on('click', '.btn-batsman-out', function () {
@@ -640,25 +686,49 @@ $(document).ready(function () {
         });
     });
 
+    let stumpedData = {
+        keeperId: null,
+        batsmanOut: null
+    };
+
+    $(document).on('change', '#stumpedBySelect', function () {
+        stumpedData.keeperId = $(this).val();
+        stumpedData.batsmanOut = getMatchState().striker.id;
+
+        tryFinalizeStumped();
+    });
+
+    $(document).on('change', '#caughtBySelect', function () {
+        const matchState = getMatchState();
+        const selectedFielder = $(this).val();
+        const striker = matchState.striker.id;
+        finalizeWicket({
+            type: 'caught',
+            batsmanOut: striker,
+            fielderId: selectedFielder
+        });
+    });
+
     // ------------------------
     // 🔹 Wicket functions
     // ------------------------
-    function finalizeCaughtOrStumped(type) {
-        const fielderId = type === 'Caught' ?
-            $('#caughtBySelect').val() :
-            $('#stumpedBySelect').val();
-        finalizeWicket({
-            type,
-            batsmanOut: 'Striker',
-            fielderId
-        });
+    function tryFinalizeStumped() {
+        if (stumpedData.keeperId && stumpedData.batsmanOut) {
+            finalizeWicket({
+                type: 'stumped',
+                batsmanOut: stumpedData.batsmanOut,
+                fielderId: stumpedData.keeperId
+            });
+
+            stumpedData.keeperId = null;
+            stumpedData.batsmanOut = null;
+
+            $('#stumpedOptions').addClass('d-none');
+            $('#stumpedBySelect').val('');
+        }
     }
 
-    function finalizeWicket({
-        type,
-        batsmanOut,
-        fielderId = null
-    }) {
+    function finalizeWicket({ type, batsmanOut, fielderId = null }) {
         const modalEl = document.getElementById('wicketModal');
         const modal = bootstrap.Modal.getInstance(modalEl) || new bootstrap.Modal(modalEl);
         modal.hide();
@@ -668,40 +738,51 @@ $(document).ready(function () {
             $('body').removeClass('modal-open');
         }, 100);
 
-        const extra = type === 'Run Out' ? {
-            run_out: true
-        } :
-            type === 'Caught' ? {
-                caught_by: fielderId
-            } :
-                type === 'Stumped' ? {
-                    stumped_by: fielderId
-                } : null;
+        // Build extras object
+        const extras = {};
+        if (type === 'Run Out') {
+            extras.run_out = true;
+        } else if (type === 'caught') {
+            extras.run_out = false;
+            extras.caught_by = fielderId;
+        } else if (type === 'stumped') {
+            extras.run_out = false;
+            extras.stumped_by = fielderId;
+        }
+
+        const finalBatsmanOut = batsmanOut || null;
 
         addDelivery({
             runs: 0,
-            extra,
+            extras: Object.keys(extras).length ? extras : null,
             wicket: type,
-            batsmanOut,
+            batsman_out: finalBatsmanOut,
             legalBall: true
         });
     }
+
 
     // ------------------------
     // 🔹 Load bowling team players
     // ------------------------
     function loadBowlingTeamPlayers(selectId) {
         const select = document.getElementById(selectId);
-        select.innerHTML = '';
+        select.innerHTML = '<option value="">Select Fielder</option>';
+        const matchState = getMatchState();
+        const bowlingTeamPlayers = matchState.bowlingTeamPlayers;
+
         if (!bowlingTeamPlayers.length) {
             select.innerHTML = `<option value="">No players available</option>`;
             return;
         }
-        bowlingTeamPlayers.forEach(player => {
+
+        bowlingTeamPlayers.forEach(stat => {
             const opt = document.createElement('option');
-            opt.value = player.id;
-            opt.textContent = player.name;
-            select.appendChild(opt);
+            if (stat.player.id != matchState.currentBowler) {
+                opt.value = stat.id;
+                opt.textContent = stat.player.user.full_name;
+                select.appendChild(opt);
+            }
         });
     }
 

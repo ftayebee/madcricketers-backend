@@ -514,17 +514,13 @@
                     <!-- Caught Options -->
                     <div id="caughtOptions" class="mt-3 d-none wicket-extra">
                         <p>Select Fielder (Who took the catch):</p>
-                        <select class="form-select" id="caughtBySelect">
-                            <!-- Dynamically load bowling team players -->
-                        </select>
+                        <select class="form-select" id="caughtBySelect"></select>
                     </div>
 
                     <!-- Stumped Options -->
                     <div id="stumpedOptions" class="mt-3 d-none wicket-extra">
                         <p>Select Keeper (Who stumped):</p>
-                        <select class="form-select" id="stumpedBySelect">
-                            <!-- Dynamically load bowling team players -->
-                        </select>
+                        <select class="form-select" id="stumpedBySelect"></select>
                     </div>
 
                 </div>
