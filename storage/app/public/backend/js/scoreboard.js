@@ -275,6 +275,7 @@ $(document).ready(function () {
                     loadFullMatchState();
                     renderBowlingTable(res.bowling);
                     showToast("Bowler Selected..");
+                    window.location.reload();
                 } else {
                     alert(res.message || "Something went wrong!");
                 }
@@ -389,6 +390,10 @@ $(document).ready(function () {
         const state = getMatchState();
         const bowlerId = state.currentBowler;
         if (!bowlerId) return showToast('Select a bowler first', 'error');
+        if(!state.striker && !state.nonStriker){
+            showToast('Please Select Striker And Non-Striker Batsman', 'error');
+            return;
+        }
 
         const payload = {
             match_id: matchId,
@@ -402,7 +407,6 @@ $(document).ready(function () {
             legal_ball: legalBall
         };
 
-        console.log(payload)
         sendDeliveryToServer(payload);
     };
 
@@ -419,6 +423,10 @@ $(document).ready(function () {
             showToast(data.message);
             loadFullMatchState(matchId);
             loadCurrentOver();
+            
+            if(payload.wicket != null){
+                window.location.reload();
+            }
         }).catch(err => console.error('Error recording delivery:', err));
     };
 
@@ -457,6 +465,7 @@ $(document).ready(function () {
 
                     winnerWrap.onclick = () => winnerWrap.style.display = 'none';
                 } else {
+                    console.dir(data)
                     document.getElementById('match-scoreboard').style.display = 'block';
                     document.getElementById('match-result').style.display = 'none';
 
@@ -572,7 +581,7 @@ $(document).ready(function () {
                 nbBatsmanOut.classList.toggle('d-none', !this.checked);
             });
 
-            loadCurrentPlayersToModal();
+            // loadCurrentPlayersToModal();
         } else if (type === "WD") {
             modalTitle.textContent = "Wide Ball";
             wdSection.classList.remove('d-none');
@@ -681,7 +690,7 @@ $(document).ready(function () {
 
     $(document).on('click', '.btn-batsman-out', function () {
         finalizeWicket({
-            type: 'Run Out',
+            type: 'run_out',
             batsmanOut: $(this).data('batsman')
         });
     });
@@ -738,7 +747,6 @@ $(document).ready(function () {
             $('body').removeClass('modal-open');
         }, 100);
 
-        // Build extras object
         const extras = {};
         if (type === 'Run Out') {
             extras.run_out = true;
@@ -926,7 +934,8 @@ $(document).ready(function () {
                 match_id: matchId,
                 team_id: battingTeamId,
                 player_id: playerId,
-                role: role
+                role: role,
+                currentInnings: matchState.currentInnings
             })
         })
             .then(res => res.json())

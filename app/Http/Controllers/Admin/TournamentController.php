@@ -428,7 +428,7 @@ class TournamentController extends Controller
 
             $validated = $request->validate([
                 'tournament_id' => 'required|exists:tournaments,id',
-                'match_stage'   => 'required|in:group,playoffs',
+                'match_stage'   => 'required|in:group,playoffs,final',
             ]);
 
             $tournament = Tournament::with('groups.teams')->findOrFail($validated['tournament_id']);
@@ -475,8 +475,8 @@ class TournamentController extends Controller
                     $topTeams = \App\Models\TournamentTeamStat::where('tournament_id', $tournament->id)
                         ->whereIn('team_id', $group->teams->pluck('id'))
                         ->orderByDesc('points')
-                        ->orderByDesc('net_run_rate')
-                        ->take(2)
+                        ->orderByDesc('nrr')
+                        ->take(4)
                         ->pluck('team_id');
 
                     $qualifiedTeams = $qualifiedTeams->merge($topTeams);
@@ -503,6 +503,43 @@ class TournamentController extends Controller
                             'match_type' => 'tournament',
                             'status' => 'upcoming',
                             'stage' => 'playoffs',
+                            'created_at' => now(),
+                            'updated_at' => now(),
+                        ];
+                    }
+                }
+            } elseif ($stage === 'final') {
+                $qualifiedTeams = collect();
+
+                $playoffMatches = \App\Models\CricketMatch::where('tournament_id', $tournament->id)
+                    ->where('stage', 'playoffs')
+                    ->get();
+
+                foreach ($playoffMatches as $match) {
+                    $qualifiedTeams->push($match->winning_team_id);
+                }
+
+                $qualifiedTeams = $qualifiedTeams->unique()->values();
+                Log::info($qualifiedTeams);
+                
+                for ($i = 0; $i < count($qualifiedTeams); $i += 2) {
+                    if (isset($qualifiedTeams[$i + 1])) {
+                        $teamAId = $qualifiedTeams[$i];
+                        $teamBId = $qualifiedTeams[$i + 1];
+                        $teamA = \App\Models\Team::find($teamAId);
+                        $teamB = \App\Models\Team::find($teamBId);
+
+                        $matches[] = [
+                            'title' => "{$teamA->name} vs {$teamB->name}",
+                            'team_a_id' => $teamA->id,
+                            'team_b_id' => $teamB->id,
+                            'tournament_id' => $tournament->id,
+                            'match_date' => now()->addDays(rand(11, 15)),
+                            'venue' => null,
+                            'max_overs' => $tournament->overs_per_innings,
+                            'match_type' => 'tournament',
+                            'status' => 'upcoming',
+                            'stage' => 'final',
                             'created_at' => now(),
                             'updated_at' => now(),
                         ];

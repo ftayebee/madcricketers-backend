@@ -325,7 +325,6 @@ class CricketMatchController extends Controller
     public function getYetToBat(Request $request, $matchId)
     {
         try {
-            // Get running scoreboard or latest scoreboard if match completed
             $scoreboard = MatchScoreBoard::where('match_id', $matchId)
                 ->where('status', 'running')
                 ->first();
@@ -347,12 +346,10 @@ class CricketMatchController extends Controller
 
             $battingTeamId = $scoreboard->team_id;
 
-            // Get all players of the batting team
             $teamPlayerIds = DB::table('player_team')
                 ->where('team_id', $battingTeamId)
                 ->pluck('player_id');
 
-            // Get players who have already batted
             $battedPlayerIds = DB::table('match_players')
                 ->where('match_id', $matchId)
                 ->where('team_id', $battingTeamId)
@@ -360,7 +357,7 @@ class CricketMatchController extends Controller
                     $query->whereNotNull('runs_scored')
                         ->orWhereNotNull('balls_faced');
                 })
-                ->where('status', '!=', 'retired-hurt')
+                ->whereNotIn('status', ['ready', 'retired-hurt'])
                 ->pluck('player_id');
 
             // Players yet to bat

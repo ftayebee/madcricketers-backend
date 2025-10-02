@@ -126,7 +126,7 @@
                                     Payments</a>
                             </li>
                             <li class="sub-nav-item">
-                                <a class="sub-nav-link" href="dashboard-agent.html">Payment Summary</a>
+                                <a class="sub-nav-link" href="{{ route('admin.payments.summary') }}">Payment Summary</a>
                             </li>
                         </ul>
                     </div>

@@ -21,7 +21,8 @@ class Player extends Model
         'chest_measurement'
     ];
 
-    public function user() {
+    public function user()
+    {
         return $this->belongsTo(User::class, 'user_id', 'id');
     }
 
@@ -32,7 +33,12 @@ class Player extends Model
 
     public function matches()
     {
-        return $this->belongsToMany(CricketMatch::class, 'match_players', 'match_id', 'player_id')->withTimestamps();
+        return $this->belongsToMany(
+            CricketMatch::class, // related model
+            'match_players',     // pivot table
+            'player_id',         // foreign key on pivot table for Player
+            'match_id'           // foreign key on pivot table for CricketMatch
+        )->withTimestamps();
     }
 
     public function payments()
@@ -45,11 +51,13 @@ class Player extends Model
         return $this->hasMany(MonthlyDonation::class, 'player_id', 'id');
     }
 
-    public function statistics(){
+    public function statistics()
+    {
         return $this->hasOne(PlayerStat::class, 'player_id', 'id');
     }
 
-    public function tournamentStatistic(){
+    public function tournamentStatistic()
+    {
         return $this->hasMany(TournamentPlayerStat::class, 'player_id', 'id');
     }
 }

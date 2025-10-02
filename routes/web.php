@@ -114,6 +114,7 @@ Route::prefix('admin')->name('admin.')->group(function(){
     Route::resource('payments', PaymentController::class)->except(['create', 'edit', 'show']);
     Route::prefix('payments')->name('payments.')->group(function(){
         Route::get('/loader', [PaymentController::class, 'tableLoader'])->name('loader');
+        Route::get('/summary', [PaymentController::class, 'summaryIndex'])->name('summary');
+        Route::get('/summary-data', [PaymentController::class, 'summaryData'])->name('summaryData');
     });
-    Route::resource('monthly-donations', MonthlyDonationController::class)->except(['create', 'edit']);
 });

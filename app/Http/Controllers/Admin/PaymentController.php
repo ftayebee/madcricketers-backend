@@ -15,7 +15,6 @@ use Illuminate\Support\Facades\Validator;
 
 class PaymentController extends Controller
 {
-    // List all payments
     public function index(Request $request)
     {
         session([
@@ -133,7 +132,7 @@ class PaymentController extends Controller
             ->editColumn('player_name', fn($row) => $row->player_name ?? '-')
             ->addColumn('actions', function ($row) {
                 if (!$row->payment_id) {
-                    return '<button class="btn btn-sm btn-primary add-payment-btn" data-player="' . $row->player_id . '">Add Payment</button>';
+                    return '';
                 }
                 return view('admin.pages.payments.partials.actions', ['p' => $row])->render();
             })
@@ -151,13 +150,14 @@ class PaymentController extends Controller
         $validator = Validator::make($request->all(), [
             'player_id' => 'required|exists:players,id',
             'amount' => 'required|numeric|min:0',
-            'type' => 'required|in:donation, tournament, jersey, other',
+            'type' => 'required|in:donation,tournament,jersey,other',
             'status' => 'required|in:paid,pending',
             'tournament_id' => 'nullable|exists:tournaments,id',
             'payment_date' => 'required|date',
         ]);
 
         if ($validator->fails()) {
+            Log::info($validator->errors());
             return response()->json([
                 'success' => false,
                 'message' => 'Validation Failed',
@@ -237,6 +237,54 @@ class PaymentController extends Controller
 
         return redirect()->back()->with('success', 'Payment marked as paid.');
     }
+
+    public function summaryIndex()
+    {
+        session([
+            'title' => 'Payments Summary',
+            'breadcrumbs' => [
+                'home' => [
+                    'url' => route('admin.dashboard'),
+                    'name' => 'Dashboard'
+                ],
+                'role' => [
+                    'url' => route('admin.payments.index'),
+                    'name' => 'Payments Management'
+                ]
+            ]
+        ]);
+
+        return view('admin.pages.payments.summary');
+    }
+
+    public function summaryData(Request $request)
+    {
+        $query = \App\Models\Payment::query();
+
+        // Apply filters if provided
+        if ($request->filled('type')) {
+            $query->where('type', $request->type);
+        }
+
+        if ($request->filled('start')) {
+            $query->whereDate('payment_date', '>=', $request->start);
+        }
+
+        if ($request->filled('end')) {
+            $query->whereDate('payment_date', '<=', $request->end);
+        }
+
+        // Group by type and calculate totals
+        $summary = $query->select('type')
+            ->selectRaw('SUM(amount) as total')
+            ->selectRaw("SUM(CASE WHEN status='paid' THEN amount ELSE 0 END) as paid")
+            ->selectRaw("SUM(CASE WHEN status='pending' THEN amount ELSE 0 END) as pending")
+            ->groupBy('type')
+            ->get();
+
+        return response()->json($summary);
+    }
+
 
     public function destroy($id) {}
 }

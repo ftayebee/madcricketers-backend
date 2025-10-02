@@ -33,7 +33,7 @@ class CricketMatchController extends Controller
     public function index()
     {
         try {
-            if (!Auth::user()->can($this->module . '-view')) {
+            if (Auth::user() && !Auth::user()->can($this->module . '-view')) {
                 throw new Exception('Unauthorized Access');
             }
 
@@ -72,7 +72,7 @@ class CricketMatchController extends Controller
     public function tableLoader(Request $request)
     {
         try {
-            if (!Auth::user()->can($this->module . '-view')) {
+            if (Auth::user() && !Auth::user()->can($this->module . '-view')) {
                 throw new Exception('Unauthorized Access');
             }
 
@@ -132,7 +132,7 @@ class CricketMatchController extends Controller
     public function edit(Request $request)
     {
         try {
-            if (!Auth::user()->can($this->module . '-edit')) {
+            if (Auth::user() && !Auth::user()->can($this->module . '-edit')) {
                 throw new Exception('Unauthorized Access');
             }
 
@@ -176,7 +176,7 @@ class CricketMatchController extends Controller
     public function store(Request $request)
     {
         try {
-            if (!Auth::user()->can($this->module . '-create')) {
+            if (Auth::user() && !Auth::user()->can($this->module . '-create')) {
                 throw new Exception('Unauthorized Access');
             }
 
@@ -235,11 +235,10 @@ class CricketMatchController extends Controller
         }
     }
 
-
     public function update(Request $request, $id)
     {
         try {
-            if (!Auth::user()->can($this->module . '-edit')) {
+            if (Auth::user() && !Auth::user()->can($this->module . '-edit')) {
                 throw new Exception('Unauthorized Access');
             }
 
@@ -371,7 +370,7 @@ class CricketMatchController extends Controller
     public function viewScoreBoard($id)
     {
         try {
-            if (!Auth::user()->can($this->module . '-start')) {
+            if (Auth::user() && !Auth::user()->can($this->module . '-start')) {
                 throw new Exception('Unauthorized Access');
             }
 
@@ -406,7 +405,7 @@ class CricketMatchController extends Controller
     public function startCricketMatch($id)
     {
         try {
-            if (!Auth::user()->can($this->module . '-start')) {
+            if (Auth::user() && !Auth::user()->can($this->module . '-start')) {
                 throw new Exception('Unauthorized Access');
             }
 
@@ -524,10 +523,23 @@ class CricketMatchController extends Controller
             $teamId = $request->team_id;
             $playerId = $request->player_id;
             $role = $request->role;
+            $scoreBoard = MatchScoreBoard::where('match_id', $matchId)->where('team_id', $teamId)->where('status', 'running')->first();
             $existingBatsmen = MatchPlayer::where('match_id', $matchId)->where('team_id', $teamId)->count();
             $status = $existingBatsmen === 0 ? 'on-strike' : $role;
+            $currentInnings = $request->input('currentInnings');
 
-            $matchPlayer = MatchPlayer::firstOrCreate(
+            if (!$currentInnings) {
+                $scoreBoard = MatchScoreBoard::where('match_id', $matchId)
+                    ->where('team_id', $teamId)
+                    ->where('status', 'running')
+                    ->first();
+
+                $currentInnings = $scoreBoard ? $scoreBoard->innings : 1;
+            }
+
+            Log::info("Current Innings: " . $currentInnings);
+            
+            $matchPlayer = MatchPlayer::updateOrCreate(
                 [
                     'match_id'  => $matchId,
                     'team_id'   => $teamId,
@@ -578,6 +590,7 @@ class CricketMatchController extends Controller
             $activePartnership = Partnership::where('match_id', $matchId)
                 ->where('team_id', $teamId)
                 ->whereNull('wicket_id')
+                ->where('innings', $currentInnings)
                 ->latest()
                 ->first();
 
@@ -587,6 +600,7 @@ class CricketMatchController extends Controller
                 $lastPartnership = Partnership::where('match_id', $matchId)
                     ->where('team_id', $teamId)
                     ->whereNotNull('wicket_id')
+                    ->where('innings', $currentInnings)
                     ->latest()
                     ->first();
 
@@ -594,7 +608,6 @@ class CricketMatchController extends Controller
                     $fallOfWicket = FallOfWicket::find($lastPartnership->wicket_id);
 
                     if ($fallOfWicket) {
-                        // One of these survived (not equal to the wicket batter)
                         if ($lastPartnership->batter_1_id && $lastPartnership->batter_1_id != $fallOfWicket->batter_id) {
                             $player2Id = $lastPartnership->batter_1_id;
                         } elseif ($lastPartnership->batter_2_id && $lastPartnership->batter_2_id != $fallOfWicket->batter_id) {
@@ -612,6 +625,7 @@ class CricketMatchController extends Controller
                         'runs'        => 0,
                         'balls'       => 0,
                         'start_over'  => 0.0,
+                        'innings'     => $currentInnings,
                     ]);
                 }
             } else {
@@ -843,7 +857,7 @@ class CricketMatchController extends Controller
                                 : 0,
                         ];
                     });
-
+                
                 // Partnerships
                 $partnerships = Partnership::with(['batter1.user', 'batter2.user'])
                     ->where('match_id', $matchId)
@@ -1535,7 +1549,6 @@ class CricketMatchController extends Controller
                 ], 422);
             }
 
-            Log::info($request->all());
             DB::beginTransaction();
 
             // ---------- Extract request ----------
@@ -1837,12 +1850,22 @@ class CricketMatchController extends Controller
 
                         $match->status = 'completed';
                         $match->save();
-                        Log::info("Match Completed: " . $match->result_summary);
                     }
                 }
             }
 
             // ---------- Check if chasing team has already won (target reached early) ----------
+            if ($innings == 1) {
+                $innings1 = MatchScoreBoard::where('match_id', $matchId)->where('innings', 1)->first();
+                
+                if ($innings1->match->max_overs >= intval(intdiv($legalBalls, 6))) {
+                    $innings2 = MatchScoreBoard::where('match_id', $matchId)->where('innings', 2)->first();
+                    $innings2->status = 'running';
+                    $innings2->save();
+                    $isInningsEnded = true;
+                }
+            }
+
             if ($innings == 2) {
                 $innings1 = MatchScoreBoard::where('match_id', $matchId)->where('innings', 1)->first();
                 $target   = $innings1->runs + 1;
