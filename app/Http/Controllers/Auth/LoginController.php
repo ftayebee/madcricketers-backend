@@ -12,8 +12,6 @@ class LoginController extends Controller
 {
     use AuthenticatesUsers;
 
-    protected $redirectTo;
-
     public function __construct()
     {
         $this->middleware('guest')->except('logout');
@@ -22,11 +20,16 @@ class LoginController extends Controller
     protected function redirectTo()
     {
         $user = Auth::user();
-        Log::info($user);
+        
         if ($user->hasRole('admin')) {
             return RouteServiceProvider::ADMIN_DASHBOARD;
         } elseif ($user->hasRole('manager')) {
             return RouteServiceProvider::MANAGER_DASHBOARD;
+        } elseif ($user->hasRole('player')) {
+            return RouteServiceProvider::PLAYER_DASHBOARD;
         }
+
+        // fallback
+        return RouteServiceProvider::HOME;
     }
 }

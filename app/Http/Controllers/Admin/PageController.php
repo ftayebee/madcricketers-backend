@@ -10,8 +10,9 @@ use Spatie\Permission\Models\Role;
 
 class PageController extends Controller
 {
-    public function dashboard(){
-        try{
+    public function dashboard()
+    {
+        try {
             session([
                 'title' => 'Dashboard',
                 'breadcrumbs' => [
@@ -22,8 +23,28 @@ class PageController extends Controller
                 ]
             ]);
 
-            return view('admin.dashboard');
-        } catch(Exception $e){
+            $currentMonth = now()->month;
+
+            // Get current running tournament
+            $currentTournament = \App\Models\Tournament::where('status', 'ongoing')->with(['groups.teams.players'])->first();
+
+            // Payments summary for current month
+            $payments = \App\Models\Payment::whereMonth('payment_date', $currentMonth)->get();
+            $paymentSummary = [
+                'donations' => $payments->where('type', 'donation')->sum('amount'),
+                'tournament' => $payments->where('type', 'tournament')->sum('amount'),
+                'jersey' => $payments->where('type', 'jersey')->sum('amount'),
+                'other' => $payments->where('type', 'other')->sum('amount'),
+                'total' => $payments->sum('amount'),
+            ];
+
+            // Players who haven’t paid this month
+            $playersNotPaid = \App\Models\Player::whereDoesntHave('payments', function ($q) use ($currentMonth) {
+                $q->whereMonth('payment_date', $currentMonth)->where('status', 'paid');
+            })->get();
+
+            return view('admin.dashboard', compact('currentTournament', 'paymentSummary', 'playersNotPaid'));
+        } catch (Exception $e) {
             Log::error('Error Loading Admin Dashboard: ', [
                 'line' => $e->getLine(),
                 'message' => $e->getMessage(),
@@ -37,8 +58,9 @@ class PageController extends Controller
         }
     }
 
-    public function profile(){
-        try{
+    public function profile()
+    {
+        try {
             session([
                 'title' => 'Profile',
                 'breadcrumbs' => [
@@ -52,7 +74,7 @@ class PageController extends Controller
             $roles = Role::all();
 
             return view('admin.pages.profile', compact('user', 'roles'));
-        } catch(Exception $e){
+        } catch (Exception $e) {
             Log::error('Error Loading Admin Profile: ', [
                 'line' => $e->getLine(),
                 'message' => $e->getMessage(),

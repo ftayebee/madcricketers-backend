@@ -11,13 +11,13 @@ use App\Http\Controllers\Admin\TeamController;
 use App\Http\Controllers\Admin\UserController;
 use App\Http\Controllers\Admin\PlayerController;
 use App\Http\Controllers\Admin\TournamentController;
-use App\Http\Controllers\Frontend\PageController as FrontendPageController;
+use App\Http\Controllers\Player\PageController As PlayerPageController;
 
 Route::get('/', function () {
     return redirect('/login');
 });
 Auth::routes();
-//admin/cricket-matches/scoreboard/select-batsman
+
 Route::prefix('admin')->name('admin.')->group(function(){
     Route::get('/dashboard', [PageController::class, 'dashboard'])->name('dashboard');
     Route::get('/profile', [PageController::class, 'profile'])->name('profile');
@@ -117,4 +117,9 @@ Route::prefix('admin')->name('admin.')->group(function(){
         Route::get('/summary', [PaymentController::class, 'summaryIndex'])->name('summary');
         Route::get('/summary-data', [PaymentController::class, 'summaryData'])->name('summaryData');
     });
+});
+
+Route::prefix('player')->name('player.')->middleware(['auth'])->group(function(){
+    Route::get('/dashboard', [PlayerPageController::class, 'dashboard'])->name('dashboard');
+    Route::get('/profile', [PlayerPageController::class, 'profile'])->name('profile');
 });
