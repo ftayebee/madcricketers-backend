@@ -60,7 +60,7 @@ class TournamentController extends Controller
                 },
                 'groups.teams:id,name',
                 'standings.team:id,name',
-                'playerStats.player:id,name',
+                'playerStats.player.user:id,full_name',
                 'teams.players.user',
             ])->where('slug', $slug)->firstOrFail();
 
@@ -89,6 +89,7 @@ class TournamentController extends Controller
 
             // Key Stats (top performers from playerStats relation)
             $topRunScorer = $tournament->playerStats->sortByDesc('total_runs')->first();
+            Log::info($tournament->playerStats->sortByDesc('total_runs')->first());
             $topWicketTaker = $tournament->playerStats->sortByDesc('wickets')->first();
             $mostSixes = $tournament->playerStats->sortByDesc('sixes')->first();
             $bestStrikeRate = $tournament->playerStats
@@ -119,11 +120,15 @@ class TournamentController extends Controller
                                 'id' => $match->teamA->id,
                                 'name' => $match->teamA->name,
                                 'logo' => $match->teamA->logo,
+                                'score' => $match->scoreboard->where('team_id', $match->teamA->id)->first()->runs . " / " . $match->scoreboard->where('team_id', $match->teamA->id)->first()->wickets,
+                                'overs' => $match->scoreboard->where('team_id', $match->teamA->id)->first()->overs
                             ],
                             'team_b' => [
                                 'id' => $match->teamB->id,
                                 'name' => $match->teamB->name,
                                 'logo' => $match->teamB->logo,
+                                'score' => $match->scoreboard->where('team_id', $match->teamB->id)->first()->runs . " / " . $match->scoreboard->where('team_id', $match->teamB->id)->first()->wickets,
+                                'overs' => $match->scoreboard->where('team_id', $match->teamB->id)->first()->overs
                             ],
                             'venue' => $match->venue,
                             'match_date' => Carbon::parse($match->match_date)->format('d M, Y h:i A'),

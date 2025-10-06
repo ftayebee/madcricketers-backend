@@ -3,6 +3,9 @@
 @section('content')
     @push('styles')
         <style>
+            .choices{
+                margin-bottom: 0px!important;
+            }
             .choices[data-type*="select-one"]:after {
                 font-family: 'FontAwesome' !important;
                 content: "\f107" !important;

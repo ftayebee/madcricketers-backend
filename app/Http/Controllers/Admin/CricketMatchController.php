@@ -16,6 +16,7 @@ use Illuminate\Http\Request;
 use App\Models\MatchDelivery;
 use App\Models\MatchScoreBoard;
 use App\Models\CricketMatchToss;
+use App\Events\CricketMatchUpdate;
 use App\Models\TournamentTeamStat;
 use Illuminate\Support\Facades\DB;
 use App\Models\TournamentGroupTeam;
@@ -341,6 +342,8 @@ class CricketMatchController extends Controller
                 'wickets' => 0,
                 'overs' => 0,
             ]);
+
+            broadcast(new CricketMatchUpdate($match))->toOthers();
 
             return response()->json([
                 'success' => true,
@@ -2090,6 +2093,50 @@ class CricketMatchController extends Controller
                 'success' => false,
                 'message' => 'Failed to record delivery'
             ], 500);
+        }
+    }
+
+    public function destroy($id)
+    {
+        try {
+            $match = CricketMatch::with(['scoreboard', 'players', 'deliveries'])->findOrFail($id);
+
+            if ($match->status === 'completed') {
+                return redirect()->back()->with('error', 'Completed matches cannot be deleted.');
+            }
+
+            DB::beginTransaction();
+
+            if ($match->deliveries()->exists()) {
+                $match->deliveries()->delete();
+            }
+
+            if ($match->scoreboard()->exists()) {
+                $match->scoreboard()->delete();
+            }
+
+            if ($match->players()->exists()) {
+                $match->players()->detach();
+            }
+
+            $match->delete();
+
+            DB::commit();
+
+            return redirect()->back()->with([
+                'success' => true, 
+                'message' => 'Match and related data deleted successfully.'
+            ]);
+        } catch (\Exception $e) {
+            DB::rollBack();
+
+            Log::error('Error deleting match: ', [
+                'message' => $e->getMessage(),
+                'file'    => $e->getFile(),
+                'line'    => $e->getLine(),
+            ]);
+
+            return redirect()->back()->with('error', 'Something went wrong while deleting the match.');
         }
     }
 }

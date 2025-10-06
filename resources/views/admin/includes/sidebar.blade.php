@@ -82,9 +82,9 @@
                             <li class="sub-nav-item">
                                 <a class="sub-nav-link" href="{{ route('admin.cricket-matches.index') }}">All Matches</a>
                             </li>
-                            <li class="sub-nav-item">
+                            {{-- <li class="sub-nav-item">
                                 <a class="sub-nav-link" href="dashboard-agent.html">Add New</a>
-                            </li>
+                            </li> --}}
                         </ul>
                     </div>
                 </li>

@@ -13,6 +13,7 @@ class TournamentPlayerStat extends Model
 
     protected $fillable = [
         'tournament_id',
+        'team_id',
         'player_id',
         'matches_played',
         'innings_batted',
@@ -34,4 +35,13 @@ class TournamentPlayerStat extends Model
         'runouts',
         'stumpings',
     ];
+
+    public function player(){
+        return $this->belongsTo(Player::class, 'player_id', 'id');
+    }
+
+    public function team()
+    {
+        return $this->belongsTo(Team::class, 'team_id', 'id');
+    }
 }

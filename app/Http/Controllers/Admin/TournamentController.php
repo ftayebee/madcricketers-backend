@@ -11,9 +11,11 @@ use Illuminate\Support\Str;
 use App\Models\CricketMatch;
 use Illuminate\Http\Request;
 use App\Models\TournamentGroup;
+use Illuminate\Support\Facades\DB;
 use App\Models\TournamentGroupTeam;
 use Illuminate\Support\Facades\Log;
 use App\Http\Controllers\Controller;
+use App\Models\TournamentPlayerStat;
 use Illuminate\Support\Facades\Auth;
 use Intervention\Image\Facades\Image;
 use Illuminate\Validation\ValidationException;
@@ -21,6 +23,49 @@ use Illuminate\Validation\ValidationException;
 class TournamentController extends Controller
 {
     protected $module = 'tournaments';
+
+    public function bulkUpdateTeamIds($tournamentId)
+    {
+        try {
+            DB::beginTransaction();
+
+            $stats = TournamentPlayerStat::where('tournament_id', $tournamentId)
+                ->with('player.teams')
+                ->get();
+
+            $updatedCount = 0;
+
+            foreach ($stats as $stat) {
+                $team = $stat->player->teams()->wherePivot('tournament_id', $tournamentId)->first();
+
+                if ($team) {
+                    $stat->team_id = $team->id;
+                    $stat->save();
+                    $updatedCount++;
+                }
+            }
+
+            DB::commit();
+
+            return response()->json([
+                'success' => true,
+                'message' => "Team IDs updated for {$updatedCount} players in tournament {$tournamentId}."
+            ]);
+        } catch (\Exception $e) {
+            DB::rollBack();
+
+            Log::error('Error bulk updating team IDs:', [
+                'message' => $e->getMessage(),
+                'file' => $e->getFile(),
+                'line' => $e->getLine(),
+            ]);
+
+            return response()->json([
+                'success' => false,
+                'message' => 'Something went wrong while updating team IDs.'
+            ], 500);
+        }
+    }
 
     public function index()
     {
@@ -521,7 +566,7 @@ class TournamentController extends Controller
 
                 $qualifiedTeams = $qualifiedTeams->unique()->values();
                 Log::info($qualifiedTeams);
-                
+
                 for ($i = 0; $i < count($qualifiedTeams); $i += 2) {
                     if (isset($qualifiedTeams[$i + 1])) {
                         $teamAId = $qualifiedTeams[$i];

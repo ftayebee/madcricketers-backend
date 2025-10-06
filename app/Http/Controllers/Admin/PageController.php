@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use Exception;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
 use Spatie\Permission\Models\Role;
 
@@ -13,6 +14,10 @@ class PageController extends Controller
     public function dashboard()
     {
         try {
+            if(!Auth::check()){
+                return redirect()->route('login');
+            }
+
             session([
                 'title' => 'Dashboard',
                 'breadcrumbs' => [

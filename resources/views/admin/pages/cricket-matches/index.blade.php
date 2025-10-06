@@ -1,14 +1,60 @@
 @extends('admin.layouts.theme')
 
 @section('content')
+    @push('styles')
+        <style>
+            .choices {
+                margin-bottom: 0px !important;
+            }
+
+            #tbl-cricket-matches {
+                min-height: 520px;
+            }
+
+            .choices[data-type*="select-one"]:after {
+                font-family: 'FontAwesome' !important;
+                content: "\f107" !important;
+                border: none !important;
+                height: auto !important;
+                width: auto !important;
+                right: 11.5px !important;
+            }
+
+            .choices[data-type*="select-one"].is-disabled:after {
+                content: "\f107" !important;
+            }
+        </style>
+    @endpush
     <div class="row">
         <div class="col-sm-12">
             <div class="card">
-                <div class="card-header d-flex align-items-center justify-content-between flex-wrap row-gap-3">
-                    <h5>Daily Cricket Matches List</h5>
-                    <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#add-cricket-match">
-                        Add New
-                    </button>
+                <div class="card-header">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <h5>Daily Cricket Matches List</h5>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="d-flex justify-content-end align-items-center">
+                                <div class="w-50">
+                                    <select name="filter_format" id="filter_format" class="form-control w-100 m-0"
+                                        data-choices data-choices-search-false>
+                                        <option value="">Select Match Format</option>
+                                        <option value="all">All</option>
+                                        <option value="tournament">Tournament</option>
+                                        <option value="regular">Regular</option>
+                                    </select>
+                                </div>
+                                <button type="button" class="btn btn-primary" data-bs-toggle="modal"
+                                    data-bs-target="#add-cricket-match" style="margin-left: 15px;">
+                                    Add New
+                                </button>
+                                <button type="button" class="btn btn-primary btn-update-players"
+                                    style="margin-left: 15px;">
+                                    Update Player Names
+                                </button>
+                            </div>
+                        </div>
+                    </div>
                 </div>
                 <div class="card-body">
                     <div class="row">
@@ -45,7 +91,8 @@
         <div class="modal-dialog modal-dialog-centered modal-lg"> <!-- wider modal -->
             <div class="modal-content">
                 <div class="modal-header" style="background: #06923E!important;">
-                    <h5 class="modal-title" id="add-tournamentTitle" style="color: #fff; font-size: 20px; font-weight: 800;margin:0px;">Add New Cricket Match</h5>
+                    <h5 class="modal-title" id="add-tournamentTitle"
+                        style="color: #fff; font-size: 20px; font-weight: 800;margin:0px;">Add New Cricket Match</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
 
@@ -67,7 +114,7 @@
                                 <select name="team_a_id" class="form-select select2">
                                     <option value=""></option>
                                     @foreach (\App\Models\Team::all() as $item)
-                                        <option value="{{$item->id}}">{{$item->name}}</option>
+                                        <option value="{{ $item->id }}">{{ $item->name }}</option>
                                     @endforeach
                                 </select>
                             </div>
@@ -76,7 +123,7 @@
                                 <select name="team_b_id" class="form-select select2">
                                     <option value=""></option>
                                     @foreach (\App\Models\Team::all() as $item)
-                                        <option value="{{$item->id}}">{{$item->name}}</option>
+                                        <option value="{{ $item->id }}">{{ $item->name }}</option>
                                     @endforeach
                                 </select>
                             </div>
@@ -123,6 +170,29 @@
     <script>
         $(document).ready(function() {
             const redirectTo = "{{ url()->current() }}"
+            document.querySelector('.btn-update-players').addEventListener('click', function() {
+                if (!confirm('Are you sure you want to randomize all player names?')) return;
+
+                fetch("{{ route('admin.players.randomizeNames') }}", {
+                        method: "POST",
+                        headers: {
+                            "X-CSRF-TOKEN": "{{ csrf_token() }}",
+                            "Accept": "application/json",
+                            "Content-Type": "application/json"
+                        }
+                    })
+                    .then(res => res.json())
+                    .then(data => {
+                        if (data.success) {
+                            alert(data.message);
+                            location.reload();
+                        } else {
+                            alert("Failed: " + data.message);
+                        }
+                    })
+                    .catch(err => console.error(err));
+            });
+
             $('#tbl-cricket-matches').DataTable({
                 processing: false,
                 serverSide: false,
@@ -238,30 +308,30 @@
                                     </button>
                                     <ul class="dropdown-menu dropdown-menu-end">
                                         ${row.canView ? `
-                                                <li>
-                                                    <a class="dropdown-item" href="${row.viewUrl}">
-                                                        <i class="fa fa-eye me-2"></i> View
-                                                    </a>
-                                                </li>` : ''}
+                                                    <li>
+                                                        <a class="dropdown-item" href="${row.viewUrl}">
+                                                            <i class="fa fa-eye me-2"></i> View
+                                                        </a>
+                                                    </li>` : ''}
                                         ${row.canScore && row.status != 'Completed' ? `
-                                            <li>
-                                                <a class="dropdown-item" href="${row.startUrl}">
-                                                    <i class="fa fa-edit me-2"></i> Edit Scoreboard
-                                                </a>
-                                            </li>` : ''}
-                                        ${row.canEdit ? `
                                                 <li>
-                                                    <a class="dropdown-item" href="${row.editUrl}">
-                                                        <i class="fa fa-edit me-2"></i> Edit Details
+                                                    <a class="dropdown-item" href="${row.startUrl}">
+                                                        <i class="fa fa-edit me-2"></i> Edit Scoreboard
                                                     </a>
                                                 </li>` : ''}
+                                        ${row.canEdit ? `
+                                                    <li>
+                                                        <a class="dropdown-item" href="${row.editUrl}">
+                                                            <i class="fa fa-edit me-2"></i> Edit Details
+                                                        </a>
+                                                    </li>` : ''}
 
                                         ${row.canDelete ? `
-                                                <li>
-                                                    <button class="dropdown-item btn-delete" data-id="${row.id}">
-                                                        <i class="fa fa-trash me-2"></i> Delete
-                                                    </button>
-                                                </li>` : ''}
+                                                    <li>
+                                                        <button class="dropdown-item btn-delete" data-id="${row.id}">
+                                                            <i class="fa fa-trash me-2"></i> Delete
+                                                        </button>
+                                                    </li>` : ''}
                                     </ul>
                                 </div>
                             `;
@@ -281,7 +351,7 @@
                 new bootstrap.Tooltip(el);
             });
 
-            const formatSelector = document.getElementById("format");
+            const formatSelector = document.getElementById("filter_format");
 
             const toggleFields = () => {
                 const value = formatSelector.value;
@@ -298,7 +368,7 @@
 
             $(document).on('click', '.btn-delete', function() {
                 const selectedId = $(this).data('id');
-
+                console.log(selectedId)
                 Swal.fire({
                     title: 'Are you sure?',
                     text: "You won't be able to revert this!",

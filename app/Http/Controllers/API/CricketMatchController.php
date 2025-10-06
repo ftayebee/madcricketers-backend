@@ -70,12 +70,16 @@ class CricketMatchController extends Controller
                         'name' => $match->teamA->name,
                         'logo' => $match->teamA->logo,
                         'group' => $groupA,
+                        'score' => 100,
+                        'overs' => 20
                     ],
                     'team_b' => [
                         'id' => $match->teamB->id,
                         'name' => $match->teamB->name,
                         'logo' => $match->teamB->logo,
                         'group' => $groupB,
+                        'score' => 100,
+                        'overs' => 20
                     ],
                     'winning_team' => $match->winningTeam->name ?? null,
                 ];
@@ -137,12 +141,16 @@ class CricketMatchController extends Controller
                         'name' => $match->teamA->name,
                         'logo' => $match->teamA->logo,
                         'group' => $groupA,
+                        'score' => 200,
+                        'overs' => 30
                     ],
                     'team_b' => [
                         'id' => $match->teamB->id,
                         'name' => $match->teamB->name,
                         'logo' => $match->teamB->logo,
                         'group' => $groupB,
+                        'score' => 200,
+                        'overs' => 30
                     ],
                     'winning_team' => $match->winningTeam->name ?? null,
                 ];

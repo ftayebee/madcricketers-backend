@@ -81,6 +81,7 @@
                                 style="font-weight: bold; border-bottom: 2px solid #3f3f3f;border-top: 2px solid #3f3f3f; padding: 6px 20px;border-radius: 5px;margin-bottom: 15px;">
                                 Match Toss
                             </h4>
+                            @dd($match->scoreboard)
                             <input type="hidden" name="is_toss_completed" value="{{ $match->toss ? 'true' : 'false' }}">
                             <input type="hidden" name="toss_match_id" value="{{ $match->id }}">
                             <input type="hidden" name="innings"

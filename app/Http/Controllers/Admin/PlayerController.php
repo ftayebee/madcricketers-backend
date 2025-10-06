@@ -4,6 +4,9 @@ namespace App\Http\Controllers\Admin;
 
 use Exception;
 use App\Models\User;
+use App\Models\Player;
+use Faker\Factory as Faker;
+use Illuminate\Support\Str;
 use Illuminate\Http\Request;
 use Spatie\Permission\Models\Role;
 use Illuminate\Support\Facades\Log;
@@ -17,7 +20,7 @@ class PlayerController extends Controller
     public function index()
     {
         try {
-            if (!Auth::user()->can($this->module.'-view')) {
+            if (!Auth::user()->can($this->module . '-view')) {
                 throw new Exception('Unauthorized Access');
             }
 
@@ -53,7 +56,7 @@ class PlayerController extends Controller
     public function tableLoader(Request $request)
     {
         try {
-            if (!Auth::user()->can($this->module .'-view')) {
+            if (Auth::user() && !Auth::user()->can($this->module . '-view')) {
                 throw new Exception('Unauthorized Access');
             }
 
@@ -99,7 +102,7 @@ class PlayerController extends Controller
     public function show($id)
     {
         try {
-            if (!Auth::user()->can($this->module .'-view')) {
+            if (!Auth::user()->can($this->module . '-view')) {
                 throw new Exception('Unauthorized Access');
             }
 
@@ -137,9 +140,8 @@ class PlayerController extends Controller
             return response()->json([
                 'success' => true,
                 'message' => 'Player status updated successfully.',
-                'redirect'=> $request->redirection ?? url()->current()
+                'redirect' => $request->redirection ?? url()->current()
             ]);
-
         } catch (Exception $e) {
             Log::error("Error updating player status", [
                 'line' => $e->getLine(),
