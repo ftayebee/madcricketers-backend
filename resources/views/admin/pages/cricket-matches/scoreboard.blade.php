@@ -28,6 +28,7 @@
                                 @endif
 
                                 {{-- Match Info --}}
+                                <input type="hidden" name="toss_match_id" value="{{ $match->id }}">
                                 <div class="col-md-{{ $match->tournament && $match->tournament->logo ? '10' : '12' }}">
                                     <h4 class="fw-bolder mb-2 fs-28 text-center text-cyan">
                                         {{ $match->teamA->name ?? 'Team A' }}
@@ -77,21 +78,13 @@
                             </div>
                         </div>
                         <div class="col-4 text-center match-toss-container">
+                            @if(!$match->toss)
                             <h4 class="text-center"
                                 style="font-weight: bold; border-bottom: 2px solid #3f3f3f;border-top: 2px solid #3f3f3f; padding: 6px 20px;border-radius: 5px;margin-bottom: 15px;">
                                 Match Toss
                             </h4>
-                            @dd($match->scoreboard)
-                            <input type="hidden" name="is_toss_completed" value="{{ $match->toss ? 'true' : 'false' }}">
-                            <input type="hidden" name="toss_match_id" value="{{ $match->id }}">
-                            <input type="hidden" name="innings"
-                                value="{{ $match->scoreboard->where('status', 'running')->first()->innings }}">
-                            <input type="hidden" name="max_overs" value="{{ $match->max_overs }}">
-                            <input type="hidden" id="bowling_team_id"
-                                value="{{ $match->scoreboard->whereIn('status', ['waiting', 'ended'])->first()->team_id }}">
-                            <input type="hidden" name="battingTeamId"
-                                value="{{ $match->scoreboard->where('status', 'running')->first()->team_id }}">
-                            <table>
+                            
+                            <table class="w-100">
                                 <tr>
                                     <td>
                                         <h4 class="text-left" style=" margin: 0;margin-right: 10px;">Team</h4>
@@ -140,16 +133,34 @@
                                         </div>
                                     </td>
                                 </tr>
+                                <tr>
+                                    <td colspan="2">
+                                        <div class="d-flex">
+                                            <button class="btn btn-info w-100" id="btn-save-toss">
+                                                Save Toss
+                                            </button>
+                                        </div>
+                                    </td>
+                                </tr>
                             </table>
+                            @endif
+                            <input type="hidden" name="is_toss_completed" value="{{ $match->toss ? 'true' : 'false' }}">
                         </div>
                     </div>
                 </div>
             </div>
 
+            @if(!empty($match->scoreboard->toArray()))
             <div class="card" id="match-scoreboard" class="d-block">
                 <div class="card-body p-3">
                     <div class="d-flex justify-content-between align-items-center flex-wrap">
-
+                        <input type="hidden" name="innings"
+                            value="{{ $match->scoreboard->where('status', 'running')->first()->innings }}">
+                        <input type="hidden" name="max_overs" value="{{ $match->max_overs }}">
+                        <input type="hidden" id="bowling_team_id"
+                            value="{{ $match->scoreboard->whereIn('status', ['waiting', 'ended'])->first()->team_id }}">
+                        <input type="hidden" name="battingTeamId"
+                            value="{{ $match->scoreboard->where('status', 'running')->first()->team_id }}">
                         <!-- Left: Team & Score Info -->
                         <div class="me-3 flex-grow-1">
                             <div class="d-flex align-items-center justify-content-between">
@@ -390,6 +401,7 @@
                     </div>
                 </div>
             </div>
+            @endif
         </div>
     </div>
 
@@ -494,11 +506,9 @@
                         <button class="btn btn-outline-danger btn-wicket-type" data-wicket="Caught">Catch</button>
                         <button class="btn btn-outline-danger btn-wicket-type" data-wicket="Run Out">Run Out</button>
                         <button class="btn btn-outline-danger btn-wicket-type" data-wicket="Stumped">Stumped</button>
-                        <button class="btn btn-outline-danger btn-wicket-type"
-                            data-wicket="Hit-Wicket">Hit-Wicket</button>
-                        <button class="btn btn-outline-danger btn-wicket-type"
-                            data-wicket="Retired-Hurt">Retired-Hurt</button>
                         <button class="btn btn-outline-danger btn-wicket-type" data-wicket="LBW">LBW</button>
+                        <button class="btn btn-outline-danger btn-wicket-type" data-wicket="Retired-Hurt">Retired-Hurt</button>
+                        <button class="btn btn-outline-danger btn-wicket-type" data-wicket="Hit-Wicket">Hit-Wicket</button>
                     </div>
 
                     <!-- Run Out Options -->

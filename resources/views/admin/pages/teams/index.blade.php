@@ -35,46 +35,41 @@
         </div>
     </div>
 
-    <div class="modal fade" id="add-team" tabindex="-1" aria-labelledby="add-teamTitle" aria-hidden="true">
-        <div class="modal-dialog modal-dialog-centered">
+    @include('admin.partials._create-team-modal')
+
+    <div class="modal fade" id="assignPlayerModal" tabindex="-1" aria-labelledby="assignPlayerModalLabel">
+        <div class="modal-dialog modal-lg">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h5 class="modal-title" id="add-teamTitle">Add New Team</h5>
+                    <h5 class="modal-title" id="assignPlayerModalLabel">Assign Players to Team</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
-                <form action="{{route('admin.teams.store')}}" method="post" enctype="multipart/form-data">
-                    @csrf
+
+                <form id="assignPlayerForm">
                     <div class="modal-body">
-                        <div class="row">
-                            <div class="col-12 mb-3">
-                                <div class="form-group">
-                                    <label for="name">Name</label>
-                                    <input type="text" name="name" class="form-control" id="">
-                                </div>
-                            </div>
-                            <div class="col-12 mb-3">
-                                <div class="form-group">
-                                    <label for="coach_name">Coach Name</label>
-                                    <input type="text" name="coach_name" class="form-control" id="">
-                                </div>
-                            </div>
-                            <div class="col-12 mb-3">
-                                <div class="form-group">
-                                    <label for="manager_name">Manager Name</label>
-                                    <input type="text" name="manager_name" class="form-control" id="">
-                                </div>
-                            </div>
-                            <div class="col-12">
-                                <div class="form-group">
-                                    <label for="logo">Team Logo</label>
-                                    <input type="file" name="logo" class="form-control" id="">
-                                </div>
-                            </div>
+                        <input type="hidden" name="team_id" id="modal_team_id" value="11">
+
+                        <div class="mb-3">
+                            <label for="player_selector" class="form-label">Select Players</label>
+                            <select class="form-control select2-hidden-accessible" id="player_selector" name="player_ids[]"
+                                multiple="" style="width: 100%;" data-select2-id="select2-data-player_selector"
+                                tabindex="-1" aria-hidden="true">
+                                @foreach (\App\Models\Player::all() as $player)
+                                    <option value="{{ $player->id }}"
+                                        data-img="{{ $player->user->image ?? '/default.png' }}"
+                                        data-role="{{ $player->player_role }}"
+                                        data-battingstyle="{{ $player->batting_style }}"
+                                        data-bowlingstyle="{{ $player->bowling_style }}">
+                                        {{ $player->user->full_name }}
+                                    </option>
+                                @endforeach
+                            </select>
                         </div>
+
                     </div>
                     <div class="modal-footer">
                         <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                        <button type="submit" class="btn btn-primary">Save changes</button>
+                        <button type="submit" class="btn btn-primary">Assign Players</button>
                     </div>
                 </form>
             </div>
@@ -84,9 +79,9 @@
 
 @push('scripts')
     <script>
-        $(document).ready(function(){
-            const redirectTo = "{{url()->current()}}"
-            $('#tbl-players').DataTable({
+        $(document).ready(function() {
+            const redirectTo = "{{ url()->current() }}"
+            let teamTable = $('#tbl-players').DataTable({
                 processing: false,
                 serverSide: false,
                 searching: true,
@@ -94,19 +89,22 @@
                 autoWidth: false,
                 destroy: true,
                 ajax: {
-                    url: '{{ route("admin.teams.loader") }}',
+                    url: '{{ route('admin.teams.loader') }}',
                     type: 'GET',
                     dataSrc: 'data',
                     error: function(response) {
                         console.log(response)
                     }
                 },
-                columns: [
-                    { data: 'id', title: 'ID', visible: false },
+                columns: [{
+                        data: 'id',
+                        title: 'ID',
+                        visible: false
+                    },
                     {
                         data: 'name',
                         title: 'Team Name',
-                        render: function (data, type, row) {
+                        render: function(data, type, row) {
                             const imageUrl = row.logo ? row.logo : '/path/to/default/image.jpg';
                             return `<div class="d-flex align-items-center file-name-icon">
 												<a href="${row.viewUrl}" class="avatar avatar-md avatar-rounded" style="background: #edefff; border-radius: 5px;">
@@ -120,21 +118,30 @@
 											</div>`;
                         }
                     },
-                    { data: 'coach_name', title: 'Coach' },
-                    { data: 'manager_name', title: 'Manager' },
-                    { data: 'players_count', title: 'Total Players' },
+                    {
+                        data: 'coach_name',
+                        title: 'Coach'
+                    },
+                    {
+                        data: 'manager_name',
+                        title: 'Manager'
+                    },
+                    {
+                        data: 'players_count',
+                        title: 'Total Players'
+                    },
                     {
                         data: null,
                         title: 'Actions', // this must be present
                         orderable: false,
                         searchable: false,
-                        width: "120px",
+                        width: "170px",
                         className: "text-center",
-                        render: function (data, type, row) {
+                        render: function(data, type, row) {
                             return `
-                                <a class="btn btn-icon btn-sm btn-soft-success rounded-pill" href="${row.viewUrl}?redirect=${redirectTo}"><i class="fa fa-eye"></i></a>
-                                <button class="btn btn-icon btn-sm btn-soft-danger rounded-pill btn-delete" data-id="${row.id}"><i class="fa fa-trash"></i></button>
-                                <button class="btn btn-icon btn-sm btn-soft-warning rounded-pill btn-assign-players" data-id="${row.id}" data-bs-toggle="tooltip" data-bs-title="Assign Players">
+                                <a class="btn btn-icon btn-sm btn-success rounded-pill" href="${row.viewUrl}?redirect=${redirectTo}"><i class="fa fa-eye"></i></a>
+                                <button class="btn btn-icon btn-sm btn-danger rounded-pill btn-delete" data-id="${row.id}"><i class="fa fa-trash"></i></button>
+                                <button class="btn btn-icon btn-sm btn-warning rounded-pill btn-assign-players" data-id="${row.id}" data-bs-toggle="tooltip" data-bs-title="Assign Players">
                                     <span><i class="fa fa-users"></i></span>
                                 </button>
                             `;
@@ -147,7 +154,7 @@
                 new bootstrap.Tooltip(el);
             });
 
-            $(document).on('click', '.btn-delete', function () {
+            $(document).on('click', '.btn-delete', function() {
                 const selectedId = $(this).data('id');
 
                 Swal.fire({
@@ -161,12 +168,13 @@
                 }).then((result) => {
                     if (result.isConfirmed) {
                         $.ajax({
-                            url: '{{ route("admin.teams.destroy", ':selectedId') }}'.replace(':selectedId', selectedId),
+                            url: '{{ route('admin.teams.destroy', ':selectedId') }}'
+                                .replace(':selectedId', selectedId),
                             type: 'POST',
                             headers: {
-                                'X-CSRF-TOKEN': "{{csrf_token()}}"
+                                'X-CSRF-TOKEN': "{{ csrf_token() }}"
                             },
-                            success: function (response) {
+                            success: function(response) {
                                 Swal.fire(
                                     'Deleted!',
                                     'The team has been deleted.',
@@ -174,7 +182,7 @@
                                 );
                                 $('#tbl-players').DataTable().ajax.reload();
                             },
-                            error: function (response) {
+                            error: function(response) {
                                 console.log(response)
                                 Swal.fire(
                                     'Error!',
@@ -183,6 +191,119 @@
                                 );
                             }
                         });
+                    }
+                });
+            });
+
+            const $playerSelector = $('#player_selector').select2({
+                placeholder: 'Search and select players...',
+                dropdownParent: $('#assignPlayerModal'),
+                templateResult: formatPlayer,
+                templateSelection: formatPlayerSelection,
+                escapeMarkup: function(markup) {
+                    return markup;
+                }
+            });
+
+            function formatPlayer(player) {
+                if (!player.id) return player.text;
+
+                let img = $(player.element).data('img');
+                let role = $(player.element).data('role');
+                let battingstyle = $(player.element).data('battingstyle');
+                let bowlingstyle = $(player.element).data('bowlingstyle');
+
+                return `
+                    <div style="display:flex; align-items:center; gap:10px;">
+                        <img src="${img}" style="width:35px; height:35px; border-radius:50%; object-fit:cover;">
+                        <div>
+                            <div style="font-weight:600;">${player.text}</div>
+                            <div style="font-size:12px; color:#666;">${role} | ${battingstyle} | ${bowlingstyle}</div>
+                        </div>
+                    </div>
+                `;
+            }
+
+            function formatPlayerSelection(player) {
+                if (!player.id) return player.text;
+
+                let img = $(player.element).data('img');
+
+                return `
+                    <div style="display:flex; align-items:center; gap:8px;">
+                        <img src="${img}" style="width:22px; height:22px; border-radius:50%; object-fit:cover;">
+                        <span>${player.text}</span>
+                    </div>
+                `;
+            }
+
+            $(document).on('click', '.btn-assign-players', function() {
+                const teamId = $(this).data('id');
+                $('#modal_team_id').val(teamId);
+                $playerSelector.val(null).trigger('change');
+                $('#assignPlayerModal').modal('show');
+            });
+
+            $('#assignPlayerForm').on('submit', function(e) {
+                e.preventDefault();
+
+                let form = $(this);
+                let formData = form.serialize();
+
+                $.ajax({
+                    url: "{{ route('admin.teams.assign-players') }}",
+                    method: "POST",
+                    data: formData,
+                    headers: {
+                        'X-CSRF-TOKEN': "{{ csrf_token() }}"
+                    },
+                    beforeSend: function() {
+                        $('.assign-btn').prop('disabled', true).text('Assigning...');
+                    },
+                    success: function(response) {
+                        $('.assign-btn').prop('disabled', false).text('Assign Players');
+
+                        if (response.success) {
+                            $('#assignPlayerModal').modal('hide');
+
+                            Swal.fire({
+                                icon: 'success',
+                                title: 'Success',
+                                text: response.message ??
+                                    'Players assigned successfully!',
+                            });
+
+                            if (typeof teamTable !== 'undefined') {
+                                teamTable.ajax.reload();
+                            }
+                        } else {
+                            Swal.fire({
+                                icon: 'error',
+                                title: 'Error',
+                                text: response.message ?? 'Something went wrong',
+                            });
+                        }
+                    },
+                    error: function(xhr) {
+                        $('.assign-btn').prop('disabled', false).text('Assign Players');
+
+                        let errors = xhr.responseJSON?.errors;
+                        console.log(errors)
+                        if (errors) {
+                            let msg = Object.values(errors).flat().join("\n");
+
+                            Swal.fire({
+                                icon: 'error',
+                                title: 'Validation Error',
+                                text: msg,
+                            });
+                        } else {
+                            Swal.fire({
+                                icon: 'error',
+                                title: 'Error',
+                                text: 'Request failed. Please try again.',
+                            });
+                        }
                     }
                 });
             });

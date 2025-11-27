@@ -222,13 +222,14 @@
                                             'value' => $totalBalls,
                                             'icon' => 'ri-checkbox-blank-circle-line',
                                         ],
-                                        ['label' => 'Fours', 'value' => $totalFours, 'icon' => 'ri-4-line'],
-                                        ['label' => 'Sixes', 'value' => $totalSixes, 'icon' => 'ri-6-line'],
                                         [
                                             'label' => 'Highest Score',
                                             'value' => $highestScore,
                                             'icon' => 'ri-star-line',
                                         ],
+                                        ['label' => 'Fours', 'value' => $totalFours, 'icon' => 'ri-4-line'],
+                                        ['label' => 'Sixes', 'value' => $totalSixes, 'icon' => 'ri-6-line'],
+                                        
                                         ['label' => 'Wickets', 'value' => $totalWickets, 'icon' => 'ri-cricket-line'],
                                         ['label' => 'Overs Bowled', 'value' => $totalOvers, 'icon' => 'ri-time-line'],
                                         [

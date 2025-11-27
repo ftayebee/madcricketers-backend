@@ -48,10 +48,14 @@
                                     data-bs-target="#add-cricket-match" style="margin-left: 15px;">
                                     Add New
                                 </button>
-                                <button type="button" class="btn btn-primary btn-update-players"
+                                <button type="button" class="btn btn-primary" data-bs-toggle="modal"
+                                    data-bs-target="#add-team" style="margin-left: 15px;">
+                                    Add New Team
+                                </button>
+                                {{-- <button type="button" class="btn btn-primary btn-update-players"
                                     style="margin-left: 15px;">
                                     Update Player Names
-                                </button>
+                                </button> --}}
                             </div>
                         </div>
                     </div>
@@ -87,20 +91,22 @@
         </div>
     </div>
 
+    @include('admin.partials._create-team-modal')
+
     <div class="modal fade" id="add-cricket-match" tabindex="-1" aria-labelledby="add-tournamentTitle" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered modal-lg"> <!-- wider modal -->
             <div class="modal-content">
-                <div class="modal-header" style="background: #06923E!important;">
+                <div class="modal-header" style="background: #0c004e!important;">
                     <h5 class="modal-title" id="add-tournamentTitle"
                         style="color: #fff; font-size: 20px; font-weight: 800;margin:0px;">Add New Cricket Match</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close" style="color: #fff;"></button>
                 </div>
 
                 <form action="{{ route('admin.cricket-matches.store') }}" method="POST" enctype="multipart/form-data">
                     @csrf
                     <div class="modal-body">
                         <div class="row g-3">
-                            <div class="col-md-6">
+                            <div class="col-md-12">
                                 <label for="name" class="form-label">Match Title (Optional)</label>
                                 <input type="text" name="title" class="form-control" placeholder="Enter Title">
                             </div>
@@ -108,6 +114,10 @@
                             <div class="col-md-6">
                                 <label for="venue" class="form-label">Match Venue</label>
                                 <input type="text" name="venue" class="form-control" placeholder="Enter venue or city">
+                            </div>
+                            <div class="col-md-6">
+                                <label for="match_date" class="form-label">Match Date</label>
+                                <input type="date" name="match_date" class="form-control">
                             </div>
                             <div class="col-md-6">
                                 <label for="team_a_id" class="form-label">Team A</label>
@@ -127,14 +137,13 @@
                                     @endforeach
                                 </select>
                             </div>
-
-                            <div class="col-md-6">
-                                <label for="match_date" class="form-label">Match Date</label>
-                                <input type="date" name="match_date" class="form-control">
-                            </div>
                             <div class="col-md-6">
                                 <label for="max_overs" class="form-label">Total Overs (Per Innings)</label>
                                 <input type="number" name="max_overs" class="form-control">
+                            </div>
+                            <div class="col-md-6">
+                                <label for="max_overs" class="form-label">Max Overs (Per Bowler)</label>
+                                <input type="number" name="bowler_max_overs" class="form-control">
                             </div>
 
                             <div class="col-md-6">
@@ -170,28 +179,28 @@
     <script>
         $(document).ready(function() {
             const redirectTo = "{{ url()->current() }}"
-            document.querySelector('.btn-update-players').addEventListener('click', function() {
-                if (!confirm('Are you sure you want to randomize all player names?')) return;
+            // document.querySelector('.btn-update-players').addEventListener('click', function() {
+            //     if (!confirm('Are you sure you want to randomize all player names?')) return;
 
-                fetch("{{ route('admin.players.randomizeNames') }}", {
-                        method: "POST",
-                        headers: {
-                            "X-CSRF-TOKEN": "{{ csrf_token() }}",
-                            "Accept": "application/json",
-                            "Content-Type": "application/json"
-                        }
-                    })
-                    .then(res => res.json())
-                    .then(data => {
-                        if (data.success) {
-                            alert(data.message);
-                            location.reload();
-                        } else {
-                            alert("Failed: " + data.message);
-                        }
-                    })
-                    .catch(err => console.error(err));
-            });
+            //     fetch("{{ route('admin.players.randomizeNames') }}", {
+            //             method: "POST",
+            //             headers: {
+            //                 "X-CSRF-TOKEN": "{{ csrf_token() }}",
+            //                 "Accept": "application/json",
+            //                 "Content-Type": "application/json"
+            //             }
+            //         })
+            //         .then(res => res.json())
+            //         .then(data => {
+            //             if (data.success) {
+            //                 alert(data.message);
+            //                 location.reload();
+            //             } else {
+            //                 alert("Failed: " + data.message);
+            //             }
+            //         })
+            //         .catch(err => console.error(err));
+            // });
 
             $('#tbl-cricket-matches').DataTable({
                 processing: false,
@@ -301,6 +310,7 @@
                         searchable: false,
                         className: "text-center",
                         render: function(data, type, row) {
+                            console.log(row.canScore && row.status)
                             return `
                                 <div class="dropdown">
                                     <button class="btn btn-sm btn-soft-primary dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">

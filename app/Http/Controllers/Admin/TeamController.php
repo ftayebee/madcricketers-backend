@@ -96,7 +96,7 @@ class TeamController extends Controller
                 throw new Exception('Unauthorized Access');
             }
 
-            $team = Team::with('players')->where('slug',$id)->first();
+            $team = Team::with('players')->where('slug', $id)->first();
             if ($team) {
                 return view('admin.pages.teams.show', compact('team'));
             }
@@ -284,6 +284,42 @@ class TeamController extends Controller
                 'success' => false,
                 'message' => 'Error deleting team data.',
             ]);
+        }
+    }
+
+    public function assignPlayers(Request $request)
+    {
+        try {
+            Log::info($request->all());
+            $validated = Validator::make($request->all(), [
+                'team_id' => 'required|exists:teams,id',
+                'player_ids' => 'required|array',
+                'player_ids.*' => 'exists:players,id',
+            ]);
+
+            if ($validated->fails()) {
+                Log::error($validated->errors());
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Validation Failed',
+                    'errors' => $validated->errors()
+                ], 422);
+            }
+
+            $team = Team::find($request->team_id);
+
+            $team->players()->sync($request->player_ids);
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Players assigned successfully',
+            ]);
+        } catch (Exception $e) {
+            Log::error($e->getMessage());
+            return response()->json([
+                'success' => false,
+                'message' => $e->getMessage()
+            ], 500);
         }
     }
 }

@@ -55,7 +55,7 @@ Route::prefix('admin')->name('admin.')->group(function(){
         Route::get('/show/{id}', [PlayerController::class, 'show'])->name('show'); // working
         Route::post('/destroy', [PlayerController::class, 'destroy'])->name('destroy'); // working
         Route::post('/approve/{id}', [PlayerController::class, 'approve'])->name('approve'); // working
-        // Route::post('/update-names', [PlayerController::class, 'randomizeNames'])->name('randomizeNames');
+        Route::post('/update-names', [PlayerController::class, 'randomizeNames'])->name('randomizeNames');
     });
 
     Route::prefix('teams')->name('teams.')->group(function(){
@@ -65,6 +65,7 @@ Route::prefix('admin')->name('admin.')->group(function(){
         Route::post('/store', [TeamController::class, 'store'])->name('store');  // working
         Route::post('/update/{id}', [TeamController::class, 'update'])->name('update');
         Route::post('/destroy/{id}', [TeamController::class, 'destroy'])->name('destroy');
+        Route::post('/assign-players', [TeamController::class, 'assignPlayers'])->name('assign-players');
     });
 
     Route::prefix('tournaments')->name('tournaments.')->group(function(){

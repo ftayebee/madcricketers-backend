@@ -153,9 +153,10 @@ class UserController extends Controller
     public function store(Request $request)
     {
         try {
-            if (!Auth::user()->can('users-create')) {
-                throw new Exception('Unauthorized Access');
-            }
+            // if (!Auth::user()->can('users-create')) {
+            //     throw new Exception('Unauthorized Access');
+            // }
+            Log::info("Request Received: ", ['data' => $request->all()]);
 
             $validator = Validator::make($request->all(), [
                 'general.profile_picture' => 'nullable|mimes:jpg,jpeg,png|max:1024',
@@ -171,11 +172,12 @@ class UserController extends Controller
                 'general.date_of_birth'   => 'nullable|date|before:today',
                 'general.password'        => 'required|string|min:8',
                 'general.address'         => 'nullable|string|max:500',
-                'general.national_id'     => 'nullable|digits_between:10,17|unique:users,national_id',
+                'general.national_id'     => 'nullable|digits_between:10,17',
                 'hasPlayerInfo'           => 'required'
             ]);
 
             if ($validator->fails()) {
+                Log::info("Validator Failed: ", ['data' => $validator->errors()]);
                 return redirect()->back()->withErrors($validator)->withInput();
             }
 
@@ -247,9 +249,12 @@ class UserController extends Controller
                 $player->player_role    = $request->input('player.role');
                 $player->batting_style  = $request->input('player.batting_style');
                 $player->bowling_style  = $request->input('player.bowling_style');
+                $player->jursey_number  = $request->input('player.jursey_number');
+                $player->jursey_name  = $request->input('player.jursey_name');
+                $player->jursey_size  = $request->input('player.jursey_size');
+                $player->chest_measurement  = $request->input('player.chest_measurement');
                 $player->save();
             }
-
 
             DB::commit();
 

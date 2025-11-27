@@ -188,6 +188,7 @@ class CricketMatchController extends Controller
                 'team_b_id'  => 'required|exists:teams,id|different:team_a_id',
                 'match_date' => 'nullable|date',
                 'max_overs'  => 'nullable|integer|min:1',
+                'bowler_max_overs'  => 'nullable|integer|min:1',
                 'match_type' => 'required|in:tournament,regular',
                 'status'     => 'required|in:live,upcoming,completed',
             ]);
@@ -212,6 +213,7 @@ class CricketMatchController extends Controller
             $match->max_overs  = $request->max_overs;
             $match->match_type = $request->match_type;
             $match->status     = $request->status;
+            $match->bowler_max_overs  = $request->bowler_max_overs;
             $match->save();
 
             DB::commit();
@@ -1434,8 +1436,6 @@ class CricketMatchController extends Controller
 
     public function switchTeam($match, $scoreboard)
     {
-        $scoreboard->update(['status' => 'ended']);
-
         if ($scoreboard->innings >= 2) {
             return null;
         }
@@ -1447,16 +1447,32 @@ class CricketMatchController extends Controller
 
         $nextInnings = $scoreboard->innings + 1;
 
-        $nextScoreboard = MatchScoreBoard::firstOrCreate(
-            ['match_id' => $match->id, 'innings' => $nextInnings],
-            [
-                'team_id' => $nextBattingTeamId,
-                'runs'    => 0,
-                'overs'   => '0.0',
-                'wickets' => 0,
-                'status'  => 'running',
-            ]
-        );
+        // $nextScoreboard = MatchScoreBoard::firstOrCreate(
+        //     ['match_id' => $match->id, 'innings' => $nextInnings],
+        //     [
+        //         'team_id' => $nextBattingTeamId,
+        //         'runs'    => 0,
+        //         'overs'   => '0.0',
+        //         'wickets' => 0,
+        //         'status'  => 'running',
+        //     ]
+        // );
+        if($nextInnings == 2 && (float) $scoreboard->overs == $scoreboard->match->max_overs){
+            $scoreboard->update(['status' => 'ended']);
+            $nextScoreboard = MatchScoreBoard::updateOrCreate(
+                ['match_id' => $scoreboard->match_id, 'innings' => $nextInnings],
+                [
+                    'team_id' => $nextBattingTeamId,
+                    'runs'    => 0,
+                    'overs'   => '0.0',
+                    'wickets' => 0,
+                    'status'  => 'running'
+                    ]
+                );
+            Log::info("Status Updated: ", ['data' => $scoreboard, 'data1' => $nextScoreboard]);
+        }
+
+        Log::info("Status Updated: ", ['data' => $scoreboard, 'data1' => $nextScoreboard]);
 
         return $nextScoreboard;
     }
@@ -1467,7 +1483,6 @@ class CricketMatchController extends Controller
             $matchId = $request->match_id;
             $match   = CricketMatch::findOrFail($matchId);
 
-            // 🔹 Find active scoreboard
             $scoreboard = MatchScoreBoard::where('match_id', $matchId)
                 ->where('status', 'running')
                 ->first();
@@ -1480,27 +1495,31 @@ class CricketMatchController extends Controller
             }
 
             $currentInnings = $scoreboard->innings;
-            $scoreboard->update(['status' => 'ended']);
-
+            
             $battingTeamId = $scoreboard->team_id;
             $bowlingTeamId = ($battingTeamId == $match->team_a_id)
-                ? $match->team_b_id
-                : $match->team_a_id;
-
+            ? $match->team_b_id
+            : $match->team_a_id;
+            
             $nextBattingTeamId = $bowlingTeamId;
             $nextInnings = $currentInnings + 1;
-
+            
             // 🔹 Create or update next innings scoreboard
-            $nextScoreboard = MatchScoreBoard::updateOrCreate(
-                ['match_id' => $matchId, 'innings' => $nextInnings],
-                [
-                    'team_id' => $nextBattingTeamId,
-                    'runs'    => 0,
-                    'overs'   => '0.0',
-                    'wickets' => 0,
-                    'status'  => 'running'
-                ]
-            );
+            if($nextInnings == 2 && (float) $scoreboard->overs == $scoreboard->match->max_overs){
+                $scoreboard->update(['status' => 'ended']);
+                $nextScoreboard = MatchScoreBoard::updateOrCreate(
+                    ['match_id' => $matchId, 'innings' => $nextInnings],
+                    [
+                        'team_id' => $nextBattingTeamId,
+                        'runs'    => 0,
+                        'overs'   => '0.0',
+                        'wickets' => 0,
+                        'status'  => 'running'
+                        ]
+                    );
+                Log::info("Status Updated: ", ['data' => $scoreboard, 'data1' => $nextScoreboard]);
+            }
+
 
             return response()->json([
                 'success' => true,
@@ -1742,11 +1761,13 @@ class CricketMatchController extends Controller
 
             $oversFormatted = intval(intdiv($legalBalls, 6)) . '.' . ($legalBalls % 6);
 
+            Log::info($scoreboard->toArray());
             $scoreboard->update([
                 'runs'  => $totalRuns,
                 'overs' => $oversFormatted,
+                'status'=> $scoreboard->status
             ]);
-
+            Log::info($scoreboard->toArray());
             // ---------- Partnership logic (update player1/player2 runs correctly) ----------
             $partnership = Partnership::where('match_id', $matchId)
                 ->where('team_id', $scoreboard->team_id)
@@ -1861,7 +1882,7 @@ class CricketMatchController extends Controller
             if ($innings == 1) {
                 $innings1 = MatchScoreBoard::where('match_id', $matchId)->where('innings', 1)->first();
                 
-                if ($innings1->match->max_overs >= intval(intdiv($legalBalls, 6))) {
+                if ($innings1->match->max_overs == intval(intdiv($legalBalls, 6))) {
                     $innings2 = MatchScoreBoard::where('match_id', $matchId)->where('innings', 2)->first();
                     $innings2->status = 'running';
                     $innings2->save();

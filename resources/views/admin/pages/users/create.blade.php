@@ -3,15 +3,48 @@
 @section('content')
     @push('styles')
         <style>
-            .required-mark{
+            .required-mark {
                 font-size: 14px;
                 color: red;
+            }
+
+            .btn-jursey {
+                border: 1px solid #ddd;
+                border-radius: 30px;
+                padding: 8px 18px;
+                font-weight: 500;
+                background-color: #f8f9fa;
+                color: #555;
+                transition: all 0.3s ease;
+                box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+            }
+
+            .btn-check:checked+.btn-jursey {
+                background-color: #34c759;
+                /* iPhone green */
+                color: #fff;
+                border-color: #34c759;
+                box-shadow: 0 0 10px rgba(52, 199, 89, 0.4);
+            }
+
+            .btn-jursey:hover {
+                background-color: #e9ecef;
+            }
+
+            .jersey-size-group {
+                display: flex;
+                flex-wrap: wrap;
+                gap: 10px;
+            }
+
+            .btn-check:checked+.btn-jursey {
+                transform: scale(1.05);
             }
         </style>
     @endpush
     <div class="row">
         <div class="col-sm-12">
-            <form action="{{route('admin.settings.users.store')}}" method="post" enctype="multipart/form-data">
+            <form action="{{ route('admin.settings.users.store') }}" method="post" enctype="multipart/form-data">
                 @csrf
                 <div class="card custom-card-border">
                     <div class="card-body" id="form-body">
@@ -24,57 +57,69 @@
                         <div class="row">
                             <div class="col-md-12 mb-3">
                                 <div class="custom-file-container" data-upload-id="myFirstImage">
-                                    <label for="profile_picture" class="form-label">Upload Profile Picture (Max size 1mb)</label>
-                                    <input type="file" name="general[profile_picture]" id="profile_picture" class="dropify form-control" data-max-file-size="1M" data-allowed-file-extensions="jpg png jpeg"/>
+                                    <label for="profile_picture" class="form-label">Upload Profile Picture (Max size
+                                        1mb)</label>
+                                    <input type="file" name="general[profile_picture]" id="profile_picture"
+                                        class="dropify form-control" data-max-file-size="1M"
+                                        data-allowed-file-extensions="jpg png jpeg" />
                                 </div>
                             </div>
                             <div class="col-md-4 mb-3">
-                                <label class="form-label" >Full Name <span class="required-mark">*</span></label>
-                                <input type="text" class="form-control" placeholder="Full Name"  required="" name="general[full_name]">
+                                <label class="form-label">Full Name <span class="required-mark">*</span></label>
+                                <input type="text" class="form-control" placeholder="Full Name" required=""
+                                    name="general[full_name]">
                             </div>
                             <div class="col-md-4 mb-3">
-                                <label class="form-label" >Nickname <small>(Optional)</small></label>
-                                <input type="text" class="form-control" placeholder="Nickname"  required="" name="general[nickname]">
+                                <label class="form-label">Nickname <small>(Optional)</small></label>
+                                <input type="text" class="form-control" placeholder="Nickname" required=""
+                                    name="general[nickname]">
                             </div>
                             <div class="col-md-4 mb-3">
-                                <label class="form-label" >Username <span class="required-mark">*</span></label>
+                                <label class="form-label">Username <span class="required-mark">*</span></label>
                                 <div class="input-group">
-                                    <input type="text" class="form-control" aria-label="Auto Generated Id" name="general[username]" id="username">
-                                    <button class="btn btn-outline-secondary" type="button" id="btn-generateUsername">Generate</button>
+                                    <input type="text" class="form-control" aria-label="Auto Generated Id"
+                                        name="general[username]" id="username">
+                                    <button class="btn btn-outline-secondary" type="button"
+                                        id="btn-generateUsername">Generate</button>
                                 </div>
                             </div>
                             <div class="col-md-4 mb-3">
-                                <label class="form-label" >Email Address <span class="required-mark">*</span></label>
-                                <input type="text" class="form-control" placeholder="Email Address"  required="" name="general[email]">
+                                <label class="form-label">Email Address <span class="required-mark">*</span></label>
+                                <input type="text" class="form-control" placeholder="Email Address" required=""
+                                    name="general[email]">
                             </div>
                             <div class="col-md-4 mb-3">
-                                <label class="form-label" >Phone Number <small>(Has What's App Opened)</small><span class="required-mark">*</span></label>
-                                <input type="text" class="form-control" placeholder="Phone Number"  required="" name="general[phone]">
+                                <label class="form-label">Phone Number <small>(Has What's App Opened)</small><span
+                                        class="required-mark">*</span></label>
+                                <input type="text" class="form-control" placeholder="Phone Number" required=""
+                                    name="general[phone]">
                             </div>
                             <div class="col-md-4 mb-3">
-                                <label class="form-label" >National ID <small>(17 or 10 digits)</small><span class="required-mark">*</span></label>
-                                <input type="text" class="form-control" placeholder="National ID Card Number"  required="" name="general[national_id]">
+                                <label class="form-label">National ID <small>(17 or 10 digits)</small><span
+                                        class="required-mark">*</span></label>
+                                <input type="text" class="form-control" placeholder="National ID Card Number"
+                                    required="" name="general[national_id]">
                             </div>
 
                             <div class="col-md-4 mb-3">
-                                <label class="form-label" >Status <span class="required-mark">*</span></label>
+                                <label class="form-label">Status <span class="required-mark">*</span></label>
                                 <select class="select2 form-control" name="general[status]">
                                     <option value="active">Active</option>
                                     <option value="inactive">Inactive</option>
                                 </select>
                             </div>
                             <div class="col-md-4 mb-3">
-                                <label class="form-label" >Role <span class="required-mark">*</span></label>
+                                <label class="form-label">Role <span class="required-mark">*</span></label>
                                 <select class="select2 form-control" name="general[role_id]">
                                     <option value=""></option>
                                     @foreach ($roles as $item)
-                                        <option value="{{$item->id}}">{{ucfirst($item->name)}}</option>
+                                        <option value="{{ $item->id }}">{{ ucfirst($item->name) }}</option>
                                     @endforeach
                                 </select>
                             </div>
 
                             <div class="col-md-4 mb-3">
-                                <label class="form-label" >Blood Group</label>
+                                <label class="form-label">Blood Group</label>
                                 <select class="select2 form-control" name="general[blood_group]">
                                     <option value="A+">A+</option>
                                     <option value="A-">A-</option>
@@ -87,7 +132,7 @@
                                 </select>
                             </div>
                             <div class="col-md-4 mb-3">
-                                <label class="form-label" >Religion</label>
+                                <label class="form-label">Religion</label>
                                 <select class="select2 form-control" name="general[religion]">
                                     <option value="islam">Islam</option>
                                     <option value="hinduism">Hinduism</option>
@@ -97,32 +142,36 @@
                                 </select>
                             </div>
                             <div class="col-md-4 mb-3">
-                                <label class="form-label" >Gender</label>
+                                <label class="form-label">Gender</label>
                                 <select class="select2 form-control" name="general[gender]">
                                     <option value="male">Male</option>
                                     <option value="female">Female</option>
                                 </select>
                             </div>
                             <div class="col-md-4 mb-3">
-                                <label class="form-label" >Date Of Birth</label>
-                                <input type="text" class="form-control flatpickr-input" placeholder="YYYY-MM-DD" id="flt-dob" name="general[date_of_birth]">
+                                <label class="form-label">Date Of Birth</label>
+                                <input type="text" class="form-control flatpickr-input" placeholder="YYYY-MM-DD"
+                                    id="flt-dob" name="general[date_of_birth]">
                             </div>
                             <div class="col-md-4 mb-3">
-                                <label class="form-label" >Password</label>
+                                <label class="form-label">Password</label>
                                 <div class="input-group">
-                                    <input type="text" class="form-control" aria-label="Minimum 8 Digits" name="general[password]">
-                                    <button class="btn btn-outline-secondary" type="button" id="btn-generatePassword">Generate</button>
+                                    <input type="text" class="form-control" aria-label="Minimum 8 Digits"
+                                        name="general[password]">
+                                    <button class="btn btn-outline-secondary" type="button"
+                                        id="btn-generatePassword">Generate</button>
                                 </div>
                             </div>
                             <div class="col-md-8 mb-3">
-                                <label class="form-label" >Address</label>
-                                <input type="text" class="form-control" placeholder="Present Address"  required="" name="general[address]">
+                                <label class="form-label">Address</label>
+                                <input type="text" class="form-control" placeholder="Present Address" required=""
+                                    name="general[address]">
                             </div>
                         </div>
 
                         <div class="row" id="player-info" style="display: none;">
                             <div class="col-md-3">
-                                <label class="form-label" >Player Type</label>
+                                <label class="form-label">Player Type</label>
                                 <select class="select2 form-control" name="player[type]">
                                     <option value="">Choose</option>
                                     <option value="registered">Regular</option>
@@ -130,7 +179,7 @@
                                 </select>
                             </div>
                             <div class="col-md-3">
-                                <label class="form-label" >Player Role</label>
+                                <label class="form-label">Player Role</label>
                                 <select class="select2 form-control" name="player[role]">
                                     <option value="">Choose</option>
                                     <option value="batsman">Batsman</option>
@@ -140,7 +189,7 @@
                                 </select>
                             </div>
                             <div class="col-md-3">
-                                <label class="form-label" >Batting Style</label>
+                                <label class="form-label">Batting Style</label>
                                 <select class="select2 form-control" name="player[batting_style]">
                                     <option value="">Choose</option>
                                     <option value="right-handed">Right Handed</option>
@@ -149,13 +198,49 @@
                                 </select>
                             </div>
                             <div class="col-md-3">
-                                <label class="form-label" >Bowling Style</label>
+                                <label class="form-label">Bowling Style</label>
                                 <select class="select2 form-control" name="player[bowling_style]">
                                     <option value="fast">Fast</option>
                                     <option value="medium">Meidum</option>
                                     <option value="spin">Spin</option>
                                     <option value="none">None</option>
                                 </select>
+                            </div>
+                            <div class="col-md-3 mt-3">
+                                <label class="form-label">Jursey Number</label>
+                                <input type="text" class="form-control" placeholder="Jursey Number (Eg: 99)"
+                                    required="" name="player[jursey_number]">
+                            </div>
+                            <div class="col-md-3 mt-3">
+                                <label class="form-label">Jursey Name</label>
+                                <input type="text" class="form-control" placeholder="Jursey Number (Eg: M.Hasan)"
+                                    required="" name="player[jursey_name]">
+                            </div>
+                            <div class="col-md-3 mt-3">
+                                <label class="form-label d-block mb-2">Jersey Size</label>
+                                <div class="d-flex flex-wrap gap-2 jersey-size-group">
+                                    <input type="radio" class="btn-check" name="player[jursey_size]" id="sizeS"
+                                        value="S" autocomplete="off">
+                                    <label class="btn btn-jursey" for="sizeS">S</label>
+
+                                    <input type="radio" class="btn-check" name="player[jursey_size]" id="sizeM"
+                                        value="M" autocomplete="off">
+                                    <label class="btn btn-jursey" for="sizeM">M</label>
+
+                                    <input type="radio" class="btn-check" name="player[jursey_size]" id="sizeL"
+                                        value="L" autocomplete="off">
+                                    <label class="btn btn-jursey" for="sizeL">L</label>
+
+                                    <input type="radio" class="btn-check" name="player[jursey_size]" id="sizeXL"
+                                        value="XL" autocomplete="off">
+                                    <label class="btn btn-jursey" for="sizeXL">XL</label>
+                                </div>
+                            </div>
+
+                            <div class="col-md-3 mt-3">
+                                <label class="form-label">Chest Measurement</label>
+                                <input type="text" class="form-control" placeholder="Chest Size (Eg: 32)"
+                                    required="" name="player[chest_measurement]">
                             </div>
                         </div>
 
@@ -175,7 +260,7 @@
 
 @push('scripts')
     <script>
-        $(document).ready(function(){
+        $(document).ready(function() {
             $('#profile_picture').dropify();
             const initSelect2 = () => {
                 $('.select2').select2({
@@ -195,7 +280,7 @@
                 dateFormat: 'Y-m-d'
             });
 
-            $('#btn-generatePassword').on('click', function () {
+            $('#btn-generatePassword').on('click', function() {
                 const minLength = 8;
                 let password = '';
 
@@ -213,7 +298,9 @@
                 if (!/^\d{10}$/.test(value) && !/^\d{17}$/.test(value)) {
                     input.addClass('is-invalid');
                     if (input.next('.invalid-feedback').length === 0) {
-                        input.after('<div class="invalid-feedback">National ID must be exactly 10 or 17 digits.</div>');
+                        input.after(
+                            '<div class="invalid-feedback">National ID must be exactly 10 or 17 digits.</div>'
+                        );
                     }
                 } else {
                     input.removeClass('is-invalid');
@@ -229,7 +316,9 @@
                 } else {
                     $(this).addClass('is-invalid');
                     if ($(this).next('.invalid-feedback').length === 0) {
-                        $(this).after('<div class="invalid-feedback">Enter a valid 11-digit phone number (e.g., 01XXXXXXXXX).</div>');
+                        $(this).after(
+                            '<div class="invalid-feedback">Enter a valid 11-digit phone number (e.g., 01XXXXXXXXX).</div>'
+                        );
                     }
                 }
             });
@@ -243,7 +332,8 @@
                 if (!emailPattern.test(email)) {
                     input.addClass('is-invalid');
                     if (input.next('.invalid-feedback').length === 0) {
-                        input.after('<div class="invalid-feedback">Please enter a valid email address.</div>');
+                        input.after(
+                            '<div class="invalid-feedback">Please enter a valid email address.</div>');
                     }
                 } else {
                     input.removeClass('is-invalid');
@@ -258,7 +348,9 @@
                 if (password.length !== 8) {
                     input.addClass('is-invalid');
                     if (input.next('.invalid-feedback').length === 0) {
-                        input.after('<div class="invalid-feedback">Password must be exactly 8 characters long.</div>');
+                        input.after(
+                            '<div class="invalid-feedback">Password must be exactly 8 characters long.</div>'
+                        );
                     }
                 } else {
                     input.removeClass('is-invalid');
@@ -266,11 +358,11 @@
                 }
             });
 
-            $('select[name="general[role_id]"]').on('change', function(){
+            $('select[name="general[role_id]"]').on('change', function() {
                 const selectedValue = $(this).val();
                 $('#player-info').hide();
                 $('input[name="hasPlayerInfo"]').val(false);
-                if(selectedValue == 3){
+                if (selectedValue == 3) {
                     $('#player-info').show();
                     $('input[name="hasPlayerInfo"]').val(true);
                     initSelect2();

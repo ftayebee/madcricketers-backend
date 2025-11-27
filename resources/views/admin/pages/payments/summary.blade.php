@@ -14,7 +14,7 @@
         </div>
         <div class="col-md-3">
             <label for="filter-start" class="form-label">Start Date</label>
-            <input type="date" id="filter-start" class="form-control">
+            <input type="date" id="filter-start" class="form-control" value="">
         </div>
         <div class="col-md-3">
             <label for="filter-end" class="form-label">End Date</label>
@@ -28,8 +28,8 @@
     <div class="row">
         <div class="col-sm-12">
             <div class="card">
-                <div class="card-header">
-                    <h5>Payment Summary</h5>
+                <div class="card-header" style="background: #0c0052;border-top-left-radius: 10px;border-top-right-radius: 10px;">
+                    <h3 class="m-0 text-center text-light font-weight-bold">Payment Summary for <span id="month-data"></span></h3>
                 </div>
                 <div class="card-body">
                     <table class="table table-bordered" id="tbl-payment-summary">
@@ -52,6 +52,26 @@
 @push('scripts')
     <script>
         $(document).ready(function() {
+
+            const startDateInput = document.getElementById('filter-start');
+            const endDateInput = document.getElementById('filter-end');
+
+            const now = new Date();
+            const firstDay = new Date(now.getFullYear(), now.getMonth(), 1);
+            const lastDay = new Date(now.getFullYear(), now.getMonth() + 1, 0);
+
+            // Helper to format date as YYYY-MM-DD in local time
+            function formatDateLocal(date) {
+                const year = date.getFullYear();
+                const month = String(date.getMonth() + 1).padStart(2, '0'); // months 0-11
+                const day = String(date.getDate()).padStart(2, '0');
+                return `${year}-${month}-${day}`;
+            }
+
+            startDateInput.value = formatDateLocal(firstDay);
+            endDateInput.value = formatDateLocal(lastDay);
+
+            $('#month-data').text(firstDay.toLocaleDateString('en-US', { month: 'long', year: 'numeric' }));
 
             function loadSummary(type = '', start = '', end = '') {
                 $.ajax({

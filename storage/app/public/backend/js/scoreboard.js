@@ -73,8 +73,11 @@ $(document).ready(function () {
     // ------------------------
     // 🔹 Update UI Functions
     // ------------------------
-    document.getElementById('match-scoreboard').style.display = 'none';
-    document.getElementById('match-result').style.display = 'none';
+    const tossCompleted = $('input[name="is_toss_completed"]').val() === 'true';
+    if(document.getElementById('match-scoreboard') && !tossCompleted){
+        document.getElementById('match-scoreboard').style.display = 'none';
+        document.getElementById('match-result').style.display = 'none';
+    }
 
     const updatePlayerCard = (player, type) => {
         if (!player) {
@@ -137,10 +140,10 @@ $(document).ready(function () {
             const tr = document.createElement('tr');
             tr.innerHTML = `
                         <td style="vertical-align: middle;display: flex;align-items: center;">
-                            ${player.name}
                             <div class="form-check">
-                                <input class="form-check-input" type="radio" data-playerid="${player.id}" name="current-bowler" style="margin-left: 10px;" ${bowlerId == player.id ? 'checked' : ''}>
+                                <input class="form-check-input" type="radio" data-playerid="${player.id}" name="current-bowler" style="margin-right: 10px;" ${bowlerId == player.id ? 'checked' : ''}>
                             </div>
+                            ${player.name}
                         </td>
                         <td class='text-center'>${player.overs}</td>
                         <td class='text-center'>${player.maidens ?? 0}</td>
@@ -291,17 +294,13 @@ $(document).ready(function () {
     // ------------------------
     // 🔹 Toss Selection
     // ------------------------
-    $('input[name="toss-team"]').on('change', function () {
-        selectedTeam = $(this).val();
-        submitTossIfReady();
-    });
+    $('#btn-save-toss').on('click', function(){
+        selectedTeam = $('input[name="toss-team"]').val();
+        selectedDecision = $('input[name="toss-decision"]').val();
+        submitTossIfReady(selectedTeam, selectedDecision);
+    })
 
-    $('input[name="toss-decision"]').on('change', function () {
-        selectedDecision = $(this).val();
-        submitTossIfReady();
-    });
-
-    function submitTossIfReady() {
+    function submitTossIfReady(selectedTeam, selectedDecision) {
         if (selectedTeam && selectedDecision) {
             $.ajax({
                 url: "/admin/cricket-matches/toss/store",
@@ -327,7 +326,8 @@ $(document).ready(function () {
                         $('#battingTeamName').text(response.batting_team_name);
                         toggleTossInputs("completed");
                         document.getElementById('match-scoreboard').style.display = 'block';
-                        // saveMatchState();
+                        console.log("scoreboard show 1");
+                        window.location.reload()
                     } else {
                         Swal.fire({
                             toast: true,
@@ -444,6 +444,7 @@ $(document).ready(function () {
                 if (data.match_result) {
                     document.getElementById('match-scoreboard').style.display = 'none';
                     document.getElementById('match-result').style.display = 'block';
+                    console.log("scoreboard hidden 2");
 
                     let winnerWrap = document.getElementById('winner-wrap');
                     if (!winnerWrap) {
@@ -467,6 +468,7 @@ $(document).ready(function () {
                 } else {
                     console.dir(data)
                     document.getElementById('match-scoreboard').style.display = 'block';
+                    console.log("scoreboard show 2");
                     document.getElementById('match-result').style.display = 'none';
 
                     setMatchState(data.match_state);
@@ -985,12 +987,14 @@ $(document).ready(function () {
             });
     }
 
-    document.getElementById('yetToBatList').addEventListener('click', function (e) {
-        if (!e.target.classList.contains('select-player-btn')) return;
-        const card = e.target.closest('.player-card');
-        const playerId = card.dataset.playerId;
-        selectBatsman(playerId);
-    });
+    if(document.getElementById('yetToBatList')){
+        document.getElementById('yetToBatList').addEventListener('click', function (e) {
+            if (!e.target.classList.contains('select-player-btn')) return;
+            const card = e.target.closest('.player-card');
+            const playerId = card.dataset.playerId;
+            selectBatsman(playerId);
+        });
+    }
 
     const toggleTossInputs = (status) => {
         const $tossInputs = $('input[name="toss-team"], input[name="toss-decision"]');
@@ -1040,9 +1044,11 @@ $(document).ready(function () {
     // ------------------------
     // 🔹 Initialization
     // ------------------------
-    loadFullMatchState(matchId);
-    fetchBowlingTeamPlayers();
+    if(tossCompleted){
+        loadFullMatchState(matchId);
+        fetchBowlingTeamPlayers();
+        loadYetToBatPlayers();
+        loadCurrentOver();
+    }
     toggleTossInputs($('#start-match').val());
-    loadYetToBatPlayers();
-    loadCurrentOver();
 });
