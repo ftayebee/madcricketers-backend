@@ -416,6 +416,7 @@ $(document).ready(function () {
             body: JSON.stringify(payload)
         }).then(data => {
             if (!data.success) throw new Error(data.message);
+            
             setMatchState({
                 striker: data.updated_state.striker,
                 nonStriker: data.updated_state.nonStriker
@@ -423,6 +424,12 @@ $(document).ready(function () {
             showToast(data.message);
             loadFullMatchState(matchId);
             loadCurrentOver();
+            const inningsEnded = (data.isInningsEnded == true || data.isInningsEnded === "true" || data.isInningsEnded == 1);
+            console.log("Innings Ended: " + inningsEnded);
+            if(inningsEnded){
+                loadYetToBatPlayers();
+                console.log("Delivery Stored 2: ", data)
+            }
             
             if(payload.wicket != null){
                 window.location.reload();
@@ -466,9 +473,7 @@ $(document).ready(function () {
 
                     winnerWrap.onclick = () => winnerWrap.style.display = 'none';
                 } else {
-                    console.dir(data)
                     document.getElementById('match-scoreboard').style.display = 'block';
-                    console.log("scoreboard show 2");
                     document.getElementById('match-result').style.display = 'none';
 
                     setMatchState(data.match_state);
@@ -1003,7 +1008,6 @@ $(document).ready(function () {
             $('.match-toss-container').remove();
         } else {
             $tossInputs.prop('disabled', false);
-            console.log(status)
         }
     };
 
