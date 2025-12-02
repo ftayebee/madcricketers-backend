@@ -10,6 +10,7 @@ use Illuminate\Http\Request;
 use Spatie\Permission\Models\Role;
 use Illuminate\Support\Facades\Log;
 use App\Http\Controllers\Controller;
+use Illuminate\Support\Facades\Auth;
 
 class PageController extends Controller
 {
@@ -61,22 +62,22 @@ class PageController extends Controller
                 'stumpings'      => 0,
             ];
 
-            if ($statistics->isNotEmpty()) {
-                $stats['matches']        = $statistics->count();
-                $stats['innings_batted'] = $statistics->sum('innings_batted');
-                $stats['total_runs']     = $statistics->sum('total_runs');
-                $stats['balls_faced']    = $statistics->sum('balls_faced');
-                $stats['fifties']        = $statistics->sum('fifties');
-                $stats['hundreds']       = $statistics->sum('hundreds');
-                $stats['fours']          = $statistics->sum('fours');
-                $stats['sixes']          = $statistics->sum('sixes');
-                $stats['innings_bowled'] = $statistics->sum('innings_bowled');
-                $stats['overs_bowled']   = $statistics->sum('overs_bowled');
-                $stats['runs_conceded']  = $statistics->sum('runs_conceded');
-                $stats['wickets']        = $statistics->sum('wickets');
-                $stats['catches']        = $statistics->sum('catches');
-                $stats['runouts']        = $statistics->sum('runouts');
-                $stats['stumpings']      = $statistics->sum('stumpings');
+            if ($statistics) {
+                $stats['matches']        = $statistics->matches_played;
+                $stats['innings_batted'] = $statistics->innings_batted;
+                $stats['total_runs']     = $statistics->total_runs;
+                $stats['balls_faced']    = $statistics->balls_faced;
+                $stats['fifties']        = $statistics->fifties;
+                $stats['hundreds']       = $statistics->hundreds;
+                $stats['fours']          = $statistics->fours;
+                $stats['sixes']          = $statistics->sixes;
+                $stats['innings_bowled'] = $statistics->innings_bowled;
+                $stats['overs_bowled']   = $statistics->overs_bowled;
+                $stats['runs_conceded']  = $statistics->runs_conceded;
+                $stats['wickets']        = $statistics->wickets;
+                $stats['catches']        = $statistics->catches;
+                $stats['runouts']        = $statistics->runouts;
+                $stats['stumpings']      = $statistics->stumpings;
 
                 // Derived stats
                 $stats['strike_rate'] = $stats['balls_faced'] > 0
@@ -96,25 +97,25 @@ class PageController extends Controller
                     : 0;
             }
 
+
             // Notifications (latest 5)
             $notifications = collect();
             $recentMatches = collect();
             $upcomingMatches = collect();
             $paymentSummary = collect();
-
-            // Recent Matches (last 5 completed)
-            if ($player->matches()->count() > 0) {
+            
+            if ($player->matches()->exists()) {
                 $recentMatches = $player->matches()
-                    ->where('status', 'completed')
+                    ->where('cricket_matches.status', 'completed')
                     ->latest('match_date')
                     ->take(5)
-                    ->get() ?? collect();
+                    ->get();
 
                 $upcomingMatches = $player->matches()
-                    ->where('status', 'upcoming')
+                    ->where('cricket_matches.status', 'upcoming')
                     ->orderBy('match_date', 'asc')
                     ->take(5)
-                    ->get() ?? collect();
+                    ->get();
             }
 
             $payments = $player->payments()->whereMonth('payment_date', $currentMonth)->get() ?? collect();
@@ -175,6 +176,38 @@ class PageController extends Controller
             return redirect()->back()->with([
                 'success' => false,
                 'message' => 'Error Loading Admin Profile',
+            ]);
+        }
+    }
+
+    public function matches(){
+        try{
+            $user = Auth::user();
+            
+            $player = $user->player;
+
+            if (!$player) {
+                return redirect()->back()->with('error', 'No player profile found.');
+            }
+
+            $recentMatches = collect();
+
+            if ($player->matches()->exists()) {
+                $recentMatches = $player->matches()
+                        ->latest('match_date')
+                        ->paginate(10);
+
+                return view('player.pages.cricket-matches.index', compact('recentMatches'));
+            }
+
+            return redirect()->back()->with([
+                'success' => false,
+                'message' => 'No Matches Found.'
+            ]);
+        } catch(Exception $e){
+            return redirect()->back()->with([
+                'success' => false,
+                'message' => $e->getMessage()
             ]);
         }
     }

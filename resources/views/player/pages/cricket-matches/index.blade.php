@@ -1,4 +1,4 @@
-@extends('admin.layouts.theme')
+@extends('player.layouts.theme')
 
 @section('content')
     <div class="row">
@@ -6,114 +6,121 @@
             <div class="card">
                 <div class="card-header d-flex align-items-center justify-content-between flex-wrap row-gap-3">
                     <h5>Daily Cricket Matches List</h5>
-                    <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#add-cricket-match">
-                        Add New
-                    </button>
                 </div>
+                {{-- @dd($recentMatches->toArray()) --}}
                 <div class="card-body">
                     <div class="row">
                         <div class="col-sm-12 table-responsive">
-                            <table id="tbl-cricket-matches" class="table table-bordered table-striped">
-                                <thead>
+                            <table id="tbl-cricket-matches"
+                                class="table table-bordered table-striped table-hover text-center align-middle">
+                                <thead class="table-dark">
                                     <tr>
-                                        <th>ID</th>
-                                        <th>Match Title</th>
-                                        <th>Teams</th>
-                                        <th>Tournament</th>
-                                        <th>Match Date</th>
-                                        <th>Venue</th>
-                                        <th>Match Type</th>
-                                        <th>Status</th>
+                                        <th rowspan="2">Match Detail</th>
+                                        <th colspan="3">Match Information</th>
+                                        <th colspan="2">Batting</th>
+                                        <th colspan="2">Bowling</th>
+                                    </tr>
+                                    <tr class="table-primary">
+                                        <th>Team A Score</th>
+                                        <th>Team B Score</th>
                                         <th>Result</th>
-                                        <th>Max Overs</th>
-                                        <th>Actions</th>
+                                        <th>Runs</th>
+                                        <th>Strike Rate</th>
+                                        <th>Overs</th>
+                                        <th>Economy</th>
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    {{-- Data will be loaded via AJAX (tableLoader) --}}
+                                    @foreach ($recentMatches as $matchInfo)
+                                        @php
+                                            $scoreBoardTeamA = $matchInfo->scoreboard
+                                                ->where('team_id', $matchInfo->teamA->id)
+                                                ->first();
+                                            $scoreBoardTeamB = $matchInfo->scoreboard
+                                                ->where('team_id', $matchInfo->teamB->id)
+                                                ->first();
+                                            $playerStat = \App\Models\MatchPlayer::where('match_id', $matchInfo->id)
+                                                ->where('player_id', Auth::user()->player->id)
+                                                ->first();
+
+                                            $strikeRate = 0;
+                                            $economyRate = 0;
+
+                                            if ($playerStat) {
+                                                if ($playerStat->balls_faced > 0) {
+                                                    $strikeRate = round(
+                                                        ($playerStat->runs_scored / $playerStat->balls_faced) * 100,
+                                                        2,
+                                                    );
+                                                }
+                                                if ($playerStat->overs_bowled > 0) {
+                                                    $economyRate = round(
+                                                        $playerStat->runs_conceded / $playerStat->overs_bowled,
+                                                        2,
+                                                    );
+                                                }
+                                            }
+                                        @endphp
+                                        <tr class="align-middle">
+                                            <!-- Match Details -->
+                                            <td class="text-start">
+                                                <strong>{{ $matchInfo->title }}</strong> <br>
+                                                <small>{{ $matchInfo->teamA->name }} vs
+                                                    {{ $matchInfo->teamB->name }}</small> <br>
+                                                <small>{{ \Carbon\Carbon::parse($matchInfo->match_date)->format('d M, Y') }}</small>
+                                                @if ($matchInfo->tournament)
+                                                    <br><small
+                                                        class="text-muted">{{ $matchInfo->tournament->title }}</small>
+                                                @endif
+                                            </td>
+
+                                            <!-- Team Scores -->
+                                            <td class="fw-bold text-primary">
+                                                {{ $scoreBoardTeamA->runs ?? 0 }} - {{ $scoreBoardTeamA->wickets ?? 0 }}
+                                                <br>
+                                                <small>Overs: {{ $scoreBoardTeamA->overs ?? 0 }} /
+                                                    {{ $matchInfo->max_overs }}</small>
+                                            </td>
+                                            <td class="fw-bold text-success">
+                                                {{ $scoreBoardTeamB->runs ?? 0 }} - {{ $scoreBoardTeamB->wickets ?? 0 }}
+                                                <br>
+                                                <small>Overs: {{ $scoreBoardTeamB->overs ?? 0 }} /
+                                                    {{ $matchInfo->max_overs }}</small>
+                                            </td>
+                                            <td class="fw-bold text-warning">{{ $matchInfo->result ?? '-' }}</td>
+
+                                            <!-- Batting -->
+                                            <td>
+                                                {{ $playerStat->runs_scored ?? 0 }} ({{ $playerStat->balls_faced ?? 0 }}
+                                                balls) <br>
+                                                <small>Fours: {{ $playerStat->fours ?? 0 }} | Sixes:
+                                                    {{ $playerStat->sixes ?? 0 }}</small>
+                                            </td>
+                                            <td>
+                                                <span class="badge bg-info text-dark">{{ $strikeRate }}</span>
+                                            </td>
+
+                                            <!-- Bowling -->
+                                            <td>
+                                                {{ $playerStat->runs_conceded ?? 0 }} -
+                                                {{ $playerStat->wickets_taken ?? 0 }} <br>
+                                                <small>{{ $playerStat->overs_bowled ?? 0 }} Overs</small>
+                                            </td>
+                                            <td>
+                                                <span class="badge bg-warning text-dark">{{ $economyRate }}</span>
+                                            </td>
+                                        </tr>
+                                    @endforeach
                                 </tbody>
                             </table>
 
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <div class="modal fade" id="add-cricket-match" tabindex="-1" aria-labelledby="add-tournamentTitle" aria-hidden="true">
-        <div class="modal-dialog modal-dialog-centered modal-lg"> <!-- wider modal -->
-            <div class="modal-content">
-                <div class="modal-header" style="background: #06923E!important;">
-                    <h5 class="modal-title" id="add-tournamentTitle" style="color: #fff; font-size: 20px; font-weight: 800;margin:0px;">Add New Cricket Match</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                </div>
-
-                <form action="{{ route('admin.cricket-matches.store') }}" method="POST" enctype="multipart/form-data">
-                    @csrf
-                    <div class="modal-body">
-                        <div class="row g-3">
-                            <div class="col-md-6">
-                                <label for="name" class="form-label">Match Title (Optional)</label>
-                                <input type="text" name="title" class="form-control" placeholder="Enter Title">
-                            </div>
-
-                            <div class="col-md-6">
-                                <label for="venue" class="form-label">Match Venue</label>
-                                <input type="text" name="venue" class="form-control" placeholder="Enter venue or city">
-                            </div>
-                            <div class="col-md-6">
-                                <label for="team_a_id" class="form-label">Team A</label>
-                                <select name="team_a_id" class="form-select select2">
-                                    <option value=""></option>
-                                    @foreach (\App\Models\Team::all() as $item)
-                                        <option value="{{$item->id}}">{{$item->name}}</option>
-                                    @endforeach
-                                </select>
-                            </div>
-                            <div class="col-md-6">
-                                <label for="team_b_id" class="form-label">Team B</label>
-                                <select name="team_b_id" class="form-select select2">
-                                    <option value=""></option>
-                                    @foreach (\App\Models\Team::all() as $item)
-                                        <option value="{{$item->id}}">{{$item->name}}</option>
-                                    @endforeach
-                                </select>
-                            </div>
-
-                            <div class="col-md-6">
-                                <label for="match_date" class="form-label">Match Date</label>
-                                <input type="date" name="match_date" class="form-control">
-                            </div>
-                            <div class="col-md-6">
-                                <label for="max_overs" class="form-label">Total Overs (Per Innings)</label>
-                                <input type="number" name="max_overs" class="form-control">
-                            </div>
-
-                            <div class="col-md-6">
-                                <label for="match_type" class="form-label">Match Type</label>
-                                <select name="match_type" class="form-select select2">
-                                    <option value="tournament">Tournament</option>
-                                    <option value="regular">Regular</option>
-                                </select>
-                            </div>
-
-                            <div class="col-md-6">
-                                <label for="status" class="form-label">Status</label>
-                                <select name="status" class="form-select select2">
-                                    <option value="live">Live</option>
-                                    <option value="upcoming">Upcoming</option>
-                                    <option value="completed">Completed</option>
-                                </select>
+                            <div class="mt-3 d-flex justify-content-center">
+                                {{ $recentMatches->links() }}
                             </div>
                         </div>
-                    </div>
 
-                    <div class="modal-footer">
-                        <button type="button" class="btn btn-light" data-bs-dismiss="modal">Close</button>
-                        <button type="submit" class="btn btn-primary">Save Match</button>
                     </div>
-                </form>
+                </div>
             </div>
         </div>
     </div>
@@ -123,153 +130,14 @@
     <script>
         $(document).ready(function() {
             const redirectTo = "{{ url()->current() }}"
-            $('#tbl-cricket-matches').DataTable({
-                processing: false,
-                serverSide: false,
-                searching: true,
-                responsive: true,
-                autoWidth: false,
-                destroy: true,
-                ajax: {
-                    url: '{{ route('admin.cricket-matches.loader') }}', // 👈 your route
-                    type: 'GET',
-                    dataSrc: 'data',
-                    error: function(response) {
-                        console.log('Error loading cricket matches:', response);
-                    }
-                },
-                columns: [{
-                        data: 'id',
-                        title: 'ID',
-                        visible: false
-                    },
-
-                    {
-                        data: 'title',
-                        title: 'Match',
-                        render: function(data, type, row) {
-                            return `
-                                <div class="d-flex align-items-center">
-                                    <div class="ms-2">
-                                        <h6 class="fw-medium mb-0">
-                                            <a href="${row.viewUrl}">${data}</a>
-                                        </h6>
-                                        <small class="text-muted">
-                                            ${row.team_a ?? ''} vs ${row.team_b ?? ''}
-                                        </small>
-                                    </div>
-                                </div>`;
-                        }
-                    },
-
-                    {
-                        data: 'match_date',
-                        title: 'Date',
-                        className: 'text-center'
-                    },
-
-                    {
-                        data: 'venue',
-                        title: 'Venue'
-                    },
-
-                    {
-                        data: 'tournament',
-                        title: 'Tournament',
-                        render: function(data) {
-                            return data ?? '<span class="text-muted">-</span>';
-                        }
-                    },
-
-                    {
-                        data: 'match_type',
-                        title: 'Type',
-                        className: 'text-center'
-                    },
-
-                    {
-                        data: 'status',
-                        title: 'Status',
-                        className: 'text-center',
-                        render: function(data) {
-                            const badgeClass = {
-                                Upcoming: 'bg-primary',
-                                Live: 'bg-warning',
-                                Completed: 'bg-success'
-                            } [data] || 'bg-secondary';
-
-                            return `<span class="badge ${badgeClass}">${data}</span>`;
-                        }
-                    },
-
-                    {
-                        data: 'max_overs',
-                        title: 'Overs',
-                        className: 'text-center'
-                    },
-
-                    {
-                        data: 'winning_team',
-                        title: 'Winner',
-                        render: function(data) {
-                            return data ?? '<span class="text-muted">-</span>';
-                        }
-                    },
-
-                    {
-                        data: 'result_summary',
-                        title: 'Result',
-                        render: function(data) {
-                            return data ?? '<span class="text-muted">Pending</span>';
-                        }
-                    },
-
-                    {
-                        data: 'actions',
-                        title: 'Actions',
-                        orderable: false,
-                        searchable: false,
-                        className: "text-center",
-                        render: function(data, type, row) {
-                            return `
-                                <div class="dropdown">
-                                    <button class="btn btn-sm btn-soft-primary dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
-                                        Actions
-                                    </button>
-                                    <ul class="dropdown-menu dropdown-menu-end">
-                                        ${row.canView ? `
-                                                <li>
-                                                    <a class="dropdown-item" href="${row.viewUrl}">
-                                                        <i class="fa fa-eye me-2"></i> View
-                                                    </a>
-                                                </li>` : ''}
-                                        ${row.canScore && row.status != 'Completed' ? `
-                                            <li>
-                                                <a class="dropdown-item" href="${row.startUrl}">
-                                                    <i class="fa fa-edit me-2"></i> Edit Scoreboard
-                                                </a>
-                                            </li>` : ''}
-                                        ${row.canEdit ? `
-                                                <li>
-                                                    <a class="dropdown-item" href="${row.editUrl}">
-                                                        <i class="fa fa-edit me-2"></i> Edit Details
-                                                    </a>
-                                                </li>` : ''}
-
-                                        ${row.canDelete ? `
-                                                <li>
-                                                    <button class="dropdown-item btn-delete" data-id="${row.id}">
-                                                        <i class="fa fa-trash me-2"></i> Delete
-                                                    </button>
-                                                </li>` : ''}
-                                    </ul>
-                                </div>
-                            `;
-                        }
-                    }
-
-                ]
-            });
+            // $('#tbl-cricket-matches').DataTable({
+            //     processing: false,
+            //     serverSide: false,
+            //     searching: true,
+            //     responsive: true,
+            //     autoWidth: false,
+            //     destroy: true,
+            // });
 
             $('.select2').select2({
                 width: "100%",

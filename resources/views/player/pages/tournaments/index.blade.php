@@ -1,4 +1,4 @@
-@extends('admin.layouts.theme')
+@extends('player.layouts.theme')
 
 @section('content')
     <div class="row">

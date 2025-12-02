@@ -39,11 +39,29 @@
             <li class="menu-title">Menu</li>
 
             <li class="nav-item">
-                <a class="nav-link" href="{{ route('admin.dashboard') }}">
+                <a class="nav-link" href="{{ route('player.dashboard') }}">
                     <span class="nav-icon">
                         <i class="ri-dashboard-2-line"></i>
                     </span>
                     <span class="nav-text"> Dashboard </span>
+                </a>
+            </li>
+
+            <li class="nav-item">
+                <a class="nav-link" href="{{ route('player.matches') }}">
+                    <span class="nav-icon">
+                        <i class="ri-basketball-line"></i>
+                    </span>
+                    <span class="nav-text"> Matches </span>
+                </a>
+            </li>
+
+            <li class="nav-item">
+                <a class="nav-link" href="{{ route('player.tournaments') }}">
+                    <span class="nav-icon">
+                        <i class="ri-folder-chart-line"></i>
+                    </span>
+                    <span class="nav-text"> Tournaments</span>
                 </a>
             </li>
 

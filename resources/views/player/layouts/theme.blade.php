@@ -2,8 +2,8 @@
 <html lang="en">
 
 <head>
-    @include('admin.includes.header')
-    @include('admin.includes.css')
+    @include('player.includes.header')
+    @include('player.includes.css')
 </head>
 
 <body>
@@ -12,10 +12,10 @@
     <div class="wrapper">
 
         <!-- ========== Topbar Start ========== -->
-        @include('admin.includes.topbar')
+        @include('player.includes.topbar')
 
         <!-- ========== App Menu Start ========== -->
-        @include('admin.includes.sidebar')
+        @include('player.includes.sidebar')
         <!-- ========== App Menu End ========== -->
 
         <!-- ==================================================== -->
@@ -27,14 +27,14 @@
             <div class="container-fluid">
                 <!-- Start here.... -->
                 <!-- ========== Page Title Start ========== -->
-                @include('admin.includes.breadcrumb')
+                @include('player.includes.breadcrumb')
                 <!-- ========== Page Title End ========== -->
                 @yield('content')
             </div>
             <!-- End Container Fluid -->
 
             <!-- ========== Footer Start ========== -->
-            @include('admin.includes.footer')
+            @include('player.includes.footer')
             <!-- ========== Footer End ========== -->
 
         </div>
@@ -45,7 +45,7 @@
     </div>
     <!-- END Wrapper -->
 
-    @include('admin.includes.scripts')
+    @include('player.includes.scripts')
 </body>
 
 </html>
