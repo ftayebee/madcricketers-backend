@@ -43,7 +43,6 @@ class User extends Authenticatable
     {
         $originalImage = $this->getAttributes()['image'] ?? null;
 
-        // Determine folder based on role
         if ($this->hasRole('player')) {
             $folder = 'uploads/players/';
         } else {

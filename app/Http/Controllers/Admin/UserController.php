@@ -153,11 +153,10 @@ class UserController extends Controller
     public function store(Request $request)
     {
         try {
-            // if (!Auth::user()->can('users-create')) {
-            //     throw new Exception('Unauthorized Access');
-            // }
-            Log::info("Request Received: ", ['data' => $request->all()]);
-
+            if (!Auth::user()->can('users-create')) {
+                throw new Exception('Unauthorized Access');
+            }
+            
             $validator = Validator::make($request->all(), [
                 'general.profile_picture' => 'nullable|mimes:jpg,jpeg,png|max:1024',
                 'general.full_name'       => 'required|string|max:255',

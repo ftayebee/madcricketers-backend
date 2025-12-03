@@ -57,11 +57,11 @@
             </li>
 
             <li class="nav-item">
-                <a class="nav-link" href="{{ route('player.tournaments') }}">
+                <a class="nav-link" href="{{ route('player.payments') }}">
                     <span class="nav-icon">
                         <i class="ri-folder-chart-line"></i>
                     </span>
-                    <span class="nav-text"> Tournaments</span>
+                    <span class="nav-text"> Payments</span>
                 </a>
             </li>
 

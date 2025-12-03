@@ -12,14 +12,6 @@
                 </div>
 
                 <div class="d-flex align-items-center gap-1">
-                    <!-- Theme Color (Light/Dark) -->
-                    <div class="topbar-item">
-                        <button type="button" class="topbar-button" id="light-dark-mode">
-                            <i class="ri-moon-line fs-24 light-mode"></i>
-                            <i class="ri-sun-line fs-24 dark-mode"></i>
-                        </button>
-                    </div>
-
                     <!-- Category -->
                     <div class="dropdown topbar-item d-none d-lg-flex">
                         <button type="button" class="topbar-button" data-toggle="fullscreen">
@@ -33,7 +25,7 @@
                         <a type="button" class="topbar-button" id="page-header-user-dropdown"
                             data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
                             <span class="d-flex align-items-center">
-                                <img class="rounded-circle" width="32" src="{{asset('storage/assets/images/users/avatar-1.jpg') }}"
+                                <img class="rounded-circle" width="32" src="{{ asset(Auth::user()->image) }}"
                                     alt="avatar-3">
                             </span>
                         </a>
@@ -41,7 +33,7 @@
                             <!-- item-->
                             <h6 class="dropdown-header">Welcome {{Auth::user()->nickname}}!</h6>
 
-                            <a class="dropdown-item" href="{{route('admin.profile')}}">
+                            <a class="dropdown-item" href="{{route('player.profile')}}">
                                 <iconify-icon icon="solar:help-broken"
                                     class="align-middle me-2 fs-18"></iconify-icon><span
                                     class="align-middle">Profile</span>

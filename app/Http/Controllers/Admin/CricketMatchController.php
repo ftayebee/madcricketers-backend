@@ -306,7 +306,7 @@ class CricketMatchController extends Controller
                 ['cricket_match_id' => $matchId],
                 [
                     'toss_winner_team_id' => $request->input('toss_winner_team_id'),
-                    'decision' => strtolower($request->input('toss_decision')), // 'bat' or 'bowl'
+                    'decision' => strtolower($request->input('toss_decision')),
                 ]
             );
 
@@ -334,6 +334,7 @@ class CricketMatchController extends Controller
                 'runs' => 0,
                 'wickets' => 0,
                 'overs' => 0,
+                'status' => 'running'
             ]);
 
             MatchScoreBoard::create([
@@ -343,6 +344,7 @@ class CricketMatchController extends Controller
                 'runs' => 0,
                 'wickets' => 0,
                 'overs' => 0,
+                'status' => 'waiting'
             ]);
 
             broadcast(new CricketMatchUpdate($match))->toOthers();

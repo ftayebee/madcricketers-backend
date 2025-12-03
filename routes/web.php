@@ -126,6 +126,7 @@ Route::prefix('admin')->name('admin.')->group(function(){
 Route::prefix('player')->name('player.')->middleware(['auth'])->group(function(){
     Route::get('/dashboard', [PlayerPageController::class, 'dashboard'])->name('dashboard');
     Route::get('/profile', [PlayerPageController::class, 'profile'])->name('profile');
+    Route::post('/profile/update', [PlayerPageController::class, 'profileUpdate'])->name('profile.update');
     Route::get('/matches', [PlayerPageController::class, 'matches'])->name('matches');
-    Route::get('/tournaments', [PlayerPageController::class, 'tournaments'])->name('tournaments');
+    Route::get('/payments-summary', [PlayerPageController::class, 'payments'])->name('payments');
 });

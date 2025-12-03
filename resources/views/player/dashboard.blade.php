@@ -1,110 +1,96 @@
 @extends('player.layouts.theme')
 
 @section('content')
-    <div class="row g-4">
+    @push('styles')
+        <style>
+            .stat-card {
+                background: #fff;
+                border-radius: 12px;
+                box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+                overflow: hidden;
+                position: relative;
+                transition: transform 0.3s ease, box-shadow 0.3s ease;
+                border: 1px solid #bbbaff;
+            }
 
-        {{-- Player Profile --}}
-        <div class="col-md-4">
-            <div class="card shadow-sm border-0 rounded-3">
-                <div class="card-body text-center">
-                    <div class="mb-3">
-                        @if ($player->user->profile_photo)
-                            <img src="{{ asset('storage/uploads/players/' . $player->user->profile_photo) }}"
-                                class="rounded-circle img-thumbnail" style="width: 120px; height: 120px;" alt="Profile">
-                        @else
-                            <i class="ri-user-3-line text-muted display-3"></i>
-                        @endif
-                    </div>
-                    <h4 class="fw-bold">{{ $player->user->full_name }}</h4>
-                    <p class="text-muted mb-1">Team: {{ $player->team->name ?? 'Unassigned' }}</p>
-                    <p class="text-muted">Role: {{ ucfirst($player->role ?? 'All-Rounder') }}</p>
-                </div>
-            </div>
-        </div>
+            .stat-card:hover {
+                transform: translateY(-8px) scale(1.05);
+                box-shadow: 0 12px 24px rgba(0, 0, 0, 0.2);
+            }
+
+            .stat-number {
+                font-size: 1.5rem;
+                font-weight: 700;
+                color: #333;
+            }
+
+            .stat-label {
+                font-size: 0.85rem;
+                font-weight: 500;
+                color: #777;
+                margin-top: 4px;
+            }
+
+            /* Soft background accent */
+            .stat-bg {
+                position: absolute;
+                top: -20%;
+                right: -20%;
+                width: 80px;
+                height: 80px;
+                background: rgba(0, 123, 255, 0.1);
+                border-radius: 50%;
+                z-index: 0;
+            }
+
+            /* Ensure numbers and label are on top */
+            .stat-number,
+            .stat-label {
+                position: relative;
+                z-index: 1;
+            }
+        </style>
+    @endpush
+    <div class="row g-4">
 
         {{-- Player Statistics --}}
         <div class="col-md-12">
             <div class="card shadow-sm border-0 rounded-3">
-                <div class="card-header bg-light fw-bold">Your Overall Stats</div>
+                <div class="card-header bg-light fw-bold fs-20 text-center">Your Overall Stats</div>
                 <div class="card-body">
                     <div class="row g-3 text-center">
 
-                        {{-- Batting Stats --}}
-                        <div class="col-6 col-md-2">
-                            <h5 class="fw-bold">{{ $stats['matches'] ?? 0 }}</h5>
-                            <p class="text-muted mb-0">Matches</p>
-                        </div>
-                        <div class="col-6 col-md-2">
-                            <h5 class="fw-bold">{{ $stats['innings_batted'] ?? 0 }}</h5>
-                            <p class="text-muted mb-0">Innings Batted</p>
-                        </div>
-                        <div class="col-6 col-md-2">
-                            <h5 class="fw-bold">{{ $stats['total_runs'] ?? 0 }}</h5>
-                            <p class="text-muted mb-0">Runs</p>
-                        </div>
-                        <div class="col-6 col-md-2">
-                            <h5 class="fw-bold">{{ $stats['balls_faced'] ?? 0 }}</h5>
-                            <p class="text-muted mb-0">Balls Faced</p>
-                        </div>
-                        <div class="col-6 col-md-2">
-                            <h5 class="fw-bold">{{ $stats['fours'] ?? 0 }}</h5>
-                            <p class="text-muted mb-0">Fours</p>
-                        </div>
-                        <div class="col-6 col-md-2">
-                            <h5 class="fw-bold">{{ $stats['sixes'] ?? 0 }}</h5>
-                            <p class="text-muted mb-0">Sixes</p>
-                        </div>
+                        @php
+                            $allStats = [
+                                'Matches' => 'matches',
+                                'Innings Batted' => 'innings_batted',
+                                'Runs' => 'total_runs',
+                                'Balls Faced' => 'balls_faced',
+                                'Fours' => 'fours',
+                                'Sixes' => 'sixes',
+                                'Strike Rate' => 'strike_rate',
+                                'Average' => 'average',
+                                'Innings Bowled' => 'innings_bowled',
+                                'Overs' => 'overs_bowled',
+                                'Runs Conceded' => 'runs_conceded',
+                                'Wickets' => 'wickets',
+                                'Bowling Avg' => 'bowling_average',
+                                'Economy' => 'economy_rate',
+                                'Catches' => 'catches',
+                                'Run Outs' => 'runouts',
+                                'Stumpings' => 'stumpings',
+                            ];
+                        @endphp
 
-                        {{-- Batting Derived Stats --}}
-                        <div class="col-6 col-md-2">
-                            <h5 class="fw-bold">{{ $stats['strike_rate'] ?? 0 }}</h5>
-                            <p class="text-muted mb-0">Strike Rate</p>
-                        </div>
-                        <div class="col-6 col-md-2">
-                            <h5 class="fw-bold">{{ $stats['average'] ?? 0 }}</h5>
-                            <p class="text-muted mb-0">Average</p>
-                        </div>
-
-                        {{-- Bowling Stats --}}
-                        <div class="col-6 col-md-2">
-                            <h5 class="fw-bold">{{ $stats['innings_bowled'] ?? 0 }}</h5>
-                            <p class="text-muted mb-0">Innings Bowled</p>
-                        </div>
-                        <div class="col-6 col-md-2">
-                            <h5 class="fw-bold">{{ $stats['overs_bowled'] ?? 0 }}</h5>
-                            <p class="text-muted mb-0">Overs</p>
-                        </div>
-                        <div class="col-6 col-md-2">
-                            <h5 class="fw-bold">{{ $stats['runs_conceded'] ?? 0 }}</h5>
-                            <p class="text-muted mb-0">Runs Conceded</p>
-                        </div>
-                        <div class="col-6 col-md-2">
-                            <h5 class="fw-bold">{{ $stats['wickets'] ?? 0 }}</h5>
-                            <p class="text-muted mb-0">Wickets</p>
-                        </div>
-                        <div class="col-6 col-md-2">
-                            <h5 class="fw-bold">{{ $stats['bowling_average'] ?? 0 }}</h5>
-                            <p class="text-muted mb-0">Bowling Avg</p>
-                        </div>
-                        <div class="col-6 col-md-2">
-                            <h5 class="fw-bold">{{ $stats['economy_rate'] ?? 0 }}</h5>
-                            <p class="text-muted mb-0">Economy</p>
-                        </div>
-
-                        {{-- Fielding Stats --}}
-                        <div class="col-6 col-md-2">
-                            <h5 class="fw-bold">{{ $stats['catches'] ?? 0 }}</h5>
-                            <p class="text-muted mb-0">Catches</p>
-                        </div>
-                        <div class="col-6 col-md-2">
-                            <h5 class="fw-bold">{{ $stats['runouts'] ?? 0 }}</h5>
-                            <p class="text-muted mb-0">Run Outs</p>
-                        </div>
-                        <div class="col-6 col-md-2">
-                            <h5 class="fw-bold">{{ $stats['stumpings'] ?? 0 }}</h5>
-                            <p class="text-muted mb-0">Stumpings</p>
-                        </div>
-
+                        @foreach ($allStats as $label => $key)
+                            <div class="col-6 col-md-2">
+                                <div class="stat-card p-3 rounded shadow-sm position-relative">
+                                    <div class="stat-number">{{ $stats[$key] ?? 0 }}</div>
+                                    <div class="stat-label">{{ $label }}</div>
+                                    <div class="stat-bg"></div>
+                                </div>
+                            </div>
+                        @endforeach
                     </div>
                 </div>
             </div>
