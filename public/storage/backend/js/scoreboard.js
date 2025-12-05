@@ -325,8 +325,8 @@ $(document).ready(function () {
                         $('input[name="is_toss_completed"]').val(true);
                         $('#battingTeamName').text(response.batting_team_name);
                         toggleTossInputs("completed");
-                        document.getElementById('match-scoreboard').style.display = 'block';
-                        console.log("scoreboard show 1");
+                        // document.getElementById('match-scoreboard').style.display = 'block';
+                        // console.log("scoreboard show 1");
                         window.location.reload()
                     } else {
                         Swal.fire({
@@ -451,7 +451,6 @@ $(document).ready(function () {
                 if (data.match_result) {
                     document.getElementById('match-scoreboard').style.display = 'none';
                     document.getElementById('match-result').style.display = 'block';
-                    console.log("scoreboard hidden 2");
 
                     let winnerWrap = document.getElementById('winner-wrap');
                     if (!winnerWrap) {
@@ -889,6 +888,8 @@ $(document).ready(function () {
                     list.innerHTML = '<li class="list-group-item text-muted">No batting order available</li>';
                     return;
                 }
+                
+                console.log(data.players);
 
                 data.players.forEach(player => {
                     const card = document.createElement('div');
@@ -1035,6 +1036,40 @@ $(document).ready(function () {
                     }).then(() => {
                         window.location.reload();
                     });
+                } else {
+                    Swal.fire('Error', response.message || 'Failed to update match status.', 'error');
+                }
+            },
+            error: function (err) {
+                Swal.fire('Error', 'Failed to update match status.', 'error');
+            }
+        });
+    });
+
+    $('.btn-complete-innings').on('click', function(){
+        $.ajax({
+            url: '/admin/cricket-matches/scoreboard/mark-innings-complete/' + matchId,
+            method: 'GET',
+            success: function (response) {
+                if (response.success) {
+                    console.log(response);
+
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'Status Updated!',
+                        text: response.message,
+                        timer: 2000,
+                        showConfirmButton: false
+                    });
+
+                    $('#match-scoreboard').hide();
+                    $('#match-result').show();
+
+                    const matchData = response.matchData;
+                    $('#match-title').text(matchData.title);
+                    $('#match-result_summary').text(matchData.result_summary);
+
+                    window.location.reload();
                 } else {
                     Swal.fire('Error', response.message || 'Failed to update match status.', 'error');
                 }

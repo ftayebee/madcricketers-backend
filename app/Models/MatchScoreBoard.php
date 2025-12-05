@@ -21,7 +21,6 @@ class MatchScoreBoard extends Model
 
     public function team()
     {
-        return $this->belongsTo(Team::class);
+        return $this->belongsTo(Team::class, 'team_id', 'id');
     }
-
 }

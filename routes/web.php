@@ -103,7 +103,7 @@ Route::prefix('admin')->name('admin.')->group(function(){
             Route::post('/select-bowler', [CricketMatchController::class, 'selectBowler'])->name('select-bowler');
             Route::post('/set-striker', [CricketMatchController::class, 'setStriker'])->name('set-striker');
             Route::get('/full-match-state/{match_id}', [CricketMatchController::class, 'getFullMatchState'])->name('full-match-state');
-            Route::get('/mark-innings-complete', [CricketMatchController::class, 'setInningsStatus'])->name('mark-innings-complete');
+            Route::get('/mark-innings-complete/{match_id}', [CricketMatchController::class, 'setInningsStatus'])->name('mark-innings-complete');
             Route::get('/match-info', [CricketMatchController::class, 'getMatchInfo'])->name('match-info');
             Route::post('/switch-strike', [CricketMatchController::class, 'switchStrike'])->name('switch-strike');
             Route::get('/change-bowler', [CricketMatchController::class, 'changeBowler'])->name('change-bowler');

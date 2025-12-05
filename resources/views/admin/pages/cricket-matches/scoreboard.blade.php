@@ -30,7 +30,7 @@
                                 {{-- Match Info --}}
                                 <input type="hidden" name="toss_match_id" value="{{ $match->id }}">
                                 <div class="col-md-{{ $match->tournament && $match->tournament->logo ? '10' : '12' }}">
-                                    <h4 class="fw-bolder mb-2 fs-28 text-center text-cyan">
+                                    <h4 class="fw-bolder mb-2 fs-28 text-center text-purple">
                                         {{ $match->teamA->name ?? 'Team A' }}
                                         <span class="text-muted">vs</span>
                                         {{ $match->teamB->name ?? 'Team B' }}
@@ -155,19 +155,18 @@
                 <div class="card-body p-3">
                     <div class="d-flex justify-content-between align-items-center flex-wrap">
                         <input type="hidden" name="innings"
-                            value="{{ $match->scoreboard->where('status', 'running')->first()->innings }}">
+                            value="{{ $match->scoreboard->where('status', 'running')->first()->innings ?? 0 }}">
                         <input type="hidden" name="max_overs" value="{{ $match->max_overs }}">
                         <input type="hidden" id="bowling_team_id"
                             value="{{ $match->scoreboard->whereIn('status', ['waiting', 'ended'])->first()->team_id }}">
                         <input type="hidden" name="battingTeamId"
-                            value="{{ $match->scoreboard->where('status', 'running')->first()->team_id }}">
+                            value="{{ $match->scoreboard->where('status', 'running')->first()->team_id ?? 0 }}">
                         <!-- Left: Team & Score Info -->
                         <div class="me-3 flex-grow-1">
                             <div class="d-flex align-items-center justify-content-between">
                                 <div>
                                     <div class="team-details">
                                         <div class="team-icon">
-                                            {{-- circular shape with team name first letters like Thunder Warriors will show TW or Mountain Kings will show MK or Crackers with show CR --}}
                                         </div>
                                         <div class="team-info">
                                             <h4 class="mb-1 fw-bold text-primary fs-28" id="battingTeamName">Team A</h4>
@@ -393,8 +392,8 @@
                     <div class="winner-wrap" id="winner-wrap">
                         <div class="border"></div>
                         <div class="medal-box"><i class="fas fa-medal"></i></div>
-                        <h1>Ocean Race Challenge 2019</h1>
-                        <h2>Team Alpha</h2>
+                        <h1 id="match-title">Ocean Race Challenge 2019</h1>
+                        <h2 id="match-result_summary">Team Alpha</h2>
                         <div class="winner-ribbon">WINNER</div>
                         <div class="right-ribbon"></div>
                         <div class="left-ribbon"></div>

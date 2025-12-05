@@ -328,7 +328,7 @@
 .team-icon {
     width: 60px;
     height: 60px;
-    border-radius: 50%;
+    border-radius: 15px;
     background-color: #198754;
     color: #fff;
     display: flex;
@@ -340,7 +340,7 @@
     user-select: none;
     flex-shrink: 0;
     margin-right: 15px;
-    background: radial-gradient(circle, #529fce 0%, #0d3449 100%);
+    background: radial-gradient(circle, #301CA0 0%, #B2B0E8 100%);
 }
 
 .team-details {

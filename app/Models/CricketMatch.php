@@ -11,7 +11,7 @@ class CricketMatch extends Model
 
     protected $fillable = [
         'tournament_id', 'team1_id', 'team2_id', 'match_date',
-        'venue', 'status', 'winning_team_id', 'bowler_max_overs', 'max_overs'
+        'venue', 'status', 'winning_team_id', 'bowler_max_overs', 'max_overs', 'result_summary'
     ];
 
     public function tournament()
