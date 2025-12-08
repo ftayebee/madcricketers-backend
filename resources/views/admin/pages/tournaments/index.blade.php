@@ -192,28 +192,10 @@
                 new bootstrap.Tooltip(el);
             });
 
-            const formatSelector = document.getElementById("format");
-
-            const toggleFields = () => {
-                const value = formatSelector.value;
-                console.log(value)
-                document.querySelectorAll(".format-dependent").forEach(el => el.style.display = "none");
-
-                if (value === "group") {
-                    document.getElementById("group-fields").style.display = "block";
-                }
-                // else if (value === "round-robin") {
-                //     document.getElementById("round-robin-fields").style.display = "block";
-                // } else if (value === "knockout") {
-                //     document.getElementById("knockout-fields").style.display = "block";
-                // }
-            };
-
-            formatSelector.addEventListener("change", toggleFields);
-            toggleFields();
-
             $(document).on('click', '.btn-delete', function () {
                 const selectedId = $(this).data('id');
+
+                console.log('Delete button clicked for ID:', selectedId);
 
                 Swal.fire({
                     title: 'Are you sure?',

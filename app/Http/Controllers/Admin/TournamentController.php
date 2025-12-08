@@ -236,30 +236,28 @@ class TournamentController extends Controller
             $tournament->end_date    = $validated['end_date'] ?? null;
             $tournament->status      = $validated['status'];
             $tournament->format      = $validated['format'];
-            $tournament->group_count = $validated['format'] == 'group' ? $validated['group_count'] : null;
+            $tournament->group_count = ($validated['format'] === 'group') ? $validated['group_count'] : null;
             $tournament->overs_per_innings = $validated['overs_per_innings'];
 
+            // ========== UPLOAD LOGO ==========
             if ($request->hasFile('logo')) {
                 $logo = $request->file('logo');
                 $logoFilename = 'tournament_logo_' . time() . '.' . $logo->getClientOriginalExtension();
 
                 $logoPath = storage_path('app/public/uploads/tournaments');
-                if (!file_exists($logoPath)) {
-                    mkdir($logoPath, 0775, true);
-                }
+                if (!file_exists($logoPath)) mkdir($logoPath, 0775, true);
 
                 Image::make($logo)->save($logoPath . '/' . $logoFilename);
                 $tournament->logo = $logoFilename;
             }
 
+            // ========== UPLOAD TROPHY ==========
             if ($request->hasFile('trophy_image')) {
                 $trophy = $request->file('trophy_image');
                 $trophyFilename = 'trophy_' . time() . '.' . $trophy->getClientOriginalExtension();
 
                 $trophyPath = storage_path('app/public/uploads/tournaments');
-                if (!file_exists($trophyPath)) {
-                    mkdir($trophyPath, 0775, true);
-                }
+                if (!file_exists($trophyPath)) mkdir($trophyPath, 0775, true);
 
                 Image::make($trophy)->save($trophyPath . '/' . $trophyFilename);
                 $tournament->trophy_image = $trophyFilename;
@@ -268,39 +266,93 @@ class TournamentController extends Controller
             $tournament->save();
             $tournament->refresh();
 
+            // ======================================================
+            // TEAM ATTACH LOGIC (DEPENDS ON FORMAT)
+            // ======================================================
             if (!empty($validated['team_id'])) {
+
+                $teams = $validated['team_id'];
+                $format = $tournament->format;
                 $separate = $request->has('seperate_teams');
 
-                if ($separate && $tournament->format == 'group' && !empty($tournament->group_count)) {
-                    if ($tournament->groups()->count() === 0) {
-                        for ($i = 0; $i < $tournament->group_count; $i++) {
-                            $groupName = 'Group ' . chr(65 + $i);
-                            $tournament->groups()->create(['name' => $groupName]);
+                // -------------------------------
+                // FORMAT 1: GROUP FORMAT
+                // -------------------------------
+                if ($format === 'group') {
+
+                    if ($separate && !empty($tournament->group_count)) {
+
+                        // Create groups if not created yet
+                        if ($tournament->groups()->count() === 0) {
+                            for ($i = 0; $i < $tournament->group_count; $i++) {
+                                $tournament->groups()->create([
+                                    'name' => 'Group ' . chr(65 + $i)
+                                ]);
+                            }
+                            $tournament->load('groups');
                         }
-                        $tournament->load('groups');
+
+                        shuffle($teams);
+                        $groupCount = $tournament->groups->count();
+                        $groups = $tournament->groups;
+
+                        foreach ($teams as $index => $teamId) {
+                            TournamentGroupTeam::create([
+                                'group_id' => $groups[$index % $groupCount]->id,
+                                'team_id' => $teamId,
+                                'tournament_id' => $tournament->id,
+                            ]);
+                        }
+                    } else {
+
+                        // If no separate teams = All in Group A
+                        $group = TournamentGroup::create([
+                            'tournament_id' => $tournament->id,
+                            'name' => 'Group A',
+                        ]);
+
+                        foreach ($teams as $teamId) {
+                            TournamentGroupTeam::create([
+                                'group_id' => $group->id,
+                                'team_id' => $teamId,
+                                'tournament_id' => $tournament->id,
+                            ]);
+                        }
                     }
+                }
 
-                    $teams = $validated['team_id'];
-                    shuffle($teams);
+                // -------------------------------
+                // FORMAT 2: ROUND ROBIN
+                // -------------------------------
+                elseif ($format === 'round-robin') {
+                    // No groups needed
+                    // Just attach all teams under a “virtual” Group A OR no group at all
+                    $group = TournamentGroup::create([
+                        'tournament_id' => $tournament->id,
+                        'name' => 'Round Robin Group',
+                    ]);
 
-                    $groupCount = $tournament->groups->count();
-                    $groups = $tournament->groups;
-
-                    foreach ($teams as $index => $teamId) {
-                        $groupIndex = $index % $groupCount;
+                    foreach ($teams as $teamId) {
                         TournamentGroupTeam::create([
-                            'group_id' => $groups[$groupIndex]->id,
+                            'group_id' => $group->id,
                             'team_id' => $teamId,
                             'tournament_id' => $tournament->id,
                         ]);
                     }
-                } else {
+                }
+
+                // -------------------------------
+                // FORMAT 3: KNOCKOUT
+                // -------------------------------
+                elseif ($format === 'knockout') {
+
+                    // Knockout is simple — single group only
                     $group = TournamentGroup::create([
                         'tournament_id' => $tournament->id,
-                        'name' => 'Group A',
+                        'name' => 'Knockout Bracket',
                     ]);
 
-                    foreach ($validated['team_id'] as $teamId) {
+                    foreach ($teams as $teamId) {
                         TournamentGroupTeam::create([
                             'group_id' => $group->id,
                             'team_id' => $teamId,
@@ -310,10 +362,11 @@ class TournamentController extends Controller
                 }
             }
 
-            return redirect()->route('admin.tournaments.index')->with([
-                'success' => true,
-                'message' => 'Tournament has been created.',
-            ]);
+            return redirect()->route('admin.tournaments.index')
+                ->with([
+                    'success' => true,
+                    'message' => 'Tournament has been created.',
+                ]);
         } catch (ValidationException $e) {
             Log::error('Validation failed in TournamentController@store', [
                 'errors' => $e->validator->errors()->toArray(),

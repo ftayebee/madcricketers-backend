@@ -125,6 +125,19 @@
                 width: "100%",
                 closeOnSelect: false
             });
+
+            document.getElementById("format").addEventListener("change", () => {
+                const value = formatSelector.value;
+                console.log(value)
+                document.querySelectorAll(".format-dependent").forEach(el => el.style.display = "none");
+
+                if (value === "group") {
+                    document.getElementById("group-fields").style.display = "block";
+                }
+                // else if (value === "knockout") {
+                //     document.getElementById("knockout-fields").style.display = "block";
+                // }
+            });
         });
     </script>
 @endpush
