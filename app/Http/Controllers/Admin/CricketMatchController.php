@@ -77,29 +77,70 @@ class CricketMatchController extends Controller
                 throw new Exception('Unauthorized Access');
             }
 
-            $matches = CricketMatch::with(['teamA', 'teamB', 'tournament', 'winningTeam'])
+            $matches = CricketMatch::with([
+                'teamA',
+                'teamB',
+                'tournament',
+                'winningTeam',
+                'scoreboard' // relation to MatchScoreBoard
+            ])
                 ->orderBy('created_at', 'desc')
                 ->get();
 
-            $formattedData = $matches->map(function ($item) {
-                $viewUrl   = route('admin.cricket-matches.show', $item->id);
-                $editUrl   = route('admin.cricket-matches.edit', $item->id);
-                $startUrl  = route('admin.cricket-matches.scoreboard.view', $item->id);
-                $deleteUrl = route('admin.cricket-matches.destroy', $item->id);
+            $formattedData = $matches->map(function ($match) {
+
+                $viewUrl  = route('admin.cricket-matches.show', $match->id);
+                $editUrl  = route('admin.cricket-matches.edit', $match->id);
+                $startUrl = route('admin.cricket-matches.scoreboard.view', $match->id);
+
+                /* ===============================
+                TEAM SCORES (LATEST INNINGS)
+                ================================*/
+                $teamAScore = null;
+                $teamBScore = null;
+
+                foreach ($match->scoreboard as $sb) {
+                    $scoreText = "{$sb->runs}/{$sb->wickets} ({$sb->overs})";
+
+                    if ($sb->team_id === $match->team_a_id) {
+                        $teamAScore = $scoreText;
+                    }
+
+                    if ($sb->team_id === $match->team_b_id) {
+                        $teamBScore = $scoreText;
+                    }
+                }
+
+                /* ===============================
+               STATUS + RESULT
+            ================================*/
+                $status = ucfirst($match->status);
+
+                $resultText = match ($status) {
+                    'Completed' => $match->result_summary ?? 'Match Completed',
+                    'Live'      => 'Match in progress',
+                    default     => Carbon::parse($match->match_date)->format('d M Y, h:i A')
+                };
 
                 return [
-                    'id'             => $item->id,
-                    'title'          => $item->title,
-                    'team_a'         => $item->teamA ? $item->teamA->name : null,
-                    'team_b'         => $item->teamB ? $item->teamB->name : null,
-                    'tournament'     => $item->tournament ? $item->tournament->name : null,
-                    'match_date'     => Carbon::parse($item->match_date)->format('d M, Y'),
-                    'venue'          => $item->venue,
-                    'match_type'     => ucfirst($item->match_type),
-                    'status'         => ucfirst($item->status),
-                    'max_overs'      => $item->max_overs,
-                    'winning_team'   => $item->winningTeam ? $item->winningTeam->name : null,
-                    'result_summary' => $item->result_summary,
+                    'id' => $match->id,
+
+                    'title'      => $match->title,
+                    'tournament' => $match->tournament?->name,
+                    'venue'      => $match->venue,
+
+                    'team_a'       => $match->teamA?->name,
+                    'team_b'       => $match->teamB?->name,
+                    'team_a_score' => $teamAScore,
+                    'team_b_score' => $teamBScore,
+
+                    'match_date' => Carbon::parse($match->match_date)->format('d M, Y'),
+                    'match_type' => ucfirst($match->match_type),
+                    'status'     => $status,
+                    'max_overs'  => $match->max_overs,
+
+                    'winning_team'   => $match->winningTeam?->name,
+                    'result_summary' => $resultText,
 
                     // Permissions
                     'canView'   => Auth::user()->can($this->module . '-view'),
@@ -108,27 +149,31 @@ class CricketMatchController extends Controller
                     'canDelete' => Auth::user()->can($this->module . '-delete'),
 
                     // URLs
-                    'viewUrl'   => $viewUrl,
-                    'startUrl'  => $startUrl,
-                    'editUrl'   => $editUrl,
-                    'deleteUrl' => $deleteUrl,
+                    'viewUrl'  => $viewUrl,
+                    'startUrl' => $startUrl,
+                    'editUrl'  => $editUrl,
                 ];
             });
 
-            return response()->json(['data' => $formattedData]);
+            return response()->json([
+                'success' => true,
+                'data'    => $formattedData
+            ]);
         } catch (Exception $e) {
-            Log::error("Error Loading cricket matches table", [
-                'line' => $e->getLine(),
-                'file' => $e->getFile(),
+
+            Log::error("Error loading cricket matches", [
+                'line'    => $e->getLine(),
+                'file'    => $e->getFile(),
                 'message' => $e->getMessage()
             ]);
 
-            return redirect()->back()->with([
+            return response()->json([
                 'success' => false,
-                'message' => 'Error Loading matches table.'
-            ]);
+                'message' => 'Error loading matches.'
+            ], 500);
         }
     }
+
 
     public function edit(Request $request)
     {
@@ -777,6 +822,86 @@ class CricketMatchController extends Controller
             ], 500);
         }
     }
+
+    public function getPlayersList(Request $request)
+    {
+        try {
+            $matchId = $request->match_id;
+            $teamId  = $request->team_id;
+            $type    = $request->type; // batting | bowling
+
+            if (!in_array($type, ['batting', 'bowling'])) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Invalid type provided'
+                ], 422);
+            }
+
+            /* ===============================
+            BATSMEN → YET TO BAT
+            ================================*/
+            if ($type === 'batting') {
+
+                $battedPlayerIds = MatchPlayer::where('match_id', $matchId)
+                    ->where('team_id', $teamId)
+                    ->where(function ($q) {
+                        $q->whereNotNull('runs_scored')
+                            ->orWhereNotNull('balls_faced');
+                    })
+                    ->whereNotIn('status', ['ready', 'retired-hurt'])
+                    ->pluck('player_id');
+
+                $players = MatchPlayer::with('player.user')
+                    ->where('match_id', $matchId)
+                    ->where('team_id', $teamId)
+                    ->whereNotIn('player_id', $battedPlayerIds)
+                    ->get()
+                    ->map(fn($mp) => $this->mapPlayer($mp));
+            }
+
+            /* ===============================
+            BOWLERS → QUOTA LEFT
+            ================================*/
+            if ($type === 'bowling') {
+                $maxOversPerBowler = CricketMatch::find($matchId)->bowler_max_overs;
+
+                $players = MatchPlayer::with('player.user')
+                    ->where('match_id', $matchId)
+                    ->where('team_id', $teamId)
+                    ->get()
+                    ->filter(function ($mp) use ($maxOversPerBowler) {
+                        return $mp->overs_bowled < $maxOversPerBowler;
+                    })
+                    ->map(function ($mp) use ($maxOversPerBowler) {
+                        return array_merge(
+                            $this->mapPlayer($mp),
+                            [
+                                'overs_bowled' => $mp->overs_bowled,
+                                'overs_left'   => $maxOversPerBowler - $mp->overs_bowled,
+                            ]
+                        );
+                    })
+                    ->values();
+            }
+
+            return response()->json([
+                'success' => true,
+                'data'    => $players,
+            ]);
+        } catch (\Exception $e) {
+
+            Log::error('Error fetching players list', [
+                'message' => $e->getMessage(),
+                'line'    => $e->getLine(),
+            ]);
+
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to fetch players list',
+            ], 500);
+        }
+    }
+
 
     public function getFullMatchState(Request $request)
     {
@@ -2197,9 +2322,9 @@ class CricketMatchController extends Controller
                 $match->scoreboard()->delete();
             }
 
-            if ($match->players()->exists()) {
-                $match->players()->detach();
-            }
+            // if ($match->players()->exists()) {
+            //     $match->players()->detach();
+            // }
 
             $match->delete();
 
