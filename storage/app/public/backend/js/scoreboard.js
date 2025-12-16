@@ -16,9 +16,11 @@ $(document).ready(function () {
     const $elements = {
         strikerName: $('#strikerName'),
         strikerRuns: $('#strikerRuns'),
+        strikerStrikeRate: $('#strikerStrikeRate'),
         strikerBalls: $('#strikerBallsFaced'),
         nonStrikerName: $('#nonStrikerName'),
         nonStrikerRuns: $('#nonStrikerRuns'),
+        nonStrikerStrikeRate: $('#nonStrikerStrikeRate'),
         nonStrikerBalls: $('#nonStrikerBallsFaced'),
         strikerActions: $('#strikerActions'),
         nonStrikerActions: $('#nonStrikerActions'),
@@ -37,6 +39,14 @@ $(document).ready(function () {
 
     const tossCompleted = $('input[name="is_toss_completed"]').val() === 'true';
 
+    let stumpedData = {
+        keeperId: null,
+        batsmanOut: null
+    };
+
+    let currentOverInterval;
+    let isSelectingBowler = false;
+
     // ------------------------
     // 🔹 Match State Helpers
     // ------------------------
@@ -48,6 +58,28 @@ $(document).ready(function () {
         };
         localStorage.setItem(stateKey, JSON.stringify(matchState));
     };
+
+    function saveOverState() {
+        localStorage.setItem('currentOverInterval', currentOverInterval || '');
+        localStorage.setItem('isSelectingBowler', isSelectingBowler ? 'true' : 'false');
+    }
+
+    function clearOverState() {
+        localStorage.removeItem('currentOverInterval');
+        localStorage.removeItem('isSelectingBowler');
+    }
+
+    function startCheckingOver() {
+        currentOverInterval = setInterval(() => {
+            if (!isSelectingBowler) {
+                checkCurrentOver();
+            }
+        }, 2000);
+    }
+
+    function stopCheckingOver() {
+        clearInterval(currentOverInterval);
+    }
 
     // ------------------------
     // 🔹 AJAX Helpers
@@ -75,32 +107,8 @@ $(document).ready(function () {
     // ------------------------
     // 🔹 Update UI Functions
     // ------------------------
-    const choosePlayersInitialize = async () => {
-        if (!tossCompleted) return;
-
-        try {
-            const battingPlayers = await getPlayersList(matchState.battingTeamId, 'batting');
-            const bowlingPlayers = await getPlayersList(matchState.bowlingTeamId, 'bowling');
-
-            console.log('Batting Players:', battingPlayers);
-            console.log('Bowling Players:', bowlingPlayers);
-
-            populateChoosePlayersModal(battingPlayers, bowlingPlayers);
-
-            const modalEl = document.getElementById('choosePlayersModal');
-            const modal = new bootstrap.Modal(modalEl, {
-                backdrop: 'static',
-                keyboard: false
-            });
-            modal.show();
-
-        } catch (err) {
-            console.error('Failed to initialize choose players modal:', err);
-        }
-    };
-
-    if(document.getElementById('match-scoreboard') && !tossCompleted){
-        document.getElementById('match-scoreboard').style.display = 'none';
+    if(document.querySelector('.match-scoreboard') && !tossCompleted){
+        document.querySelector('.match-scoreboard').style.display = 'none';
         document.getElementById('match-result').style.display = 'none';
         console.log("Hidden scoreboard as toss not completed");
     }
@@ -110,6 +118,7 @@ $(document).ready(function () {
             $elements[`${type}Name`].text('Choose Player');
             $elements[`${type}Runs`].text('00');
             $elements[`${type}Balls`].text('0');
+            $elements[`${type}StrikeRate`].text('00.00');
             $elements[`${type}Actions`].html('');
             return;
         }
@@ -117,11 +126,7 @@ $(document).ready(function () {
         $elements[`${type}Name`].text(player.name);
         $elements[`${type}Runs`].text(player.runs ?? 0);
         $elements[`${type}Balls`].text(player.balls ?? 0);
-
-        if (type === 'striker') {
-            $elements.strikerActions.html(
-                `<span class="btn btn-info btn-sm" style="font-size: 16px;">*</span>`);
-        } else $elements.nonStrikerActions.html('');
+        $elements[`${type}StrikeRate`].text(Number((player.runs / player.balls) * 100).toFixed(2) || '0.00');
     };
 
     const updateScoreboard = (scoreboard) => {
@@ -139,6 +144,21 @@ $(document).ready(function () {
             $('.tagetscore-container, .requiredRunRate-container').addClass('d-none');
             $elements.projectedScore.text(scoreboard.projected ?? "0");
             $('.projectedScore-container').removeClass('d-none');
+        }
+    };
+
+    const renderCurrentBowlerCard = (bowler) => {
+        if (bowler) {
+            $('#currentBowlerDetails').html(`
+                <strong style="display: block;">${bowler.name}</strong>
+                <div class="d-flex flex-wrap gap-2 mt-1 dt-current-bowler-info" data-bowler-id="${bowler.id}">
+                    <span>Ov: ${bowler.overs}</span>
+                    <span>R: ${bowler.runs_conceded}</span>
+                    <span>W: ${bowler.wickets}</span>
+                </div>
+            `);
+        } else {
+            $('#currentBowlerDetails').html('No bowler selected');
         }
     };
 
@@ -160,7 +180,7 @@ $(document).ready(function () {
             success: function (res) {
                 if (res.success) {
                     loadFullMatchState();
-                    renderBowlingTable(res.bowling);
+                    renderCurrentBowlerCard(res.bowling);
                     showToast("Bowler Selected..");
                     window.location.reload();
                 } else {
@@ -173,7 +193,6 @@ $(document).ready(function () {
             }
         });
     }
-
 
     // ------------------------
     // 🔹 Toss Selection
@@ -189,6 +208,9 @@ $(document).ready(function () {
             $.ajax({
                 url: '/admin/cricket-matches/players-list',
                 type: 'POST',
+                headers: {
+                    'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                },
                 data: {
                     match_id: matchId,
                     team_id: teamId,
@@ -261,22 +283,87 @@ $(document).ready(function () {
         }
     }
 
-    function populateChoosePlayersModal(battingPlayers, bowlingPlayers) {
-        const strikerSelect = $('#selectStriker');
-        const nonStrikerSelect = $('#selectNonStriker');
-        const bowlerSelect = $('#selectBowler');
+    async function openBowlerModal() {
+        try {
+            const bowlers = await getPlayersList(
+                matchState.bowlingTeamId,
+                'bowling'
+            );
 
-        strikerSelect.empty();
-        nonStrikerSelect.empty();
-        bowlerSelect.empty();
+            populateBowlerModal(bowlers);
 
-        battingPlayers.forEach(player => {
-            strikerSelect.append(`<option value="${player.id}">${player.name}</option>`);
-            nonStrikerSelect.append(`<option value="${player.id}">${player.name}</option>`);
-        });
+            $('#bowlerModal').modal('show');
+
+        } catch (err) {
+            console.error(err);
+            $('#bowlerList').html(`
+                <div class="alert alert-danger mb-0">
+                    Failed to load bowlers
+                </div>
+            `);
+        }
+    }
+
+    function populateBowlerModal(bowlingPlayers) {
+        const bowlerList = $('#bowlerList');
+        bowlerList.empty();
+
+        if (!bowlingPlayers.length) {
+            bowlerList.html(`
+                <div class="alert alert-warning mb-0">
+                    No bowlers available
+                </div>
+            `);
+            return;
+        }
 
         bowlingPlayers.forEach(player => {
-            bowlerSelect.append(`<option value="${player.id}">${player.name}</option>`);
+            const img = player.image_url ?? '/images/player-placeholder.png';
+            const overs = player.overs_bowled ?? '0.0';
+            const style = player.bowling_style ?? '—';
+
+            const card = `
+                <div class="card bowler-card mb-2"
+                    role="button"
+                    data-bowler-id="${player.id}"
+                    data-bowler-name="${player.name}">
+
+                    <div class="card-body p-2 d-flex align-items-center gap-3">
+
+                        <img src="${img}"
+                            class="rounded-circle"
+                            style="width:50px;height:50px;object-fit:cover;"
+                            alt="${player.name}">
+
+                        <div class="flex-grow-1">
+                            <h6 class="mb-1 fw-bold">${player.name}</h6>
+
+                            <small class="text-muted d-block">
+                                Overs: <strong>${overs}</strong>
+                            </small>
+
+                            <small class="text-muted d-block">
+                                Style: ${style}
+                            </small>
+                        </div>
+
+                    </div>
+                </div>
+            `;
+
+            bowlerList.append(card);
+        });
+
+        bowlerList.off('click', '.bowler-card');
+        bowlerList.on('click', '.bowler-card', function () {
+            const bowlerId = $(this).data('bowler-id');
+            sendBowlerData(matchId, matchState.bowlingTeamId, bowlerId);
+
+            // Close the modal
+            $('#bowlerModal').modal('hide');
+
+            // Resume checking for next over
+            isSelectingBowler = false;
         });
     }
 
@@ -313,7 +400,7 @@ $(document).ready(function () {
         legalBall = true
     }) => {
         const state = getMatchState();
-        const bowlerId = state.currentBowler;
+        const bowlerId = $('.dt-current-bowler-info').data('bowler-id');
         if (!bowlerId) return showToast('Select a bowler first', 'error');
         if(!state.striker && !state.nonStriker){
             showToast('Please Select Striker And Non-Striker Batsman', 'error');
@@ -341,7 +428,7 @@ $(document).ready(function () {
             body: JSON.stringify(payload)
         }).then(data => {
             if (!data.success) throw new Error(data.message);
-            
+            console.log("Delivery Stored: ", data)
             setMatchState({
                 striker: data.updated_state.striker,
                 nonStriker: data.updated_state.nonStriker
@@ -362,6 +449,37 @@ $(document).ready(function () {
         }).catch(err => console.error('Error recording delivery:', err));
     };
 
+    const undoLastDelivery = async () => {
+        try {
+            const undoBtn = document.querySelector('.btn-undo-ball');
+            if (undoBtn) undoBtn.disabled = true;
+
+            const response = await fetch(`/admin/cricket-matches/scoreboard/undo-last-delivery`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                },
+                body: JSON.stringify({ match_id: matchId })
+            });
+
+            const data = await response.json();
+
+            if (!data.success) throw new Error(data.message);
+
+            showToast(data.message);
+
+            await loadFullMatchState(matchId);
+            await loadCurrentOver(matchId);
+        } catch (err) {
+            console.error('Error undoing last delivery:', err);
+            showToast('Failed to undo last delivery. Please try again.');
+        } finally {
+            const undoBtn = document.querySelector('.btn-undo-ball');
+            if (undoBtn) undoBtn.disabled = false;
+        }
+    };
+
     // ------------------------
     // 🔹 Load Full Match State
     // ------------------------
@@ -373,7 +491,7 @@ $(document).ready(function () {
             .then(data => {
                 if (!data.success) return console.error('Failed to load match state:', data.message);
                 if (data.match_result) {
-                    document.getElementById('match-scoreboard').style.display = 'none';
+                    document.querySelector('.match-scoreboard').style.display = 'none';
                     document.getElementById('match-result').style.display = 'block';
                     console.log("Hidden scoreboard show result");
 
@@ -397,10 +515,9 @@ $(document).ready(function () {
 
                     winnerWrap.onclick = () => winnerWrap.style.display = 'none';
                 } else {
-                    document.getElementById('match-scoreboard').style.display = 'block';
+                    document.querySelector('.match-scoreboard').style.display = 'block';
                     document.getElementById('match-result').style.display = 'none';
-                    console.log("scoreboard show 2");
-
+                    
                     setMatchState(data.match_state);
                     $elements.battingTeamName.text(`${data.match_state.team.name}`);
 
@@ -414,10 +531,7 @@ $(document).ready(function () {
 
                     if (currentInnings) {
                         updateScoreboard(currentInnings.scoreboard);
-                        // renderBattingTable(currentInnings.batting);
-                        // renderBowlingTable(currentInnings.bowling);
-                        // renderPartnerships(currentInnings.partnerships);
-                        // renderFallOfWickets(currentInnings.fall_of_wickets);
+                        renderCurrentBowlerCard(data.match_state.currentBowler);
                     } else {
                         console.warn('Current innings data not found');
                     }
@@ -436,6 +550,12 @@ $(document).ready(function () {
             .catch(err => console.error('Error fetching full match state:', err));
     };
 
+    function formatBallType(type) {
+        return type
+            .replace('-', ' ')
+            .replace(/\b\w/g, c => c.toUpperCase());
+    }
+
     function loadCurrentOver() {
         if (!tossCompleted) return;
 
@@ -451,7 +571,11 @@ $(document).ready(function () {
                 container.innerHTML = '';
 
                 data.balls.forEach(ball => {
+                    const wrapper = document.createElement('div');
+                    wrapper.classList.add('over-ball-wrapper');
+
                     const span = document.createElement('span');
+                    span.classList.add('over-ball');
 
                     if (ball.class) {
                         ball.class.split(' ').forEach(cls => {
@@ -459,14 +583,24 @@ $(document).ready(function () {
                         });
                     }
 
-                    const ballLabel = String(ball.ball);
+                    span.innerText = ball.ball;
 
-                    if (ballLabel.includes('W')) {
-                        span.classList.add('wicket-ball'); // define in CSS
+                    if (String(ball.ball).includes('W')) {
+                        span.classList.add('wicket-ball');
                     }
 
-                    span.innerText = ballLabel;
-                    container.appendChild(span);
+                    wrapper.appendChild(span);
+                    console.log("Ball Type:", ball);
+                    if (ball.type && ball.type !== 'normal') {
+                        const label = document.createElement('small');
+                        label.classList.add('ball-type-label');
+
+                        label.innerText = ball.label || formatBallType(ball.type);
+
+                        wrapper.appendChild(label);
+                    }
+
+                    container.appendChild(wrapper);
                 });
             })
             .catch(err => console.error('Error loading current over:', err));
@@ -497,43 +631,132 @@ $(document).ready(function () {
         const nbBatsmanOut = document.getElementById('nbBatsmanOut');
         const type = $(this).data('extra');
 
-        // Reset
+        // Reset everything
         nbSection.classList.add('d-none');
         wdSection.classList.add('d-none');
         lbSection.classList.add('d-none');
         modalTitle.textContent = "Extra";
+        
+        // Reset radio buttons
+        document.querySelectorAll('#extraForm input[type="radio"]').forEach(radio => {
+            radio.checked = false;
+        });
+        
+        // Reset checkboxes
+        if (nbRunOutCheckbox) nbRunOutCheckbox.checked = false;
+        
+        // Reset player cards
+        document.querySelectorAll('.player-card').forEach(card => {
+            card.classList.remove('selected');
+        });
+        document.querySelectorAll('.player-check').forEach(check => {
+            check.classList.add('d-none');
+        });
+        
+        // Reset player error
+        const playerError = document.getElementById('playerError');
+        if (playerError) playerError.textContent = '';
 
         if (type === "NB") {
             modalTitle.textContent = "No Ball";
             nbSection.classList.remove('d-none');
 
-            nbRunOutCheckbox.addEventListener('change', function () {
+            const newCheckbox = nbRunOutCheckbox.cloneNode(true);
+            nbRunOutCheckbox.parentNode.replaceChild(newCheckbox, nbRunOutCheckbox);
+            $('#mdl-strikerName').text(matchState.striker ? matchState.striker.name : 'Choose Player');
+            $('#mdl-nonStrikerName').text(matchState.nonStriker ? matchState.nonStriker.name : 'Choose Player');
+            console.log("Resetting player selection");
+            
+            newCheckbox.addEventListener('change', function () {
                 nbBatsmanOut.classList.toggle('d-none', !this.checked);
+                
+                if (!this.checked) {
+                    document.querySelectorAll('.player-radio').forEach(radio => {
+                        radio.checked = false;
+                    });
+                    document.querySelectorAll('.player-card').forEach(card => {
+                        card.classList.remove('selected');
+                    });
+                    document.querySelectorAll('.player-check').forEach(check => {
+                        check.classList.add('d-none');
+                    });
+                }
             });
 
-            // loadCurrentPlayersToModal();
+            // Add player selection functionality
+            document.querySelectorAll('.player-card-label').forEach(label => {
+                const radio = label.querySelector('input[type="radio"]');
+                const card = label.querySelector('.player-card');
+                const check = label.querySelector('.player-check');
+
+                label.addEventListener('click', function(e) {
+                    // Only select if run out is checked
+                    if (!nbRunOutCheckbox.checked) {
+                        e.preventDefault();
+                        return;
+                    }
+
+                    // Deselect all
+                    document.querySelectorAll('.player-card').forEach(c => {
+                        c.classList.remove('selected');
+                    });
+                    document.querySelectorAll('.player-check').forEach(c => {
+                        c.classList.add('d-none');
+                    });
+
+                    // Select this one
+                    radio.checked = true;
+                    card.classList.add('selected');
+                    check.classList.remove('d-none');
+                    
+                    // Clear error
+                    const playerError = document.getElementById('playerError');
+                    if (playerError) playerError.textContent = '';
+                });
+            });
+
+            // Set default radio button for runs
+            const defaultNbRun = document.getElementById('nbRun0');
+            if (defaultNbRun) defaultNbRun.checked = true;
+
         } else if (type === "WD") {
             modalTitle.textContent = "Wide Ball";
             wdSection.classList.remove('d-none');
+            
+            // Set default radio button for runs (1 run)
+            const defaultWdRun = document.getElementById('wdRun1');
+            if (defaultWdRun) defaultWdRun.checked = true;
+            
         } else if (type === "LB") {
             modalTitle.textContent = "Leg Bye";
             lbSection.classList.remove('d-none');
+            
+            // Set default radio button for runs
+            const defaultLbRun = document.getElementById('lbRun0');
+            if (defaultLbRun) defaultLbRun.checked = true;
         }
     });
 
     document.getElementById("extraForm").addEventListener("submit", function (e) {
-        e.preventDefault(); // Prevent form submission
+        e.preventDefault();
 
-        // Determine which type of extra is selected
         let extra = null;
         let batsmanOut = null;
         let legalBall = true;
+        let valid = true;
 
         // No Ball
         const nbSection = document.getElementById("nbSection");
         if (!nbSection.classList.contains("d-none")) {
             const nbRun = document.querySelector('input[name="nbRuns"]:checked');
             const runOutChecked = document.getElementById("nbRunOut").checked;
+            
+            if (!nbRun) {
+                alert("Please select runs for No Ball");
+                valid = false;
+                return;
+            }
+            
             extra = {
                 type: "NB",
                 runs: nbRun ? Number(nbRun.value) : 0,
@@ -542,8 +765,15 @@ $(document).ready(function () {
             legalBall = false;
 
             if (runOutChecked) {
-                const selectedBatsman = nbSection.querySelector('input[name="player_id"]:checked');
-                if (selectedBatsman) batsmanOut = selectedBatsman.value;
+                const selectedBatsman = document.querySelector('input[name="player_id"]:checked');
+                if (selectedBatsman) {
+                    batsmanOut = selectedBatsman.value;
+                } else {
+                    const playerError = document.getElementById('playerError');
+                    if (playerError) playerError.textContent = 'Please select a batsman for run out';
+                    valid = false;
+                    return;
+                }
             }
         }
 
@@ -551,6 +781,13 @@ $(document).ready(function () {
         const wdSection = document.getElementById("wdSection");
         if (!wdSection.classList.contains("d-none")) {
             const wdRun = document.querySelector('input[name="wdExtraRuns"]:checked');
+            
+            if (!wdRun) {
+                alert("Please select extra runs for Wide Ball");
+                valid = false;
+                return;
+            }
+            
             extra = {
                 type: "WD",
                 runs: wdRun ? Number(wdRun.value) : 1,
@@ -563,15 +800,24 @@ $(document).ready(function () {
         const lbSection = document.getElementById("lbSection");
         if (!lbSection.classList.contains("d-none")) {
             const lbRun = document.querySelector('input[name="lbRuns"]:checked');
+            
+            if (!lbRun) {
+                alert("Please select runs for Leg Bye");
+                valid = false;
+                return;
+            }
+            
             extra = {
                 type: "LB",
                 runs: lbRun ? Number(lbRun.value) : 0,
                 run_out: false
             };
-            legalBall = true; // LB is legal
+            legalBall = true;
         }
 
-        // Now call addDelivery with extra
+        if (!valid) return;
+
+        // Call your addDelivery function
         addDelivery({
             runs: 0,
             extra: extra,
@@ -580,9 +826,22 @@ $(document).ready(function () {
             legalBall: legalBall
         });
 
-        // Close modal after submission
+        // Close modal
         const extraModal = bootstrap.Modal.getInstance(document.getElementById("extraModal"));
-        extraModal.hide();
+        if (extraModal) extraModal.hide();
+    });
+
+    // Reset form when modal is hidden
+    document.getElementById('extraModal').addEventListener('hidden.bs.modal', function () {
+        document.getElementById('extraForm').reset();
+        document.querySelectorAll('.player-card').forEach(card => {
+            card.classList.remove('selected');
+        });
+        document.querySelectorAll('.player-check').forEach(check => {
+            check.classList.add('d-none');
+        });
+        const playerError = document.getElementById('playerError');
+        if (playerError) playerError.textContent = '';
     });
 
     // ------------------------
@@ -624,11 +883,6 @@ $(document).ready(function () {
             batsmanOut: $(this).data('batsman')
         });
     });
-
-    let stumpedData = {
-        keeperId: null,
-        batsmanOut: null
-    };
 
     $(document).on('change', '#stumpedBySelect', function () {
         stumpedData.keeperId = $(this).val();
@@ -699,7 +953,6 @@ $(document).ready(function () {
         });
     }
 
-
     // ------------------------
     // 🔹 Load bowling team players
     // ------------------------
@@ -749,42 +1002,26 @@ $(document).ready(function () {
         });
     };
 
-    // ------------------------
-    // When a bowler is selected from Select2
-    // ------------------------
-    $('#bowler-select').on('select2:select', function (e) {
-        const bowlerId = e.params.data.id;
-        const teamId = $('#bowling_team_id').val();
+    function checkCurrentOver() {
+        fetch(`/admin/cricket-matches/scoreboard/${matchId}/current-over`)
+            .then(response => response.json())
+            .then(data => {
+                console.log('Current over data:', data);
 
-        const chooseBowlerRoute = `/admin/cricket-matches/scoreboard/${matchId}/add-bowler`;
+                saveOverState(data.legalBalls); // <-- save current over number
 
-        $.ajax({
-            url: chooseBowlerRoute,
-            type: "POST",
-            contentType: "application/json",
-            headers: {
-                'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
-            },
-            data: JSON.stringify({
-                match_id: matchId,
-                bowler_id: bowlerId,
-                team_id: teamId
-            }),
-            success: function (res) {
-                if (res.success) {
-                    renderBowlingTable(res.bowling); // Use your table rendering helper
-                    showToast("Bowler Selected..");
-                } else {
-                    alert(res.message || "Something went wrong!");
+                if (data.legalBalls >= 6 && !isSelectingBowler) {
+                    isSelectingBowler = true;
+                    saveOverState(); // <-- save the selection state
+                    openBowlerModal();
                 }
-            },
-            error: function (xhr) {
-                console.error("Error saving bowler:", xhr.responseText);
-                alert("Error saving bowler.");
-            }
-        });
-    });
+            })
+            .catch(error => console.error('Error fetching current over:', error));
+    }
 
+    // ----------------------------------
+    // 🔹 Select Players From Yet To Bat
+    // ----------------------------------
     $('#flt-player').on('input', function () {
         const searchTerm = this.value.toLowerCase();
 
@@ -812,8 +1049,6 @@ $(document).ready(function () {
                     return;
                 }
                 
-                console.log(data.players);
-
                 data.players.forEach(player => {
                     const card = document.createElement('div');
                     card.className = 'card mb-2 player-card';
@@ -837,9 +1072,6 @@ $(document).ready(function () {
             });
     }
 
-    // ----------------------------------
-    // 🔹 Select Players From Yet To Bat
-    // ----------------------------------
     window.selectBatsman = function (playerId) {
         const matchState = JSON.parse(localStorage.getItem(stateKey) || "{}");
         const battingTeamId = matchState.battingTeamId;
@@ -896,11 +1128,12 @@ $(document).ready(function () {
                 // Update UI
                 if (role === 'on-strike') {
                     document.getElementById("strikerName").innerText = matchState.striker.name;
+                    document.getElementById("mdl-strikerName").innerText = matchState.striker.name;
                     document.getElementById("strikerRuns").innerText = "00";
                     document.getElementById("strikerBallsFaced").innerText = "0";
                 } else {
-                    document.getElementById("nonStrikerName").innerText = matchState.nonStriker
-                        .name;
+                    document.getElementById("nonStrikerName").innerText = matchState.nonStriker.name;
+                    document.getElementById("mdl-nonStrikerName").innerText = matchState.nonStriker.name;
                     document.getElementById("nonStrikerRuns").innerText = "00";
                     document.getElementById("nonStrikerBallsFaced").innerText = "0";
                 }
@@ -985,7 +1218,7 @@ $(document).ready(function () {
                         showConfirmButton: false
                     });
 
-                    $('#match-scoreboard').hide();
+                    $('.match-scoreboard').hide();
                     $('#match-result').show();
                     console.log("Hidden scoreboard show result");
 
@@ -1007,6 +1240,20 @@ $(document).ready(function () {
     // ------------------------
     // 🔹 Initialization
     // ------------------------
+    $('#btn-trigger-bowler-modal').on('click', function(){
+        openBowlerModal();
+    });
+
+    const savedIsSelectingBowler = localStorage.getItem('isSelectingBowler');
+    if (savedIsSelectingBowler !== null) {
+        isSelectingBowler = savedIsSelectingBowler === 'true';
+    }
+
+    const lastOver = localStorage.getItem('lastOver');
+    if (lastOver) {
+        console.log('Resuming from last over:', lastOver);
+    }
+
     if(tossCompleted){
         loadFullMatchState(matchId);
         fetchBowlingTeamPlayers();
@@ -1014,5 +1261,8 @@ $(document).ready(function () {
         loadCurrentOver();
     }
     toggleTossInputs($('#start-match').val());
-    choosePlayersInitialize();
+    startCheckingOver();
+    $('.btn-undo-ball').on('click', function(){
+        undoLastDelivery();
+    });
 });

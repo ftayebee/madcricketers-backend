@@ -113,6 +113,7 @@ Route::prefix('admin')->name('admin.')->group(function(){
             Route::get('/{match}/team-b-players', [CricketMatchController::class, 'getTeamBPlayers']);
             Route::post('/{match}/add-bowler', [CricketMatchController::class, 'chooseBowler'])->name('choose-bowler');
             Route::get('/{match}/current-over', [CricketMatchController::class, 'getCurrentOver'])->name('current-over');
+            Route::post('/undo-last-delivery', [CricketMatchController::class, 'undoLastDelivery'])->name('undo-last-delivery');
         });
     });
 

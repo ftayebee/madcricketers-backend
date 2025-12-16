@@ -125,8 +125,9 @@
                     </div>
                 </div>
             @endif
-
-            @if (!empty($match->scoreboard->toArray()))
+        </div>
+        @if (!empty($match->scoreboard->toArray()))
+            <div class="col-12 col-md-8 match-scoreboard">
                 <input type="hidden" name="innings"
                     value="{{ $match->scoreboard->where('status', 'running')->first()->innings ?? 0 }}">
                 <input type="hidden" name="max_overs" value="{{ $match->max_overs }}">
@@ -147,7 +148,8 @@
                                             Team A
                                         </h4>
                                         <!-- Score Line -->
-                                        <div class="d-flex flex-wrap gap-2 small fw-semibold score-info justify-content-between">
+                                        <div
+                                            class="d-flex flex-wrap gap-2 small fw-semibold score-info justify-content-between">
                                             <span id="currentScore" class="badge bg-dark d-flex align-items-center">
                                                 0 / 0
                                             </span>
@@ -179,12 +181,14 @@
                             <!-- RIGHT: Actions -->
                             <div class="col-12 col-md-3">
                                 <div class="d-flex flex-wrap gap-2 justify-content-center">
-                                    <button class="btn btn-outline-danger btn-complete-innings w-md-auto" style="width: 48% !important">
+                                    <button class="btn btn-outline-danger btn-complete-innings w-md-auto"
+                                        style="width: 48% !important">
                                         <span class="d-none d-sm-inline">Complete Innings</span>
                                         <span class="d-inline d-sm-none">End Inn.</span>
                                     </button>
 
-                                    <button class="btn btn-outline-secondary btn-undo-ball w-md-auto" style="width: 48% !important">
+                                    <button class="btn btn-outline-secondary btn-undo-ball w-md-auto"
+                                        style="width: 48% !important">
                                         <span class="d-none d-sm-inline">Undo Ball</span>
                                         <span class="d-inline d-sm-none">Undo</span>
                                     </button>
@@ -193,106 +197,154 @@
                             </div>
                         </div>
                     </div>
+                </div>
 
-                    <div class="card-body row">
-                        <div class="col-md-8">
-                            <div class="row g-2">
-                                <div class="col-12">
-                                    <h4 class="fs-5 fw-bold mb-2">Current Batsman</h4>
-                                </div>
-
-                                <!-- Player 1 -->
+                <div class="row g-2">
+                    <div class="col-12">
+                        <div class="card" id="match-scoreboard" class="d-block">
+                            <div class="card-header">
+                                <h4 class="fs-5 fw-bold mb-0">Current Batsman</h4>
+                            </div>
+                            <div class="card-body row">
                                 <div class="col-12 col-sm-6">
                                     <div class="card mb-2 border-info border-1">
-                                        <div class="card-body d-flex justify-content-between align-items-center p-2">
+                                        <div class="card-body d-flex align-items-center gap-2 p-2">
+                                            <img src="https://img.freepik.com/free-vector/illustration-gallery-icon_53876-27002.jpg?semt=ais_hybrid&w=740&q=80"
+                                                alt="Player" class="rounded-circle" width="42" height="42">
+
+                                            <div class="flex-grow-1">
+                                                <h6 class="mb-0 fs-14" id="strikerName">Choose Player</h6>
+                                            </div>
+
                                             <div>
-                                                <h6 class="mb-1" id="strikerName">Choose Player</h6>
-                                                <p class="mb-0 small">
-                                                    Runs: <span id="strikerRuns">00</span>
+                                                <p class="text-black mb-1 fs-12 text-right">
+                                                    <span id="strikerRuns">00</span>
                                                     (<span id="strikerBallsFaced">0</span> balls)
                                                 </p>
-                                            </div>
-                                            <div id="strikerActions">
-                                                <!-- Buttons injected dynamically -->
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-
-                                <!-- Player 2 -->
-                                <div class="col-12 col-sm-6">
-                                    <div class="card mb-2 border-info border-1">
-                                        <div class="card-body d-flex justify-content-between align-items-center p-2">
-                                            <div>
-                                                <h6 class="mb-1" id="nonStrikerName">Choose Player</h6>
-                                                <p class="mb-0 small">
-                                                    Runs: <span id="nonStrikerRuns">00</span>
-                                                    (<span id="nonStrikerBallsFaced">0</span> balls)
+                                                <p class="text-muted mb-0 fs-12 text-right">
+                                                    SR: <span id="strikerStrikeRate">0.00</span>
                                                 </p>
                                             </div>
-                                            <div id="nonStrikerActions" class="d-flex flex-column">
-                                                <!-- Buttons injected dynamically -->
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="col-12 col-sm-6">
+                                    <div class="card mb-2 border-info border-1">
+                                        <div class="card-body d-flex align-items-center gap-2 p-2">
+                                            <img src="https://img.freepik.com/free-vector/illustration-gallery-icon_53876-27002.jpg?semt=ais_hybrid&w=740&q=80"
+                                                alt="Player" class="rounded-circle" width="42" height="42">
+
+                                            <div class="flex-grow-1">
+                                                <h6 class="mb-0 fs-14" id="nonStrikerName">Choose Player</h6>
+                                            </div>
+
+                                            <div>
+                                                <p class="text-black mb-1 fs-12 text-right">
+                                                    <span id="nonStrikerRuns">00</span>
+                                                    (<span id="nonStrikerBallsFaced">0</span> balls)
+                                                </p>
+                                                <p class="text-muted mb-0 fs-12 text-right">
+                                                    SR: <span id="nonStrikerStrikeRate">0.00</span>
+                                                </p>
                                             </div>
                                         </div>
                                     </div>
                                 </div>
-                            </div>
-
-
-                            {{-- Scoring buttons --}}
-                            <div class="row">
-                                <div class="col-12">
-                                    <div class="d-flex flex-wrap gap-3 mt-3">
-                                        <div>
-                                            <h5>Runs</h5>
-                                            @foreach (['0', '1', '2', '3', '4', '6'] as $run)
-                                                <button class="btn btn-outline-primary btn-run"
-                                                    data-run="{{ $run }}">{{ $run }}</button>
-                                            @endforeach
-                                        </div>
-
-                                        <div>
-                                            <h5>Extras</h5>
-                                            @foreach (['NB', 'WD', 'LB', 'BY'] as $extra)
-                                                <button type="button" class="btn btn-outline-warning btn-extra"
-                                                    data-bs-toggle="modal" data-bs-target="#extraModal"
-                                                    data-extra="{{ $extra }}">
-                                                    {{ $extra }}
-                                                </button>
-                                            @endforeach
-                                        </div>
-
-                                        <div>
-                                            <h5>Wickets</h5>
-                                            <button class="btn btn-outline-danger btn-wicket" data-bs-toggle="modal"
-                                                data-bs-target="#wicketModal" data-type="W">W</button>
-                                        </div>
-                                    </div>
-
-                                    <div class="mt-3 fs-16 d-flex align-items-center">
-                                        <p class="m-0"><strong>Current Over:</strong></p>
-                                        <div id="currentOverDetails" class="over-display" style="margin-left: 15px;">
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="col-md-4">
-                            <h4 style="font-weight: bold;">Yet to Bat</h4>
-                            <div class="form-group mb-3">
-                                <input type="text" name="filter-player" id="flt-player"
-                                    placeholder="Search by player name" class="form-control">
-                            </div>
-                            <div id="yetToBatList" style="display: flex; flex-direction: column;">
-                                <p class="list-group-item alert alert-info">Loading...</p>
                             </div>
                         </div>
                     </div>
                 </div>
 
-                <div class="card" id="match-result" class="d-none"
-                    style="padding: auto 90px; background: transparent;">
+                <div class="row">
+                    <div class="col-12">
+                        <div class="card" class="d-block">
+                            <div class="card-header">
+                                <h4 class="fs-5 fw-bold mb-0">Add Delivery</h4>
+                            </div>
+                            <div class="card-body">
+                                <div class="d-flex flex-wrap gap-3">
+                                    <div>
+                                        <h5>Runs</h5>
+                                        @foreach (['0', '1', '2', '3', '4', '6'] as $run)
+                                            <button class="btn btn-outline-primary btn-run"
+                                                data-run="{{ $run }}">{{ $run }}</button>
+                                        @endforeach
+                                    </div>
+
+                                    <div>
+                                        <h5>Extras</h5>
+                                        @foreach (['NB', 'WD', 'LB', 'BY'] as $extra)
+                                            <button type="button" class="btn btn-outline-warning btn-extra"
+                                                data-bs-toggle="modal" data-bs-target="#extraModal"
+                                                data-extra="{{ $extra }}">
+                                                {{ $extra }}
+                                            </button>
+                                        @endforeach
+                                    </div>
+
+                                    <div>
+                                        <h5>Wickets</h5>
+                                        <button class="btn btn-outline-danger btn-wicket" data-bs-toggle="modal"
+                                            data-bs-target="#wicketModal" data-type="W">W</button>
+                                    </div>
+                                </div>
+
+                                <div class="mt-3 fs-16">
+                                    <p class="mb-2"><strong>Current Over:</strong></p>
+                                    <div id="currentOverDetails" class="over-display" style="margin-left: 15px;">
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="col-12">
+                        <div class="card" id="match-scoreboard" class="d-block">
+                            <div class="card-header">
+                                <div class="d-flex align-items-center justify-content-between">
+                                    <h4 class="fs-5 fw-bold mb-0">Current Bowler</h4>
+
+                                    <button class="btn btn-outline-info" id="btn-trigger-bowler-modal">
+                                        Change Bowler
+                                    </button>
+                                </div>
+                            </div>
+                            <div class="card-body">
+                                <div
+                                    class="fs-16 d-flex flex-column flex-md-row align-items-start align-items-md-center justify-content-between gap-2">
+                                    <div
+                                        class="d-flex flex-column flex-sm-row align-items-start align-items-sm-center gap-2">
+                                        <div id="currentBowlerDetails" class="ms-0 ms-sm-2">
+                                            Choose Bowler
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-12 col-md-4 match-scoreboard">
+                <div class="card">
+                    <div class="card-body">
+                        <h4 style="font-weight: bold;">Yet to Bat</h4>
+                        <div class="form-group mb-3">
+                            <input type="text" name="filter-player" id="flt-player"
+                                placeholder="Search by player name" class="form-control">
+                        </div>
+                        <div id="yetToBatList" style="display: flex; flex-direction: column;">
+                            <p class="list-group-item alert alert-info">Loading...</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-12 col-md-12 d-none" id="match-result">
+                <div class="card" style="padding: auto 90px; background: transparent;">
                     <div class="card-body">
                         <div class="winner-wrap" id="winner-wrap">
                             <div class="border"></div>
@@ -305,11 +357,29 @@
                         </div>
                     </div>
                 </div>
-            @endif
+            </div>
+        @endif
+    </div>
+
+    <div class="modal fade" id="bowlerModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Select Bowler</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+
+                <div class="modal-body">
+                    <input type="text" class="form-control mb-3" id="bowlerSearch" placeholder="Search bowler">
+
+                    <div id="bowlerList" class="list-group">
+
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
 
-    <!-- Modal -->
     <div class="modal fade" id="extraModal" tabindex="-1" aria-labelledby="extraModalLabel" aria-hidden="true">
         <div class="modal-dialog">
             <div class="modal-content">
@@ -328,8 +398,7 @@
                                 <label>Runs:</label>
                                 <div class="btn-group" role="group" id="extraRunButtons">
                                     @foreach ([0, 1, 2, 3, 4, 6] as $r)
-                                        <input type="radio" class="btn-check" name="nbRuns"
-                                            id="nbRun{{ $r }}" value="{{ $r }}">
+                                        <input type="radio" class="btn-check" name="nbRuns" id="nbRun{{ $r }}" value="{{ $r }}">
                                         <label class="btn btn-outline-primary"
                                             for="nbRun{{ $r }}">{{ $r }}</label>
                                     @endforeach
@@ -337,21 +406,62 @@
                             </div>
                             <div class="mt-3">
                                 <input type="checkbox" id="nbRunOut" class="form-check-input">
-                                <label for="nbRunOut" class="form-check-label">Run
-                                    Out?</label>
+                                <label for="nbRunOut" class="form-check-label">Run Out?</label>
                             </div>
                             <div id="nbBatsmanOut" class="mt-2 d-none">
-                                <label class="fs-14" style="font-weight: bold;">Batsman
-                                    Out:</label>
-                                <div class="player-wrapper">
+                                <label class="fs-14" style="font-weight: bold;">Choose Batsman (Run Out):</label>
+                                <div class="player-wrapper row mt-2">
+                                    <!-- Striker Card -->
+                                    <div class="col-12 col-sm-6">
+                                        <input type="radio" class="d-none player-radio" name="player_id"
+                                            id="player_striker" value="{{ $strikerId ?? '' }}">
+                                        <label for="player_striker" class="player-card-label mb-2">
+                                            <div class="card border-info border-1 player-card">
+                                                <div class="card-body d-flex align-items-center gap-2 p-2">
+                                                    <img src="https://img.freepik.com/free-vector/illustration-gallery-icon_53876-27002.jpg?semt=ais_hybrid&w=740&q=80"
+                                                        alt="Player" class="rounded-circle" width="42"
+                                                        height="42">
+                                                    <div class="flex-grow-1">
+                                                        <h6 class="mb-0 fs-14" id="mdl-strikerName">Choose Player</h6>
+                                                        <small class="text-muted">Striker</small>
+                                                    </div>
+                                                    <div class="player-check ms-2 d-none">
+                                                        <i class="fas fa-check-circle text-success"></i>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </label>
+                                    </div>
+
+                                    <!-- Non-Striker Card -->
+                                    <div class="col-12 col-sm-6">
+                                        <input type="radio" class="d-none player-radio" name="player_id"
+                                            id="player_nonstriker" value="{{ $nonStrikerId ?? '' }}">
+                                        <label for="player_nonstriker" class="player-card-label mb-2">
+                                            <div class="card border-info border-1 player-card">
+                                                <div class="card-body d-flex align-items-center gap-2 p-2">
+                                                    <img src="https://img.freepik.com/free-vector/illustration-gallery-icon_53876-27002.jpg?semt=ais_hybrid&w=740&q=80"
+                                                        alt="Player" class="rounded-circle" width="42"
+                                                        height="42">
+                                                    <div class="flex-grow-1">
+                                                        <h6 class="mb-0 fs-14" id="mdl-nonStrikerName">Choose Player</h6>
+                                                        <small class="text-muted">Non-Striker</small>
+                                                    </div>
+                                                    <div class="player-check ms-2 d-none">
+                                                        <i class="fas fa-check-circle text-success"></i>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </label>
+                                    </div>
                                 </div>
+                                <div class="text-danger fs-12 mt-1" id="playerError"></div>
                             </div>
                         </div>
 
                         {{-- WD Section --}}
                         <div id="wdSection" class="d-none">
-                            <p><strong>Wide Ball:</strong> Default 1 run counted. Add extras
-                                if needed.</p>
+                            <p><strong>Wide Ball:</strong> Default 1 run counted. Add extras if needed.</p>
                             <div>
                                 <label>Extra Runs:</label>
                                 <div class="btn-group" role="group">
@@ -391,7 +501,6 @@
             </div>
         </div>
     </div>
-
 
     <div class="modal fade" id="wicketModal" tabindex="-1" aria-hidden="true">
         <div class="modal-dialog">

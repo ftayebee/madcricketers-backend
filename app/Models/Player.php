@@ -34,10 +34,10 @@ class Player extends Model
     public function matches()
     {
         return $this->belongsToMany(
-            CricketMatch::class, // related model
-            'match_players',     // pivot table
-            'player_id',         // foreign key on pivot table for Player
-            'match_id'           // foreign key on pivot table for CricketMatch
+            CricketMatch::class, 
+            'match_players',     
+            'player_id',         
+            'match_id'           
         )->withTimestamps();
     }
 
@@ -59,5 +59,10 @@ class Player extends Model
     public function tournamentStatistic()
     {
         return $this->hasMany(TournamentPlayerStat::class, 'player_id', 'id');
+    }
+
+    public function matchPlayers()
+    {
+        return $this->hasMany(MatchPlayer::class, 'player_id', 'id');
     }
 }

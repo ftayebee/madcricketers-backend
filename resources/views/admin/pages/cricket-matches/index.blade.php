@@ -268,7 +268,7 @@
                 } [match.status] || 'secondary';
 
                 return `
-                    <div class="col-12 col-md-6 col-xl-4 mb-3">
+                    <div class="col-12 col-md-6 col-xl-3 mb-3">
                         <div class="card match-card h-100">
 
                             <div class="card-header d-flex justify-content-between align-items-center">
@@ -331,7 +331,7 @@
                                                     Edit Score
                                                 </a>` : ''}
 
-                                ${match.canEdit ? `
+                                ${match.canEdit && match.status !== 'Completed'? `
                                                 <a href="${match.editUrl}" class="btn btn-sm btn-outline-secondary">
                                                     Edit Details
                                                 </a>` : ''}

@@ -28,6 +28,33 @@
         font-size: 20px;
     }
 }
+
+.player-card-label {
+    cursor: pointer;
+    display: block;
+}
+
+.player-card-label .player-card {
+    transition: all 0.3s ease;
+    border-width: 2px;
+}
+
+.player-card-label input[type="radio"]:checked + .player-card-label .player-card,
+.player-card-label .player-card.selected {
+    border-color: #28a745 !important;
+    background-color: rgba(40, 167, 69, 0.1);
+    box-shadow: 0 0 0 0.2rem rgba(40, 167, 69, 0.25);
+}
+
+.player-card-label .player-check {
+    font-size: 1.2rem;
+}
+
+.player-card-label input[type="radio"]:checked + .player-card-label .player-check,
+.player-card-label .player-check.show {
+    display: block !important;
+}
+
 .player-wrapper {
     display: flex;
     flex-wrap: wrap;
