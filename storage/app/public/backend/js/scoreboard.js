@@ -44,9 +44,6 @@ $(document).ready(function () {
         batsmanOut: null
     };
 
-    let currentOverInterval;
-    let isSelectingBowler = false;
-
     // ------------------------
     // 🔹 Match State Helpers
     // ------------------------
@@ -59,27 +56,14 @@ $(document).ready(function () {
         localStorage.setItem(stateKey, JSON.stringify(matchState));
     };
 
-    function saveOverState() {
-        localStorage.setItem('currentOverInterval', currentOverInterval || '');
-        localStorage.setItem('isSelectingBowler', isSelectingBowler ? 'true' : 'false');
-    }
+    const storeLocalState = (key, value) => {
+        localStorage.setItem(key, JSON.stringify(value));
+    };
 
-    function clearOverState() {
-        localStorage.removeItem('currentOverInterval');
-        localStorage.removeItem('isSelectingBowler');
-    }
-
-    function startCheckingOver() {
-        currentOverInterval = setInterval(() => {
-            if (!isSelectingBowler) {
-                checkCurrentOver();
-            }
-        }, 2000);
-    }
-
-    function stopCheckingOver() {
-        clearInterval(currentOverInterval);
-    }
+    const loadLocalState = (key) => {
+        const value = localStorage.getItem(key);
+        return value ? JSON.parse(value) : null;
+    };
 
     // ------------------------
     // 🔹 AJAX Helpers
@@ -108,9 +92,10 @@ $(document).ready(function () {
     // 🔹 Update UI Functions
     // ------------------------
     if(document.querySelector('.match-scoreboard') && !tossCompleted){
-        document.querySelector('.match-scoreboard').style.display = 'none';
-        document.getElementById('match-result').style.display = 'none';
-        console.log("Hidden scoreboard as toss not completed");
+        document.querySelectorAll('.match-scoreboard').forEach(element => {
+            element.style.display = 'none';
+        });
+        $('#match-result').addClass('d-none');
     }
 
     const updatePlayerCard = (player, type) => {
@@ -126,13 +111,17 @@ $(document).ready(function () {
         $elements[`${type}Name`].text(player.name);
         $elements[`${type}Runs`].text(player.runs ?? 0);
         $elements[`${type}Balls`].text(player.balls ?? 0);
-        $elements[`${type}StrikeRate`].text(Number((player.runs / player.balls) * 100).toFixed(2) || '0.00');
+        $elements[`${type}StrikeRate`].text(
+            player.balls > 0 
+                ? ((Number(player.runs || 0) / Number(player.balls)) * 100).toFixed(2)
+                : '0.00'
+        );
     };
 
     const updateScoreboard = (scoreboard) => {
         $elements.currentScore.text(`${scoreboard.runs} / ${scoreboard.wickets}`);
         $elements.currentOvers.text(`${scoreboard.overs} / ${scoreboard.totalOvers}`);
-        $elements.currentCRR.text(`(${scoreboard.currentCRR})`);
+        $elements.currentCRR.text(`${scoreboard.currentCRR}`);
 
         if (scoreboard.target && scoreboard.target > 0) {
             $elements.targetScore.text(scoreboard.target);
@@ -194,15 +183,6 @@ $(document).ready(function () {
         });
     }
 
-    // ------------------------
-    // 🔹 Toss Selection
-    // ------------------------
-    $('#btn-save-toss').on('click', function(){
-        let selectedTeam = $('input[name="toss-team"]:checked').val();
-        let selectedDecision = $('input[name="toss-decision"]:checked').val();
-        submitTossIfReady(selectedTeam, selectedDecision);
-    });
-
     function getPlayersList(teamId, type) {
         return new Promise((resolve, reject) => {
             $.ajax({
@@ -229,6 +209,207 @@ $(document).ready(function () {
             });
         });
     }
+
+    // Global variables
+    let isSelectingBowler = false;
+    let currentOverNumber = 0;
+    let isFirstOverOfInnings = false;
+
+    function saveOverState() {
+        localStorage.setItem('isSelectingBowler', isSelectingBowler ? 'true' : 'false');
+        localStorage.setItem('currentOverNumber', currentOverNumber.toString());
+        localStorage.setItem('isFirstOverOfInnings', isFirstOverOfInnings ? 'true' : 'false');
+    }
+
+    function clearOverState() {
+        localStorage.removeItem('isSelectingBowler');
+        localStorage.removeItem('currentOverNumber');
+        localStorage.removeItem('isFirstOverOfInnings');
+    }
+
+    function checkCurrentOver() {
+        fetch(`/admin/cricket-matches/scoreboard/${matchId}/current-over`)
+            .then(response => response.json())
+            .then(data => {
+                const legalBalls = parseInt(data.legalBalls) || 0;
+                const overNum = parseInt(data.overNumber) || 0;
+                
+                // Check if this is the first over of the innings
+                if (overNum === 1 && legalBalls === 0 && !isFirstOverOfInnings) {
+                    isFirstOverOfInnings = true;
+                    saveOverState();
+                    openBowlerModal();
+                    return;
+                }
+                
+                // Check if over has ended (6 legal balls)
+                if (legalBalls >= 6 && !isSelectingBowler) {
+                    isSelectingBowler = true;
+                    currentOverNumber = overNum + 1; // Next over number
+                    saveOverState();
+                    openBowlerModal();
+                }
+                
+                // Update current over number
+                if (overNum !== currentOverNumber) {
+                    currentOverNumber = overNum;
+                    saveOverState();
+                }
+            })
+            .catch(error => console.error('Error fetching current over:', error));
+    }
+
+    // Call when bowler is selected
+    function onBowlerSelected() {
+        isSelectingBowler = false;
+        isFirstOverOfInnings = false; // Reset after first over
+        saveOverState();
+    }
+
+    // Start periodic over checking
+    function startCheckingOver() {
+        setInterval(() => {
+            checkCurrentOver();
+        }, 2000);
+    }
+
+    // Initialize on page load
+    function initializeOverSystem() {
+        // Load saved state
+        const savedIsSelectingBowler = localStorage.getItem('isSelectingBowler');
+        const savedCurrentOver = parseInt(localStorage.getItem('currentOverNumber')) || 0;
+        const savedIsFirstOver = localStorage.getItem('isFirstOverOfInnings');
+                
+        // Set initial states
+        isSelectingBowler = savedIsSelectingBowler === 'true';
+        currentOverNumber = savedCurrentOver;
+        isFirstOverOfInnings = savedIsFirstOver === 'true';
+        
+        // Check if we need to show modal on page load
+        if (isSelectingBowler) {
+            // Only show modal if we're actually in an over selection state
+            checkCurrentOver(); // This will trigger modal if conditions are met
+        } else if (isFirstOverOfInnings) {
+            // Show modal for first over of innings
+            openBowlerModal();
+        }
+        
+        startCheckingOver();
+    }
+
+    // Modified openBowlerModal to prevent duplicate openings
+    async function openBowlerModal() {
+        // Prevent opening if already selecting or modal already shown
+        if (isSelectingBowler && $('#bowlerModal').hasClass('show')) {
+            console.log("Modal already open, skipping...");
+            return;
+        }
+
+        try {
+            loadFullMatchState(matchId);
+            const matchState = getMatchState();
+            const bowlers = await getPlayersList(matchState.bowlingTeamId, 'bowling');
+            populateBowlerModal(bowlers);
+
+            $('#bowlerModal').modal('show');
+            isSelectingBowler = true;
+            saveOverState();
+
+        } catch (err) {
+            console.error(err);
+            $('#bowlerList').html(`
+                <div class="alert alert-danger mb-0">
+                    Failed to load bowlers
+                </div>
+            `);
+        }
+    }
+
+    function populateBowlerModal(bowlingPlayers) {
+        const bowlerList = $('#bowlerList');
+        bowlerList.empty();
+
+        if (!bowlingPlayers.length) {
+            bowlerList.html(`
+                <div class="alert alert-warning mb-0">
+                    No bowlers available
+                </div>
+            `);
+            return;
+        }
+        currentOverNumber = (parseFloat($('#currentOvers').text().split(' / ')[0]) || 1) + 1;
+        // Add header showing which over this is for
+        const modalTitle = isFirstOverOfInnings 
+            ? "Select Bowler for First Over of Innings" 
+            : `Select Bowler for Over ${currentOverNumber}`;
+        
+        $('.modal-title').text(modalTitle);
+
+        bowlingPlayers.forEach(player => {
+            const img = player.image_url ?? '/images/player-placeholder.png';
+            const overs = player.overs_bowled ?? '0.0';
+            const style = player.bowling_style ?? '—';
+
+            const card = `
+                <div class="card bowler-card mb-2"
+                    role="button"
+                    data-bowler-id="${player.id}"
+                    data-bowler-name="${player.name}">
+
+                    <div class="card-body p-2 d-flex align-items-center gap-3">
+
+                        <img src="${img}"
+                            class="rounded-circle"
+                            style="width:50px;height:50px;object-fit:cover;"
+                            alt="${player.name}">
+
+                        <div class="flex-grow-1">
+                            <h6 class="mb-1 fw-bold">${player.name}</h6>
+
+                            <small class="text-muted d-block">
+                                Overs: <strong>${overs}</strong>
+                            </small>
+
+                            <small class="text-muted d-block">
+                                Style: ${style}
+                            </small>
+                        </div>
+
+                    </div>
+                </div>
+            `;
+
+            bowlerList.append(card);
+        });
+
+        bowlerList.off('click', '.bowler-card');
+        bowlerList.on('click', '.bowler-card', function () {
+            const bowlerId = $(this).data('bowler-id');
+            sendBowlerData(matchId, matchState.bowlingTeamId, bowlerId);
+
+            $('#bowlerModal').modal('hide');
+            onBowlerSelected();
+        });
+    }
+
+    function resetForNewInnings() {
+        clearOverState();
+        isSelectingBowler = false;
+        currentOverNumber = 0;
+        isFirstOverOfInnings = false;
+    }
+
+    // Initialize when page loads
+    initializeOverSystem();
+
+    // ------------------------
+    // 🔹 Toss Selection
+    // ------------------------
+    $('#btn-save-toss').on('click', function(){
+        let selectedTeam = $('input[name="toss-team"]:checked').val();
+        let selectedDecision = $('input[name="toss-decision"]:checked').val();
+        submitTossIfReady(selectedTeam, selectedDecision);
+    });
 
     function submitTossIfReady(selectedTeam, selectedDecision) {
         if (selectedTeam && selectedDecision) {
@@ -283,90 +464,6 @@ $(document).ready(function () {
         }
     }
 
-    async function openBowlerModal() {
-        try {
-            const bowlers = await getPlayersList(
-                matchState.bowlingTeamId,
-                'bowling'
-            );
-
-            populateBowlerModal(bowlers);
-
-            $('#bowlerModal').modal('show');
-
-        } catch (err) {
-            console.error(err);
-            $('#bowlerList').html(`
-                <div class="alert alert-danger mb-0">
-                    Failed to load bowlers
-                </div>
-            `);
-        }
-    }
-
-    function populateBowlerModal(bowlingPlayers) {
-        const bowlerList = $('#bowlerList');
-        bowlerList.empty();
-
-        if (!bowlingPlayers.length) {
-            bowlerList.html(`
-                <div class="alert alert-warning mb-0">
-                    No bowlers available
-                </div>
-            `);
-            return;
-        }
-
-        bowlingPlayers.forEach(player => {
-            const img = player.image_url ?? '/images/player-placeholder.png';
-            const overs = player.overs_bowled ?? '0.0';
-            const style = player.bowling_style ?? '—';
-
-            const card = `
-                <div class="card bowler-card mb-2"
-                    role="button"
-                    data-bowler-id="${player.id}"
-                    data-bowler-name="${player.name}">
-
-                    <div class="card-body p-2 d-flex align-items-center gap-3">
-
-                        <img src="${img}"
-                            class="rounded-circle"
-                            style="width:50px;height:50px;object-fit:cover;"
-                            alt="${player.name}">
-
-                        <div class="flex-grow-1">
-                            <h6 class="mb-1 fw-bold">${player.name}</h6>
-
-                            <small class="text-muted d-block">
-                                Overs: <strong>${overs}</strong>
-                            </small>
-
-                            <small class="text-muted d-block">
-                                Style: ${style}
-                            </small>
-                        </div>
-
-                    </div>
-                </div>
-            `;
-
-            bowlerList.append(card);
-        });
-
-        bowlerList.off('click', '.bowler-card');
-        bowlerList.on('click', '.bowler-card', function () {
-            const bowlerId = $(this).data('bowler-id');
-            sendBowlerData(matchId, matchState.bowlingTeamId, bowlerId);
-
-            // Close the modal
-            $('#bowlerModal').modal('hide');
-
-            // Resume checking for next over
-            isSelectingBowler = false;
-        });
-    }
-
     // ------------------------
     // 🔹 Strike Switching
     // ------------------------
@@ -388,6 +485,133 @@ $(document).ready(function () {
     };
 
     $(document).on('click', '#switchStrikeBtn', switchStrike);
+
+    // ------------------------
+    // 🔹 Wicket functions
+    // ------------------------
+    function tryFinalizeStumped() {
+        if (stumpedData.keeperId && stumpedData.batsmanOut) {
+            finalizeWicket({
+                type: 'stumped',
+                batsmanOut: stumpedData.batsmanOut,
+                fielderId: stumpedData.keeperId
+            });
+
+            stumpedData.keeperId = null;
+            stumpedData.batsmanOut = null;
+
+            $('#stumpedOptions').addClass('d-none');
+            $('#stumpedBySelect').val('');
+        }
+    }
+
+    function finalizeWicket({ type, batsmanOut, fielderId = null, runs = 0 }) {
+        const modalEl = document.getElementById('wicketModal');
+        const modal = bootstrap.Modal.getInstance(modalEl) || new bootstrap.Modal(modalEl);
+        modal.hide();
+
+        setTimeout(() => {
+            $('.modal-backdrop').remove();
+            $('body').removeClass('modal-open');
+        }, 100);
+
+        const extras = {};
+        if (type === 'Run Out') {
+            extras.run_out = true;
+        } else if (type === 'caught') {
+            extras.run_out = false;
+            extras.caught_by = fielderId;
+        } else if (type === 'stumped') {
+            extras.run_out = false;
+            extras.stumped_by = fielderId;
+        }
+        extras.type = type;
+        extras.runs = runs;
+
+        const finalBatsmanOut = batsmanOut || null;
+
+        if (typeof finalBatsmanOut !== 'number') {
+            console.log("Final Batsman Out ID: " + finalBatsmanOut);
+            showToast('Please select the batsman who got out or you need to select striker first.', 'error');
+
+            return;
+        }
+
+        addDelivery({
+            runs: 0,
+            extra: Object.keys(extras).length ? extras : null,
+            wicket: type,
+            batsman_out: finalBatsmanOut,
+            legalBall: true
+        });
+    }
+
+    // ------------------------
+    // 🔹 Wicket buttons
+    // ------------------------
+    $(document).on('click', '.btn-wicket', function () {
+        const wicketType = $(this).data('wicket');
+        currentWicket = wicketType;
+        const modal = new bootstrap.Modal(document.getElementById('wicketModal'));
+        modal.show();
+    });
+
+    $(document).on('click', '.btn-wicket-type', function () {
+        const type = $(this).data('wicket');
+        $(".wicket-extra").addClass("d-none");
+
+        if (type === "Run Out") {
+            document.getElementById('runOutOptions').classList.toggle('d-none', type !== 'Run Out');
+        }
+        else if (type === "Caught") {
+            $("#caughtOptions").removeClass("d-none");
+            loadBowlingTeamPlayers('caughtBySelect');
+        }
+        else if (type === "Stumped") {
+            $("#stumpedOptions").removeClass("d-none");
+            loadBowlingTeamPlayers('stumpedBySelect');
+        }
+        else {
+            finalizeWicket({
+                type,
+                batsmanOut: $('.btn-batsman-out.striker-btn').data('batsman')
+            });
+        }
+    });
+
+    $(document).on('click', '.btn-batsman-out', function () {
+        finalizeWicket({
+            type: 'run_out',
+            batsmanOut: $(this).data('batsman')
+        });
+    });
+
+    $(document).on('change', '#stumpedBySelect', function () {
+        stumpedData.keeperId = $(this).val();
+        stumpedData.batsmanOut = getMatchState().striker.id;
+
+        tryFinalizeStumped();
+    });
+
+    $(document).on('change', '#caughtBySelect', function () {
+        const matchState = getMatchState();
+        const selectedFielder = $(this).val();
+        const striker = matchState.striker.id;
+        finalizeWicket({
+            type: 'caught',
+            batsmanOut: striker,
+            fielderId: selectedFielder,
+            runs: 0
+        });
+    });
+
+    function resetWicketForm() {
+        $('#runOutOptions').addClass('d-none');
+        $('#caughtOptions').addClass('d-none');
+        $('#stumpedOptions').addClass('d-none');
+        $('#caughtBySelect').val('');
+        $('#stumpedBySelect').val('');
+    }
 
     // ------------------------
     // 🔹 Add Delivery
@@ -427,8 +651,8 @@ $(document).ready(function () {
             method: 'POST',
             body: JSON.stringify(payload)
         }).then(data => {
+            console.log("Delivery Response Data: ", data);
             if (!data.success) throw new Error(data.message);
-            console.log("Delivery Stored: ", data)
             setMatchState({
                 striker: data.updated_state.striker,
                 nonStriker: data.updated_state.nonStriker
@@ -436,17 +660,26 @@ $(document).ready(function () {
             showToast(data.message);
             loadFullMatchState(matchId);
             loadCurrentOver();
-            const inningsEnded = (data.isInningsEnded == true || data.isInningsEnded === "true" || data.isInningsEnded == 1);
-            console.log("Innings Ended: " + inningsEnded);
-            if(inningsEnded){
-                loadYetToBatPlayers();
-                console.log("Delivery Stored 2: ", data)
+
+            if(data.isOverEnded && !data.isInningsEnded){
+                isSelectingBowler = true;
+                saveOverState();
+                openBowlerModal();
             }
             
+            const inningsEnded = (data.isInningsEnded == true || data.isInningsEnded === "true" || data.isInningsEnded == 1);
+            if(inningsEnded){
+                loadYetToBatPlayers();
+            }
+
             if(payload.wicket != null){
                 window.location.reload();
             }
-        }).catch(err => console.error('Error recording delivery:', err));
+        }).catch(err => {
+            console.error('Error recording delivery:', err);
+
+            showToast(err.message, 'error', 4000);
+        });
     };
 
     const undoLastDelivery = async () => {
@@ -485,15 +718,17 @@ $(document).ready(function () {
     // ------------------------
     const loadFullMatchState = (matchId) => {
         if (!tossCompleted) return;
-
+        matchId = matchId || $('input[name="toss_match_id"]').val();
         fetchJSON(
             `/admin/cricket-matches/scoreboard/full-match-state/:match_id`.replace(':match_id', matchId))
             .then(data => {
                 if (!data.success) return console.error('Failed to load match state:', data.message);
                 if (data.match_result) {
-                    document.querySelector('.match-scoreboard').style.display = 'none';
-                    document.getElementById('match-result').style.display = 'block';
-                    console.log("Hidden scoreboard show result");
+                    console.log("Match Result Data: ", data.match_result);
+                    document.querySelectorAll('.match-scoreboard').forEach(element => {
+                        element.style.display = 'none';
+                    });
+                    $('#match-result').removeClass('d-none');
 
                     let winnerWrap = document.getElementById('winner-wrap');
                     if (!winnerWrap) {
@@ -514,9 +749,21 @@ $(document).ready(function () {
                             `;
 
                     winnerWrap.onclick = () => winnerWrap.style.display = 'none';
+                    
+
+                    $('#team-a-name').text(data.match_result.scoreboards.teamA.team.name);
+                    $('#team-a-runs').text(data.match_result.scoreboards.teamA.runs + ' / ' + data.match_result.scoreboards.teamA.wickets);
+                    $('#team-a-overs').text("From " + data.match_result.scoreboards.teamA.overs + ' Overs');
+                    $('#team-a-innings').text(data.match_result.scoreboards.teamA.innings + (data.match_result.scoreboards.teamA.innings == 1 ? 'st Innings' : 'nd Innings'));
+                    $('#team-b-name').text(data.match_result.scoreboards.teamB.team.name);
+                    $('#team-b-runs').text(data.match_result.scoreboards.teamB.runs + ' / ' + data.match_result.scoreboards.teamB.wickets);
+                    $('#team-b-overs').text("From " + data.match_result.scoreboards.teamB.overs + ' Overs');
+                    $('#team-b-innings').text(data.match_result.scoreboards.teamB.innings + (data.match_result.scoreboards.teamB.innings == 1 ? 'st Innings' : 'nd Innings'));
                 } else {
-                    document.querySelector('.match-scoreboard').style.display = 'block';
-                    document.getElementById('match-result').style.display = 'none';
+                    document.querySelectorAll('.match-scoreboard').forEach(element => {
+                        element.style.display = 'block';
+                    });
+                    $('#match-result').addClass('d-none');
                     
                     setMatchState(data.match_state);
                     $elements.battingTeamName.text(`${data.match_state.team.name}`);
@@ -590,7 +837,7 @@ $(document).ready(function () {
                     }
 
                     wrapper.appendChild(span);
-                    console.log("Ball Type:", ball);
+                    
                     if (ball.type && ball.type !== 'normal') {
                         const label = document.createElement('small');
                         label.classList.add('ball-type-label');
@@ -627,6 +874,7 @@ $(document).ready(function () {
         const nbSection = document.getElementById('nbSection');
         const wdSection = document.getElementById('wdSection');
         const lbSection = document.getElementById('lbSection');
+        const bySection = document.getElementById('bySection');
         const nbRunOutCheckbox = document.getElementById('nbRunOut');
         const nbBatsmanOut = document.getElementById('nbBatsmanOut');
         const type = $(this).data('extra');
@@ -635,6 +883,7 @@ $(document).ready(function () {
         nbSection.classList.add('d-none');
         wdSection.classList.add('d-none');
         lbSection.classList.add('d-none');
+        bySection.classList.add('d-none');
         modalTitle.textContent = "Extra";
         
         // Reset radio buttons
@@ -734,6 +983,9 @@ $(document).ready(function () {
             // Set default radio button for runs
             const defaultLbRun = document.getElementById('lbRun0');
             if (defaultLbRun) defaultLbRun.checked = true;
+        } else if (type === "BY") {
+            modalTitle.textContent = "Extra: Bye";
+            bySection.classList.remove('d-none');
         }
     });
 
@@ -845,115 +1097,6 @@ $(document).ready(function () {
     });
 
     // ------------------------
-    // 🔹 Wicket buttons
-    // ------------------------
-    $(document).on('click', '.btn-wicket', function () {
-        const wicketType = $(this).data('wicket');
-        currentWicket = wicketType;
-        const modal = new bootstrap.Modal(document.getElementById('wicketModal'));
-        modal.show();
-    });
-
-    $(document).on('click', '.btn-wicket-type', function () {
-        const type = $(this).data('wicket');
-        $(".wicket-extra").addClass("d-none");
-
-        if (type === "Run Out") {
-            document.getElementById('runOutOptions').classList.toggle('d-none', type !== 'Run Out');
-        }
-        else if (type === "Caught") {
-            $("#caughtOptions").removeClass("d-none");
-            loadBowlingTeamPlayers('caughtBySelect');
-        }
-        else if (type === "Stumped") {
-            $("#stumpedOptions").removeClass("d-none");
-            loadBowlingTeamPlayers('stumpedBySelect');
-        }
-        else {
-            finalizeWicket({
-                type,
-                batsmanOut: $('.btn-batsman-out.striker-btn').data('batsman')
-            });
-        }
-    });
-
-    $(document).on('click', '.btn-batsman-out', function () {
-        finalizeWicket({
-            type: 'run_out',
-            batsmanOut: $(this).data('batsman')
-        });
-    });
-
-    $(document).on('change', '#stumpedBySelect', function () {
-        stumpedData.keeperId = $(this).val();
-        stumpedData.batsmanOut = getMatchState().striker.id;
-
-        tryFinalizeStumped();
-    });
-
-    $(document).on('change', '#caughtBySelect', function () {
-        const matchState = getMatchState();
-        const selectedFielder = $(this).val();
-        const striker = matchState.striker.id;
-        finalizeWicket({
-            type: 'caught',
-            batsmanOut: striker,
-            fielderId: selectedFielder
-        });
-    });
-
-    // ------------------------
-    // 🔹 Wicket functions
-    // ------------------------
-    function tryFinalizeStumped() {
-        if (stumpedData.keeperId && stumpedData.batsmanOut) {
-            finalizeWicket({
-                type: 'stumped',
-                batsmanOut: stumpedData.batsmanOut,
-                fielderId: stumpedData.keeperId
-            });
-
-            stumpedData.keeperId = null;
-            stumpedData.batsmanOut = null;
-
-            $('#stumpedOptions').addClass('d-none');
-            $('#stumpedBySelect').val('');
-        }
-    }
-
-    function finalizeWicket({ type, batsmanOut, fielderId = null }) {
-        const modalEl = document.getElementById('wicketModal');
-        const modal = bootstrap.Modal.getInstance(modalEl) || new bootstrap.Modal(modalEl);
-        modal.hide();
-
-        setTimeout(() => {
-            $('.modal-backdrop').remove();
-            $('body').removeClass('modal-open');
-        }, 100);
-
-        const extras = {};
-        if (type === 'Run Out') {
-            extras.run_out = true;
-        } else if (type === 'caught') {
-            extras.run_out = false;
-            extras.caught_by = fielderId;
-        } else if (type === 'stumped') {
-            extras.run_out = false;
-            extras.stumped_by = fielderId;
-        }
-
-        const finalBatsmanOut = batsmanOut || null;
-
-        addDelivery({
-            runs: 0,
-            extras: Object.keys(extras).length ? extras : null,
-            wicket: type,
-            batsman_out: finalBatsmanOut,
-            legalBall: true
-        });
-    }
-
-    // ------------------------
     // 🔹 Load bowling team players
     // ------------------------
     function loadBowlingTeamPlayers(selectId) {
@@ -967,10 +1110,12 @@ $(document).ready(function () {
             return;
         }
 
+        console.log("Bowling Team Players: ", bowlingTeamPlayers);
+
         bowlingTeamPlayers.forEach(stat => {
             const opt = document.createElement('option');
             if (stat.player.id != matchState.currentBowler) {
-                opt.value = stat.id;
+                opt.value = stat.player_id;
                 opt.textContent = stat.player.user.full_name;
                 select.appendChild(opt);
             }
@@ -1001,23 +1146,6 @@ $(document).ready(function () {
             }
         });
     };
-
-    function checkCurrentOver() {
-        fetch(`/admin/cricket-matches/scoreboard/${matchId}/current-over`)
-            .then(response => response.json())
-            .then(data => {
-                console.log('Current over data:', data);
-
-                saveOverState(data.legalBalls); // <-- save current over number
-
-                if (data.legalBalls >= 6 && !isSelectingBowler) {
-                    isSelectingBowler = true;
-                    saveOverState(); // <-- save the selection state
-                    openBowlerModal();
-                }
-            })
-            .catch(error => console.error('Error fetching current over:', error));
-    }
 
     // ----------------------------------
     // 🔹 Select Players From Yet To Bat
@@ -1202,14 +1330,12 @@ $(document).ready(function () {
         });
     });
 
-    $('.btn-complete-innings').on('click', function(){
+    function sendInningsStatus() {
         $.ajax({
             url: '/admin/cricket-matches/scoreboard/mark-innings-complete/' + matchId,
             method: 'GET',
             success: function (response) {
                 if (response.success) {
-                    console.log(response);
-
                     Swal.fire({
                         icon: 'success',
                         title: 'Status Updated!',
@@ -1225,7 +1351,7 @@ $(document).ready(function () {
                     const matchData = response.matchData;
                     $('#match-title').text(matchData.title);
                     $('#match-result_summary').text(matchData.result_summary);
-
+                    loadFullMatchState(matchId);
                     window.location.reload();
                 } else {
                     Swal.fire('Error', response.message || 'Failed to update match status.', 'error');
@@ -1235,6 +1361,10 @@ $(document).ready(function () {
                 Swal.fire('Error', 'Failed to update match status.', 'error');
             }
         });
+    }
+
+    $('.btn-complete-innings').on('click', function(){
+        sendInningsStatus();
     });
 
     // ------------------------
@@ -1243,11 +1373,6 @@ $(document).ready(function () {
     $('#btn-trigger-bowler-modal').on('click', function(){
         openBowlerModal();
     });
-
-    const savedIsSelectingBowler = localStorage.getItem('isSelectingBowler');
-    if (savedIsSelectingBowler !== null) {
-        isSelectingBowler = savedIsSelectingBowler === 'true';
-    }
 
     const lastOver = localStorage.getItem('lastOver');
     if (lastOver) {
@@ -1265,4 +1390,39 @@ $(document).ready(function () {
     $('.btn-undo-ball').on('click', function(){
         undoLastDelivery();
     });
+
+    $('#btn-reset-wicket-form').on('click', function(){
+        resetWicketForm();
+    });
+
+    storeLocalState('isInningsEnded', false);
+    storeLocalState('inningsEndAlertShown', false);
+
+    function checkCurrentInningsEnd() {
+        let currentScore = $('#currentScore').text();
+        let wicketsFallen = currentScore.split('/')[1].trim();
+        let score = parseInt(currentScore.split('/')[0].trim());
+        const matchState = getMatchState();
+        let battingTeamPlayers = matchState.team.total_players || 2;
+
+        if(parseInt(wicketsFallen) ==  battingTeamPlayers - 1 && !loadLocalState('isInningsEnded')) {
+            storeLocalState('isInningsEnded', true);
+            $('.btn-delivery-section').hide();
+            $('.current-bowler-section').hide();
+            $('.yettobat-section').hide();
+            $('#bowlerModal').modal('hide');
+            $('.btn-undo-ball').prop('disabled', true);
+            $('.btn-complete-innings').removeClass('btn-outline-danger');
+            $('.btn-complete-innings').addClass('btn-success');
+            $('.target-window').removeClass('d-none');
+            let targetRuns = parseInt($('#targetInfo').data('target-runs')) || 0;
+            $('#targetInfo').text(`Target: ${score+1} runs`);
+            Swal.fire('Innings has ended as all batsmen are out.');
+            storeLocalState('inningsEndAlertShown', true);
+        }
+    }
+
+    setInterval(() => {
+        checkCurrentInningsEnd();
+    }, 2000);
 });

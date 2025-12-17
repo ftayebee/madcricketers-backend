@@ -28,7 +28,7 @@ class Player extends Model
 
     public function teams()
     {
-        return $this->belongsToMany(Team::class, 'player_team')->withTimestamps();
+        return $this->belongsToMany(Team::class, 'player_team', 'player_id', 'team_id')->withTimestamps();
     }
 
     public function matches()

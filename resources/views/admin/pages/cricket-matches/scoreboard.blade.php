@@ -144,15 +144,18 @@
                                 <div class="d-flex align-items-start align-items-md-center gap-3">
                                     <!-- Team Info -->
                                     <div class="flex-grow-1 text-center">
-                                        <h4 id="battingTeamName" class="fw-bold text-primary mb-2 fs-md-4 text-center ">
-                                            Team A
-                                        </h4>
+                                        <div class="d-flex flex-row align-items-center justify-content-between mb-2">
+                                            <h4 id="battingTeamName" class="fw-bold text-primary mb-0">
+                                                Team A
+                                            </h4>
+                                            <h4 id="currentScore" class="d-flex align-items-center mb-0">
+                                                0 / 0
+                                            </h4>
+                                        </div>
                                         <!-- Score Line -->
                                         <div
                                             class="d-flex flex-wrap gap-2 small fw-semibold score-info justify-content-between">
-                                            <span id="currentScore" class="badge bg-dark d-flex align-items-center">
-                                                0 / 0
-                                            </span>
+
                                             <span>
                                                 <strong>O:</strong>
                                                 <span id="currentOvers">(0.0)</span>
@@ -166,13 +169,16 @@
                                                 <span id="projectedScore">00</span>
                                             </span>
                                             <span class="tagetscore-container d-none">
-                                                <strong>Target:</strong>
+                                                <strong>TR:</strong>
                                                 <span id="targetScore">00</span>
                                             </span>
                                             <span class="requiredRunRate-container d-none">
                                                 <strong>RR:</strong>
                                                 <span id="requiredRunRate">00</span>
                                             </span>
+                                        </div>
+                                        <div class="target-window d-none mt-2 fs-18 fw-bold text-success">
+                                            <span id="targetInfo"></span>
                                         </div>
                                     </div>
                                 </div>
@@ -256,7 +262,7 @@
                     </div>
                 </div>
 
-                <div class="row">
+                <div class="row btn-delivery-section">
                     <div class="col-12">
                         <div class="card" class="d-block">
                             <div class="card-header">
@@ -292,7 +298,7 @@
 
                                 <div class="mt-3 fs-16">
                                     <p class="mb-2"><strong>Current Over:</strong></p>
-                                    <div id="currentOverDetails" class="over-display" style="margin-left: 15px;">
+                                    <div id="currentOverDetails" class="over-display" style="margin-left: 0px;">
                                     </div>
                                 </div>
                             </div>
@@ -300,7 +306,7 @@
                     </div>
                 </div>
 
-                <div class="row">
+                <div class="row current-bowler-section">
                     <div class="col-12">
                         <div class="card" id="match-scoreboard" class="d-block">
                             <div class="card-header">
@@ -328,7 +334,7 @@
                 </div>
             </div>
 
-            <div class="col-12 col-md-4 match-scoreboard">
+            <div class="col-12 col-md-4 match-scoreboard yettobat-section">
                 <div class="card">
                     <div class="card-body">
                         <h4 style="font-weight: bold;">Yet to Bat</h4>
@@ -354,6 +360,42 @@
                             <div class="winner-ribbon">WINNER</div>
                             <div class="right-ribbon"></div>
                             <div class="left-ribbon"></div>
+                        </div>
+                    </div>
+
+                    <div class="card-body">
+                        <div class="match-result-details text-center">
+                            <!-- Match scores will be dynamically inserted here -->
+                            <div class="score-line row justify-content-center align-items-center mb-3" id="team-a-score">
+                                <div class="col-6 text-end">
+                                    <h4 class="mb-0 fw-bold" id="team-a-name">Team A</h4>
+                                    <span class="badge bg-success" id="team-a-innings">1st Innings</span>
+                                </div>
+                                <div class="col-6 text-center">
+                                    <div class="score-badge bg-light p-2 rounded shadow-sm">
+                                        <h3 class="mb-0 fw-bold" id="team-a-runs">0/0</h3>
+                                        <small class="text-muted" id="team-a-overs">(0 overs)</small>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="score-line row justify-content-center align-items-center mb-3" id="team-b-score">
+                                <div class="col-6 text-end">
+                                    <h4 class="mb-0 fw-bold" id="team-b-name">Team B</h4>
+                                    <span class="badge bg-warning text-dark" id="team-b-innings">2nd Innings</span>
+                                </div>
+                                <div class="col-6 text-center">
+                                    <div class="score-badge bg-light p-2 rounded shadow-sm">
+                                        <h3 class="mb-0 fw-bold" id="team-b-runs">0/0</h3>
+                                        <small class="text-muted" id="team-b-overs">(0 overs)</small>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Match summary -->
+                            <div class="mt-4 pt-3 border-top">
+                                <a href="{{ route('admin.cricket-matches.show', $match->id) }}" class="btn btn-primary">View Match Details</a>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -398,7 +440,8 @@
                                 <label>Runs:</label>
                                 <div class="btn-group" role="group" id="extraRunButtons">
                                     @foreach ([0, 1, 2, 3, 4, 6] as $r)
-                                        <input type="radio" class="btn-check" name="nbRuns" id="nbRun{{ $r }}" value="{{ $r }}">
+                                        <input type="radio" class="btn-check" name="nbRuns"
+                                            id="nbRun{{ $r }}" value="{{ $r }}">
                                         <label class="btn btn-outline-primary"
                                             for="nbRun{{ $r }}">{{ $r }}</label>
                                     @endforeach
@@ -488,6 +531,19 @@
                                             for="lbRun{{ $r }}">{{ $r }}</label>
                                     @endforeach
                                 </div>
+                            </div>
+                        </div>
+
+                        {{-- BY Section --}}
+                        <div id="bySection" class="d-none">
+                            <p><strong>Bye:</strong> Select runs</p>
+                            <div class="btn-group" role="group">
+                                @foreach ([0, 1, 2, 3, 4, 5, 6] as $r)
+                                    <input type="radio" class="btn-check" name="byRuns"
+                                        id="byRun{{ $r }}" value="{{ $r }}">
+                                    <label class="btn btn-outline-primary"
+                                        for="byRun{{ $r }}">{{ $r }}</label>
+                                @endforeach
                             </div>
                         </div>
 
