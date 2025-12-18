@@ -24,6 +24,7 @@ use Illuminate\Support\Facades\Log;
 use App\Http\Controllers\Controller;
 use App\Models\TournamentPlayerStat;
 use Illuminate\Support\Facades\Auth;
+use App\Events\CricketMatchTossEvent;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 
@@ -400,7 +401,7 @@ class CricketMatchController extends Controller
                 'status' => 'waiting'
             ]);
 
-            broadcast(new CricketMatchUpdate($match))->toOthers();
+            broadcast(new CricketMatchTossEvent($match, $tossData, $battingFirstTeam, $bowlingFirstTeam))->toOthers();
 
             return response()->json([
                 'success' => true,

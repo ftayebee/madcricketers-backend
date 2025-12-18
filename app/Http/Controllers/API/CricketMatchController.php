@@ -283,6 +283,8 @@ class CricketMatchController extends Controller
                 'partnerships.batsman2:id,name',
 
                 'scoreboard.team:id,name,logo',
+
+                'toss'
             ])
                 ->where('id', $id)
                 ->firstOrFail();
