@@ -22,7 +22,7 @@ class Team extends Model
         $originalImage = $this->getAttributes()['logo'] ?? null;
 
         $imagePath = 'public/uploads/teams/' . $originalImage;
-        $defaultLogo = asset('storage/assets/images/users/dummy-avatar.jpg');
+        $defaultLogo = asset('storage/assets/images/team-dummy.png');
 
         if ($originalImage && Storage::exists($imagePath)) {
             return asset('storage/uploads/teams/' . $originalImage);

@@ -19,8 +19,7 @@ use Illuminate\Database\Eloquent\ModelNotFoundException;
 
 class CricketMatchController extends Controller
 {
-    public function recentMatches(Request $request)
-    {
+    public function getLiveMatches(Request $request){
         try {
             $matches = CricketMatch::with([
                                     'teamA:id,name,logo',
@@ -28,7 +27,7 @@ class CricketMatchController extends Controller
                                     'winningTeam:id,name',
                                     'tournament:id,name,slug,start_date,end_date,status',
                                 ])
-                                    ->whereIn('status', ['upcoming', 'live'])
+                                    ->whereIn('status', ['live'])
                                     ->orderByRaw("
                             CASE
                                 WHEN status = 'live' THEN 1
@@ -37,7 +36,90 @@ class CricketMatchController extends Controller
                             END
                         ")
                         ->orderBy('match_date', 'asc')
-                        ->limit(10)
+                        ->get();
+
+            $data = $matches->map(function ($match) {
+                $groupA = optional($match->teamA->groups()
+                    ->where('tournament_group_teams.tournament_id', $match->tournament_id)
+                    ->first())->name;
+
+                $groupB = optional($match->teamB->groups()
+                    ->where('tournament_group_teams.tournament_id', $match->tournament_id)
+                    ->first())->name;
+
+                return [
+                    'id' => $match->id,
+                    'title' => $match->title,
+                    'match_date' => Carbon::parse($match->match_date)->format('d M, Y'),
+                    'match_time' => Carbon::parse($match->match_date)->format('h:i A'),
+                    'venue' => $match->venue,
+                    'result_summary' => $match->result_summary,
+                    'status' => $match->status,
+                    'tournament' => [
+                        'slug' => $match->tournament->slug ?? null,
+                        'name' => $match->tournament->name ?? null,
+                        'id' => $match->tournament->id ?? null,
+                        'start_date' => Carbon::parse($match->tournament->start_date)->format('Y-m-d'),
+                        'end_date' => Carbon::parse($match->tournament->end_date)->format('Y-m-d'),
+                        'status' => $match->tournament->status ?? null,
+                    ],
+                    'team_a' => [
+                        'id' => $match->teamA->id,
+                        'name' => $match->teamA->name,
+                        'logo' => $match->teamA->logo,
+                        'group' => $groupA,
+                        'score' => 100,
+                        'overs' => 20
+                    ],
+                    'team_b' => [
+                        'id' => $match->teamB->id,
+                        'name' => $match->teamB->name,
+                        'logo' => $match->teamB->logo,
+                        'group' => $groupB,
+                        'score' => 100,
+                        'overs' => 20
+                    ],
+                    'winning_team' => $match->winningTeam->name ?? null,
+                ];
+            });
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Recent & upcoming matches fetched successfully.',
+                'data' => $data,
+            ]);
+        } catch (Exception $e) {
+            Log::error('Error fetching recent matches', [
+                'line' => $e->getLine(),
+                'file' => $e->getFile(),
+                'message' => $e->getMessage(),
+            ]);
+
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to fetch recent matches.',
+            ], 500);
+        }
+    }
+
+    public function getUpcomingMatches(Request $request)
+    {
+        try {
+            $matches = CricketMatch::with([
+                                    'teamA:id,name,logo',
+                                    'teamB:id,name,logo',
+                                    'winningTeam:id,name',
+                                    'tournament:id,name,slug,start_date,end_date,status',
+                                ])
+                                    ->whereIn('status', ['upcoming'])
+                                    ->orderByRaw("
+                            CASE
+                                WHEN status = 'live' THEN 1
+                                WHEN status = 'upcoming' THEN 2
+                                ELSE 3
+                            END
+                        ")
+                        ->orderBy('match_date', 'asc')
                         ->get();
 
             $data = $matches->map(function ($match) {
@@ -115,7 +197,6 @@ class CricketMatchController extends Controller
             ])
                 ->whereIn('status', ['completed'])
                 ->orderByDesc('match_date')
-                ->limit(10)
                 ->get();
 
             $data = $matches->map(function ($match) {

@@ -10,8 +10,16 @@ class CricketMatch extends Model
     use HasFactory;
 
     protected $fillable = [
-        'tournament_id', 'team1_id', 'team2_id', 'match_date',
-        'venue', 'status', 'winning_team_id', 'bowler_max_overs', 'max_overs', 'result_summary'
+        'tournament_id',
+        'team1_id',
+        'team2_id',
+        'match_date',
+        'venue',
+        'status',
+        'winning_team_id',
+        'bowler_max_overs',
+        'max_overs',
+        'result_summary'
     ];
 
     public function tournament()
@@ -19,7 +27,8 @@ class CricketMatch extends Model
         return $this->belongsTo(Tournament::class);
     }
 
-    public function toss(){
+    public function toss()
+    {
         return $this->hasOne(CricketMatchToss::class, 'cricket_match_id', 'id');
     }
 
@@ -61,5 +70,29 @@ class CricketMatch extends Model
     public function scoreboard()
     {
         return $this->hasMany(MatchScoreBoard::class, 'match_id', 'id');
+    }
+
+    public function getOpponentTeamAttribute()
+    {
+        if ($this->match) {
+            if ($this->team_id) {
+                if ($this->team_id == $this->match->team_a_id) {
+                    return $this->match->teamB;
+                } else {
+                    return $this->match->teamA;
+                }
+            }
+
+            if ($this->player && $this->player->teams()->exists()) {
+                $playerTeam = $this->player->teams()->first();
+                if ($playerTeam->id == $this->match->team_a_id) {
+                    return $this->match->teamB;
+                } else {
+                    return $this->match->teamA;
+                }
+            }
+        }
+
+        return null;
     }
 }

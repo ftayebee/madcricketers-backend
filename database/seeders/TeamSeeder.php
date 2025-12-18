@@ -12,23 +12,21 @@ class TeamSeeder extends Seeder
     public function run()
     {
         $teamNames = [
-            'Thunder Warriors',
-            'Desert Hawks',
-            'Ocean Blazers',
-            'Sky Smashers',
-            'Mountain Kings',
-            'Valley Vipers',
-            'Forest Rangers',
-            'Storm Strikers'
+            'Mumbai Indians',
+            'Chennai Super Kings', 
+            'Royal Challengers Bangalore',
+            'Kolkata Knight Riders',
+            'Delhi Capitals',
+            'Rajasthan Royals',
+            'Sunrisers Hyderabad',
+            'Punjab Kings',
         ];
 
         // Get all 90 player IDs
         $playerIds = Player::pluck('id')->toArray();
 
-        // Shuffle them to ensure random assignment
         shuffle($playerIds);
 
-        // Assign 11 players to each of 8 teams
         for ($i = 0; $i < 8; $i++) {
             $teamName = $teamNames[$i];
             $slug = Str::slug($teamName);
@@ -41,7 +39,7 @@ class TeamSeeder extends Seeder
                 'description' => "This is team $teamName",
             ]);
 
-            $assignedPlayers = array_slice($playerIds, $i * 11, 11);
+            $assignedPlayers = array_slice($playerIds, $i * 5, 5);
             $team->players()->attach($assignedPlayers);
         }
     }

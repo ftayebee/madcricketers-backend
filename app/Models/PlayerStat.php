@@ -33,4 +33,9 @@ class PlayerStat extends Model
         'runouts',
         'stumpings',
     ];
+
+    public function player()
+    {
+        return $this->belongsTo(Player::class, 'player_id', 'id');
+    }
 }
