@@ -7,6 +7,7 @@ $baseDir = dirname($vendorDir);
 
 return array(
     'App\\Console\\Kernel' => $baseDir . '/app/Console/Kernel.php',
+    'App\\Events\\CricketMatchTossEvent' => $baseDir . '/app/Events/CricketMatchTossEvent.php',
     'App\\Events\\CricketMatchUpdate' => $baseDir . '/app/Events/CricketMatchUpdate.php',
     'App\\Exceptions\\Handler' => $baseDir . '/app/Exceptions/Handler.php',
     'App\\Http\\Controllers\\API\\CricketMatchController' => $baseDir . '/app/Http/Controllers/API/CricketMatchController.php',

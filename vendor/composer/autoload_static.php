@@ -543,6 +543,7 @@ class ComposerStaticInitc61ff82cbf0142a401a48a8161e1595a
 
     public static $classMap = array (
         'App\\Console\\Kernel' => __DIR__ . '/../..' . '/app/Console/Kernel.php',
+        'App\\Events\\CricketMatchTossEvent' => __DIR__ . '/../..' . '/app/Events/CricketMatchTossEvent.php',
         'App\\Events\\CricketMatchUpdate' => __DIR__ . '/../..' . '/app/Events/CricketMatchUpdate.php',
         'App\\Exceptions\\Handler' => __DIR__ . '/../..' . '/app/Exceptions/Handler.php',
         'App\\Http\\Controllers\\API\\CricketMatchController' => __DIR__ . '/../..' . '/app/Http/Controllers/API/CricketMatchController.php',

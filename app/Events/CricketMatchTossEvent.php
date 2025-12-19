@@ -21,11 +21,6 @@ class CricketMatchTossEvent implements ShouldBroadcast
     public $battingFirstTeam;
     public $bowlingFirstTeam;
 
-    /**
-     * Create a new event instance.
-     *
-     * @return void
-     */
     public function __construct($match, $tossData, $battingFirstTeam, $bowlingFirstTeam)
     {
         $this->match = $match;
@@ -34,35 +29,18 @@ class CricketMatchTossEvent implements ShouldBroadcast
         $this->bowlingFirstTeam = $bowlingFirstTeam;
     }
 
-    /**
-     * Get the channels the event should broadcast on.
-     *
-     * @return \Illuminate\Broadcasting\Channel|array
-     */
     public function broadcastOn()
     {
-        // Broadcast on a public channel for match updates
         return new Channel('cricket-match.' . $this->match->id);
     }
 
-    /**
-     * The event's broadcast name.
-     *
-     * @return string
-     */
     public function broadcastAs()
     {
-        return 'toss.updated';
+        return 'toss-updated';
     }
 
-    /**
-     * Get the data to broadcast.
-     *
-     * @return array
-     */
     public function broadcastWith()
     {
-        Log::info('Live Update Sent');
         return [
             'match' => [
                 'id' => $this->match->id,

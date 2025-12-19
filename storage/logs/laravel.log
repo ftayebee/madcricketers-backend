@@ -1,22 +1,63 @@
-[2025-12-18 12:06:25] local.INFO: Live Update Sent  
-[2025-12-18 12:06:25] local.INFO: Broadcasting [toss.updated] on channels [cricket-match.268] with payload:
+[2025-12-19 09:20:29] local.INFO: Broadcasting [toss.updated] on channels [cricket-match.268] with payload:
 {
     "match": {
         "id": 268,
         "status": "live",
         "toss": {
-            "id": 168,
+            "id": 179,
+            "cricket_match_id": 268,
+            "toss_winner_team_id": 14,
+            "decision": "bat",
+            "created_at": "2025-12-19T09:20:29.000000Z",
+            "updated_at": "2025-12-19T09:20:29.000000Z"
+        }
+    },
+    "toss_winner_team_id": 14,
+    "toss_decision": "bat",
+    "batting_first_team_id": 14,
+    "bowling_first_team_id": 15,
+    "timestamp": "2025-12-19T09:20:29.189071Z",
+    "socket": null
+}  
+[2025-12-19 09:23:15] local.INFO: Broadcasting [toss.updated] on channels [cricket-match.268] with payload:
+{
+    "match": {
+        "id": 268,
+        "status": "live",
+        "toss": {
+            "id": 180,
+            "cricket_match_id": 268,
+            "toss_winner_team_id": 14,
+            "decision": "bat",
+            "created_at": "2025-12-19T09:23:15.000000Z",
+            "updated_at": "2025-12-19T09:23:15.000000Z"
+        }
+    },
+    "toss_winner_team_id": 14,
+    "toss_decision": "bat",
+    "batting_first_team_id": 14,
+    "bowling_first_team_id": 15,
+    "timestamp": "2025-12-19T09:23:15.854230Z",
+    "socket": null
+}  
+[2025-12-19 09:27:01] local.INFO: Broadcasting [toss-updated] on channels [cricket-match.268] with payload:
+{
+    "match": {
+        "id": 268,
+        "status": "live",
+        "toss": {
+            "id": 181,
             "cricket_match_id": 268,
             "toss_winner_team_id": 14,
             "decision": "bowl",
-            "created_at": "2025-12-18T12:06:25.000000Z",
-            "updated_at": "2025-12-18T12:06:25.000000Z"
+            "created_at": "2025-12-19T09:27:01.000000Z",
+            "updated_at": "2025-12-19T09:27:01.000000Z"
         }
     },
     "toss_winner_team_id": 14,
     "toss_decision": "bowl",
     "batting_first_team_id": 15,
     "bowling_first_team_id": 14,
-    "timestamp": "2025-12-18T12:06:25.586664Z",
+    "timestamp": "2025-12-19T09:27:01.556410Z",
     "socket": null
 }  
