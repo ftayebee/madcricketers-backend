@@ -401,8 +401,9 @@ class CricketMatchController extends Controller
                 'status' => 'waiting'
             ]);
 
-            // broadcast(new CricketMatchTossEvent($match, $tossData, $battingFirstTeam, $bowlingFirstTeam))->toOthers();
-            event(new CricketMatchTossEvent($match, $tossData, $battingFirstTeam, $bowlingFirstTeam));
+            $is_tournament = $match->tournament ? true : false;
+
+            event(new CricketMatchTossEvent($match, $tossData, $battingFirstTeam, $bowlingFirstTeam, $is_tournament));
 
             return response()->json([
                 'success' => true,

@@ -2,7 +2,6 @@
 
 namespace App\Events;
 
-use App\Models\CricketMatch;
 use Illuminate\Broadcasting\Channel;
 use Illuminate\Broadcasting\InteractsWithSockets;
 use Illuminate\Broadcasting\PresenceChannel;
@@ -11,24 +10,27 @@ use Illuminate\Contracts\Broadcasting\ShouldBroadcast;
 use Illuminate\Foundation\Events\Dispatchable;
 use Illuminate\Queue\SerializesModels;
 
-class CricketMatchUpdate
+class CricketMatchUpdateEvent.php
 {
-    use InteractsWithSockets, SerializesModels;
+    use Dispatchable, InteractsWithSockets, SerializesModels;
 
-    public $match;
-
-    public function __construct(CricketMatch $match)
+    /**
+     * Create a new event instance.
+     *
+     * @return void
+     */
+    public function __construct()
     {
-        $this->match = $match;
+        //
     }
 
+    /**
+     * Get the channels the event should broadcast on.
+     *
+     * @return \Illuminate\Broadcasting\Channel|array
+     */
     public function broadcastOn()
     {
-        return new Channel('match.' . $this->match->id);
-    }
-
-    public function broadcastAs()
-    {
-        return 'MatchUpdated';
+        return new PrivateChannel('channel-name');
     }
 }

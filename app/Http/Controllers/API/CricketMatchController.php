@@ -4,6 +4,7 @@ namespace App\Http\Controllers\API;
 
 use Exception;
 use Carbon\Carbon;
+use App\Models\Team;
 use App\Models\User;
 use App\Models\Player;
 use App\Models\Tournament;
@@ -15,28 +16,31 @@ use App\Models\CricketMatchToss;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use App\Http\Controllers\Controller;
+use Illuminate\Support\Facades\Validator;
+use App\Http\Requests\MatchTeamInfoRequest;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 
 class CricketMatchController extends Controller
 {
-    public function getLiveMatches(Request $request){
+    public function getLiveMatches(Request $request)
+    {
         try {
             $matches = CricketMatch::with([
-                                    'teamA:id,name,logo',
-                                    'teamB:id,name,logo',
-                                    'winningTeam:id,name',
-                                    'tournament:id,name,slug,start_date,end_date,status',
-                                ])
-                                    ->whereIn('status', ['live'])
-                                    ->orderByRaw("
+                'teamA:id,name,logo',
+                'teamB:id,name,logo',
+                'winningTeam:id,name',
+                'tournament:id,name,slug,start_date,end_date,status',
+            ])
+                ->whereIn('status', ['live'])
+                ->orderByRaw("
                             CASE
                                 WHEN status = 'live' THEN 1
                                 WHEN status = 'upcoming' THEN 2
                                 ELSE 3
                             END
                         ")
-                        ->orderBy('match_date', 'asc')
-                        ->get();
+                ->orderBy('match_date', 'asc')
+                ->get();
 
             $data = $matches->map(function ($match) {
                 $groupA = optional($match->teamA->groups()
@@ -106,21 +110,21 @@ class CricketMatchController extends Controller
     {
         try {
             $matches = CricketMatch::with([
-                                    'teamA:id,name,logo',
-                                    'teamB:id,name,logo',
-                                    'winningTeam:id,name',
-                                    'tournament:id,name,slug,start_date,end_date,status',
-                                ])
-                                    ->whereIn('status', ['upcoming'])
-                                    ->orderByRaw("
+                'teamA:id,name,logo',
+                'teamB:id,name,logo',
+                'winningTeam:id,name',
+                'tournament:id,name,slug,start_date,end_date,status',
+            ])
+                ->whereIn('status', ['upcoming'])
+                ->orderByRaw("
                             CASE
                                 WHEN status = 'live' THEN 1
                                 WHEN status = 'upcoming' THEN 2
                                 ELSE 3
                             END
                         ")
-                        ->orderBy('match_date', 'asc')
-                        ->get();
+                ->orderBy('match_date', 'asc')
+                ->get();
 
             $data = $matches->map(function ($match) {
                 $groupA = optional($match->teamA->groups()
@@ -353,8 +357,8 @@ class CricketMatchController extends Controller
 
                 // Get last 5 completed matches before this match date
                 $lastMatches = CricketMatch::where(function ($q) use ($teamId) {
-                        $q->where('team_a_id', $teamId)->orWhere('team_b_id', $teamId);
-                    })
+                    $q->where('team_a_id', $teamId)->orWhere('team_b_id', $teamId);
+                })
                     ->where('match_date', '<', $matchDate)
                     ->whereNotNull('winning_team_id')
                     ->orderBy('match_date', 'desc')
@@ -409,6 +413,98 @@ class CricketMatchController extends Controller
             return response()->json([
                 'success' => false,
                 'message' => 'Failed to fetch team form.',
+            ], 500);
+        }
+    }
+
+    public function getTeamInfo(MatchTeamInfoRequest $request)
+    {
+        try {
+            $match = CricketMatch::findOrFail($request->match_id);
+
+            $battingPlayers = Player::with('user')
+                ->whereHas('teams', function ($q) use ($request) {
+                    $q->where('team_id', $request->batting_team);
+
+                    if ($request->is_tournament) {
+                        $q->where('tournament_id', $request->tournament_id);
+                    } else {
+                        $q->where('match_id', $request->match_id);
+                    }
+                })
+                ->select(
+                    'id',
+                    'user_id',
+                    'player_type',
+                    'player_role',
+                    'batting_style',
+                    'bowling_style',
+                    'jursey_number',
+                    'jursey_name',
+                    'jursey_size',
+                    'chest_measurement'
+                )
+                ->get();
+
+            $bowlingPlayers = Player::with('user')
+                ->whereHas('teams', function ($q) use ($request) {
+                    $q->where('team_id', $request->bowling_team);
+
+                    if ($request->is_tournament) {
+                        $q->where('tournament_id', $request->tournament_id);
+                    } else {
+                        $q->where('match_id', $request->match_id);
+                    }
+                })
+                ->select(
+                    'id',
+                    'user_id',
+                    'player_type',
+                    'player_role',
+                    'batting_style',
+                    'bowling_style',
+                    'jursey_number',
+                    'jursey_name',
+                    'jursey_size',
+                    'chest_measurement'
+                )
+                ->get();
+
+            // 🔹 Team meta
+            $battingTeam = Team::select('id', 'name')->find($request->batting_team);
+            $bowlingTeam = Team::select('id', 'name')->find($request->bowling_team);
+
+            // 🔹 Current running scoreboard
+            $currentScoreboard = MatchScoreBoard::where('match_id', $match->id)
+                ->where('status', 'running')
+                ->first();
+
+            return response()->json([
+                'success' => true,
+                'matchData' => [
+                    'match' => [
+                        'id'    => $match->id,
+                        'overs' => $match->overs
+                    ],
+                    'battingTeam' => [
+                        'team'    => $battingTeam,
+                        'players' => $battingPlayers
+                    ],
+                    'bowlingTeam' => [
+                        'team'    => $bowlingTeam,
+                        'players' => $bowlingPlayers
+                    ],
+                    'scoreboard' => $currentScoreboard
+                ]
+            ]);
+        } catch (\Exception $e) {
+            Log::error('getTeamInfo error', [
+                'message' => $e->getMessage()
+            ]);
+
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to fetch team info.'
             ], 500);
         }
     }
@@ -494,8 +590,12 @@ class CricketMatchController extends Controller
         }
     }
 
+    public function updatePlayerTeam(Request $request){
+        $allPlayers = Player::all();
 
-    public function getLiveScore(Request $request, $id){
-
+        
     }
+
+
+    public function getLiveScore(Request $request, $id) {}
 }

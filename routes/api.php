@@ -16,6 +16,8 @@ Route::prefix('matches')->group(function(){
     Route::get('/detail/{id}', [CricketMatchController::class, 'getMatchDetailBySlug'])->name('api.detail-matches');
     Route::get('/detail/team-info/{id}', [CricketMatchController::class, 'getMatchInfo'])->name('api.detail-matches.teamForm');
     Route::get('/yet-to-bat/{id}', [CricketMatchController::class, 'getYetToBat'])->name('api.matches.yet-to-bat');
+
+    Route::get('/get-team-data', [CricketMatchController::class, 'getTeamInfo'])->name('api.matches.team-info');
 });
 
 Route::prefix('tournaments')->group(function(){

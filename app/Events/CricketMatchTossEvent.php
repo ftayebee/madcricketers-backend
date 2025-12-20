@@ -20,13 +20,15 @@ class CricketMatchTossEvent implements ShouldBroadcast
     public $tossData;
     public $battingFirstTeam;
     public $bowlingFirstTeam;
+    public $is_tournament;
 
-    public function __construct($match, $tossData, $battingFirstTeam, $bowlingFirstTeam)
+    public function __construct($match, $tossData, $battingFirstTeam, $bowlingFirstTeam, $is_tournament)
     {
         $this->match = $match;
         $this->tossData = $tossData;
         $this->battingFirstTeam = $battingFirstTeam;
         $this->bowlingFirstTeam = $bowlingFirstTeam;
+        $this->is_tournament = $is_tournament;
     }
 
     public function broadcastOn()
@@ -51,6 +53,7 @@ class CricketMatchTossEvent implements ShouldBroadcast
             'toss_decision' => $this->tossData->decision,
             'batting_first_team_id' => $this->battingFirstTeam,
             'bowling_first_team_id' => $this->bowlingFirstTeam,
+            'is_tournament' => $this->is_tournament,
             'timestamp' => now()->toISOString(),
         ];
     }
