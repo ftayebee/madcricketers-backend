@@ -18,6 +18,7 @@ use Illuminate\Support\Facades\Log;
 use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\Validator;
 use App\Http\Requests\MatchTeamInfoRequest;
+use App\Models\MatchDelivery;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 
 class CricketMatchController extends Controller
@@ -417,67 +418,149 @@ class CricketMatchController extends Controller
         }
     }
 
+    public function yetToBatPlayers($teamId, $matchId)
+    {
+        $allPlayers = Player::where('team_id', $teamId)->pluck('id');
+        $battedPlayers = MatchPlayer::where('match_id', $matchId)
+            ->where('team_id', $teamId)
+            ->where('type', 'batting')
+            ->pluck('player_id');
+
+        $yetToBat = $allPlayers->diff($battedPlayers);
+
+        return Player::whereIn('id', $yetToBat)->get(['id', 'name', 'player_role']);
+    }
+
+    public function getCurrentOver($matchId)
+    {
+        $over = MatchDelivery::where('match_id', $matchId)
+            ->where('is_complete', false)
+            ->latest('id')
+            ->first();
+
+        if (!$over) return null;
+
+        return [
+            'over_number' => $over->over_number,
+            'balls' => $over->balls,
+            'runs' => $over->runs,
+            'wickets' => $over->wickets
+        ];
+    }
+
+    public function getStriker($matchId)
+    {
+        $batsman = MatchPlayer::where('match_id', $matchId)
+            ->where('status', 'on-strike')
+            ->first();
+
+        return $batsman ? Player::find($batsman->player_id) : null;
+    }
+
+    public function getNonStriker($matchId)
+    {
+        $batsman = MatchPlayer::where('match_id', $matchId)
+            ->where('status', 'batting')
+            ->first();
+
+        return $batsman ? Player::find($batsman->player_id) : null;
+    }
+
+    public function getCurrentBowler($matchId)
+    {
+        $bowler = MatchPlayer::where('match_id', $matchId)
+            ->where('status', 'bowling')
+            ->latest('id')
+            ->first();
+
+        return $bowler ? Player::find($bowler->player_id) : null;
+    }
+
+    public function calculateMatchProbability($matchId)
+    {
+        $match = CricketMatch::find($matchId);
+        $score = MatchScoreBoard::where('match_id', $matchId)->sum('runs');
+        $wickets = MatchScoreBoard::where('match_id', $matchId)->sum('wickets');
+
+        $target = $match->target ?? 200;
+        $remaining = max($target - $score, 0);
+        $probability = max(0, min(100, 100 - ($remaining * 100 / $target) + $wickets * 2));
+
+        return round($probability, 2);
+    }
+
+    public function calculateProjectedScore($currentRunRate, $match)
+    {
+        $runRates = [];
+
+        $startRate = floor($currentRunRate) - 1;
+        if ($startRate < 0) $startRate = 0;
+
+        for ($i = $startRate; $i <= $startRate + 4; $i++) {
+            $rate = $i;
+            if ($rate == floor($currentRunRate)) {
+                $runRates[] = number_format($currentRunRate, 2) . '*';
+            } else {
+                $runRates[] = number_format($rate, 2);
+            }
+        }
+
+        $projections = [];
+        foreach ($runRates as $rate) {
+            $cleanRate = (float) str_replace('*', '', $rate);
+            $projectedScore = $cleanRate * $match->max_overs;
+            $projections[] = [
+                'run_rate' => $rate,
+                'projected_score' => (int) round($projectedScore)
+            ];
+        }
+
+        return $projections;
+    }
+
     public function getTeamInfo(MatchTeamInfoRequest $request)
     {
         try {
             $match = CricketMatch::findOrFail($request->match_id);
 
-            $battingPlayers = Player::with('user')
-                ->whereHas('teams', function ($q) use ($request) {
-                    $q->where('team_id', $request->batting_team);
-
-                    if ($request->is_tournament) {
-                        $q->where('tournament_id', $request->tournament_id);
-                    } else {
-                        $q->where('match_id', $request->match_id);
-                    }
-                })
-                ->select(
-                    'id',
-                    'user_id',
-                    'player_type',
-                    'player_role',
-                    'batting_style',
-                    'bowling_style',
-                    'jursey_number',
-                    'jursey_name',
-                    'jursey_size',
-                    'chest_measurement'
-                )
-                ->get();
-
-            $bowlingPlayers = Player::with('user')
-                ->whereHas('teams', function ($q) use ($request) {
-                    $q->where('team_id', $request->bowling_team);
-
-                    if ($request->is_tournament) {
-                        $q->where('tournament_id', $request->tournament_id);
-                    } else {
-                        $q->where('match_id', $request->match_id);
-                    }
-                })
-                ->select(
-                    'id',
-                    'user_id',
-                    'player_type',
-                    'player_role',
-                    'batting_style',
-                    'bowling_style',
-                    'jursey_number',
-                    'jursey_name',
-                    'jursey_size',
-                    'chest_measurement'
-                )
-                ->get();
-
-            // 🔹 Team meta
             $battingTeam = Team::select('id', 'name')->find($request->batting_team);
             $bowlingTeam = Team::select('id', 'name')->find($request->bowling_team);
 
-            // 🔹 Current running scoreboard
-            $currentScoreboard = MatchScoreBoard::where('match_id', $match->id)
-                ->where('status', 'running')
-                ->first();
+            if ($match->tournament) {
+                $battingPlayers = $battingTeam->playersForTournamentMatch($match->id, $match->tournament_id)->get();
+                $bowlingPlayers = $bowlingTeam->playersForTournamentMatch($match->id, $match->tournament_id)->get();
+            } else {
+                $battingPlayers = $battingTeam->playersForFriendlyMatch($match->id, $match->tournament_id)->get();
+                $bowlingPlayers = $bowlingTeam->playersForFriendlyMatch($match->id, $match->tournament_id)->get();
+            }
+
+            $currentRunRate = 0;
+            $scoreboards = [];
+            foreach ([$battingTeam, $bowlingTeam] as $team) {
+                $teamScoreboard = MatchScoreBoard::where('match_id', $match->id)
+                    ->where('team_id', $team->id)
+                    ->first();
+
+                $currentRunRate = $teamScoreboard->overs ? $teamScoreboard->runs / $teamScoreboard->overs : 0;
+
+                if ($teamScoreboard) {
+                    $scoreboards[] = [
+                        'team' => $team,
+                        'batting' => $teamScoreboard->battingPlayers(),
+                        'bowling' => $teamScoreboard->bowlingPlayers(),
+                        'fallOfWickets' => $teamScoreboard->fallOfWickets(),
+                        'partnerships' => $teamScoreboard->partnerships(),
+                        'yetToBat' => $teamScoreboard->yetToBatPlayers()
+                    ];
+                }
+            }
+
+            $currentOver = $this->getCurrentOver($match->id);
+            $striker     = $this->getStriker($match->id);
+            $nonStriker  = $this->getNonStriker($match->id);
+            $bowler      = $this->getCurrentBowler($match->id);
+            $probability = $this->calculateMatchProbability($match->id);
+            $projection  = $this->calculateProjectedScore($currentRunRate, $match);
 
             return response()->json([
                 'success' => true,
@@ -494,7 +577,13 @@ class CricketMatchController extends Controller
                         'team'    => $bowlingTeam,
                         'players' => $bowlingPlayers
                     ],
-                    'scoreboard' => $currentScoreboard
+                    'scoreboards' => $scoreboards,
+                    'striker'     => $striker,
+                    'nonStriker'  => $nonStriker,
+                    'bowler'      => $bowler,
+                    'currentOver' => $currentOver,
+                    'probability' => $probability,
+                    'projection'  => $projection
                 ]
             ]);
         } catch (\Exception $e) {
@@ -508,6 +597,7 @@ class CricketMatchController extends Controller
             ], 500);
         }
     }
+
 
     public function getYetToBat(Request $request, $matchId)
     {
@@ -589,13 +679,6 @@ class CricketMatchController extends Controller
             ]);
         }
     }
-
-    public function updatePlayerTeam(Request $request){
-        $allPlayers = Player::all();
-
-        
-    }
-
 
     public function getLiveScore(Request $request, $id) {}
 }

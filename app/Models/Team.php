@@ -10,11 +10,31 @@ class Team extends Model
 {
     use HasFactory;
 
-    protected $fillable = [ 'name', 'slug', 'logo', 'coach_name', 'manager_name', 'description' ];
+    protected $fillable = ['name', 'slug', 'logo', 'coach_name', 'manager_name', 'description'];
 
     public function players()
     {
-        return $this->belongsToMany(Player::class, 'player_team')->withTimestamps();
+        return $this->belongsToMany(Player::class, 'player_team')
+            ->withPivot(['match_id', 'tournament_id'])
+            ->withTimestamps();
+    }
+
+    public function playersForTournamentMatch($matchId, $tournamentId)
+    {
+        return $this->belongsToMany(Player::class, 'player_team')
+            ->wherePivot('match_id', $matchId)
+            ->wherePivot('tournament_id', $tournamentId)
+            ->withPivot(['match_id', 'tournament_id'])
+            ->withTimestamps();
+    }
+
+    public function playersForFriendlyMatch($matchId)
+    {
+        return $this->belongsToMany(Player::class, 'player_team')
+            ->wherePivot('match_id', $matchId)
+            ->whereNull('player_team.tournament_id')
+            ->withPivot(['match_id', 'tournament_id'])
+            ->withTimestamps();
     }
 
     public function getLogoAttribute()
@@ -45,5 +65,21 @@ class Team extends Model
     {
         return $this->hasMany(TournamentTeamStat::class, 'team_id')
             ->where('tournament_id', $tournamentId);
+    }
+
+    public function matchesAsTeamA()
+    {
+        return $this->hasMany(CricketMatch::class, 'team_a_id');
+    }
+
+    public function matchesAsTeamB()
+    {
+        return $this->hasMany(CricketMatch::class, 'team_b_id');
+    }
+
+    public function getCricketMatchesAttribute()
+    {
+        return $this->matchesAsTeamA
+            ->merge($this->matchesAsTeamB);
     }
 }
