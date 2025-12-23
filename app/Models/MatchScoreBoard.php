@@ -34,8 +34,7 @@ class MatchScoreBoard extends Model
     {
         return MatchPlayer::where('match_id', $this->match_id)
             ->where('team_id', $this->team_id)
-            ->whereIn('type', ['batting','on-strike','bowled','caught','bowling','run_out','lbw','retired-hurt','fielding','hit-wicket','closed','stumped','ready'])
-            ->orderBy('batting_order')
+            ->whereIn('status', ['batting', 'on-strike', 'bowled', 'caught', 'bowling', 'run_out', 'lbw', 'retired-hurt', 'fielding', 'hit-wicket', 'closed', 'stumped', 'ready'])
             ->get()
             ->map(function ($player) {
                 return [
@@ -70,10 +69,27 @@ class MatchScoreBoard extends Model
 
     public function fallOfWickets()
     {
-        return FallOfWicket::where('match_id', $this->match_id)
+        return FallOfWicket::with([
+                'batter.user:id,full_name',
+                'bowler.user:id,full_name',
+                'fielder.user:id,full_name'
+            ])
+            ->where('match_id', $this->match_id)
             ->where('team_id', $this->team_id)
             ->orderBy('wicket_number')
-            ->get(['player_name', 'score', 'over'])
+            ->get()
+            ->map(function ($wicket) {
+                return [
+                    'wicket'          => $wicket->wicket_number,
+                    'score'           => $wicket->runs,
+                    'over'            => $wicket->overs,
+                    'batter'          => optional($wicket->batter?->user)->full_name,
+                    'bowler'          => optional($wicket->bowler?->user)->full_name,
+                    'fielder'         => optional($wicket->fielder?->user)->full_name,
+                    'dismissal_type'  => $wicket->dismissal_type,
+                ];
+            })
+            ->values()
             ->toArray();
     }
 
@@ -94,14 +110,17 @@ class MatchScoreBoard extends Model
 
     public function yetToBatPlayers()
     {
-        $allPlayers = Player::where('team_id', $this->team_id)->pluck('id');
-        $battedPlayers = PlayerScore::where('match_id', $this->match_id)
+        $allPlayers = Player::whereHas('teams', function ($q) {
+                $q->where('teams.id', $this->team_id);
+            })
+            ->pluck('players.id');
+        $battedPlayers = MatchPlayer::where('match_id', $this->match_id)
             ->where('team_id', $this->team_id)
-            ->where('type', 'batting')
+            ->whereIn('status', ['batting', 'on-strike', 'bowled', 'caught', 'bowling', 'run_out', 'lbw', 'retired-hurt', 'fielding', 'hit-wicket', 'closed', 'stumped', 'ready'])
             ->pluck('player_id');
 
         $yetToBat = $allPlayers->diff($battedPlayers);
 
-        return Player::whereIn('id', $yetToBat)->get(['id', 'name', 'player_role']);
+        return Player::with('user')->whereIn('id', $yetToBat)->get();
     }
 }

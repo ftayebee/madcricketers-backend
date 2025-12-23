@@ -20,6 +20,7 @@ use Illuminate\Support\Facades\Validator;
 use App\Http\Requests\MatchTeamInfoRequest;
 use App\Models\MatchDelivery;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
+use App\Services\CurrentOverService;
 
 class CricketMatchController extends Controller
 {
@@ -420,32 +421,23 @@ class CricketMatchController extends Controller
 
     public function yetToBatPlayers($teamId, $matchId)
     {
-        $allPlayers = Player::where('team_id', $teamId)->pluck('id');
+        $allPlayers = Player::whereHas('teams', function ($q) use ($teamId, $matchId) {
+                $q->where('teams.id', $teamId);
+            })
+            ->pluck('players.id');
         $battedPlayers = MatchPlayer::where('match_id', $matchId)
-            ->where('team_id', $teamId)
-            ->where('type', 'batting')
+            ->where('team_id', $matchId)
+            ->whereIn('status', ['batting', 'on-strike', 'bowled', 'caught', 'bowling', 'run_out', 'lbw', 'retired-hurt', 'fielding', 'hit-wicket', 'closed', 'stumped', 'ready'])
             ->pluck('player_id');
 
         $yetToBat = $allPlayers->diff($battedPlayers);
 
-        return Player::whereIn('id', $yetToBat)->get(['id', 'name', 'player_role']);
+        return Player::with('user')->whereIn('id', $yetToBat)->get();
     }
 
     public function getCurrentOver($matchId)
     {
-        $over = MatchDelivery::where('match_id', $matchId)
-            ->where('is_complete', false)
-            ->latest('id')
-            ->first();
-
-        if (!$over) return null;
-
-        return [
-            'over_number' => $over->over_number,
-            'balls' => $over->balls,
-            'runs' => $over->runs,
-            'wickets' => $over->wickets
-        ];
+        return CurrentOverService::get($matchId);
     }
 
     public function getStriker($matchId)
@@ -561,6 +553,7 @@ class CricketMatchController extends Controller
             $bowler      = $this->getCurrentBowler($match->id);
             $probability = $this->calculateMatchProbability($match->id);
             $projection  = $this->calculateProjectedScore($currentRunRate, $match);
+            $yetToBatList= $this->yetToBatPlayers($battingTeam->id, $match->id);
 
             return response()->json([
                 'success' => true,
@@ -583,7 +576,8 @@ class CricketMatchController extends Controller
                     'bowler'      => $bowler,
                     'currentOver' => $currentOver,
                     'probability' => $probability,
-                    'projection'  => $projection
+                    'projection'  => $projection,
+                    'yetToBatList'=> $yetToBatList
                 ]
             ]);
         } catch (\Exception $e) {
@@ -595,6 +589,33 @@ class CricketMatchController extends Controller
                 'success' => false,
                 'message' => 'Failed to fetch team info.'
             ], 500);
+        }
+    }
+
+    public function getScorecard(Request $request){
+        try{
+            $validator = Validator::make($request->all(), [
+                'match_id' => 'required'
+            ]);
+
+            if($validator->fails()){
+                return response()->json([
+                    'success' => false,
+                    'message' => $validator->errors()
+                ]);
+            }
+
+            $scoreboards = MatchScoreBoard::where('match_id', $request->match_id)->orderBy('innings', 'ASC')->get();
+
+            return response()->json([
+                'success' => true,
+                'data' => $scoreboards
+            ]);
+        } catch(Exception $e){
+            return response()->json([
+                'success' => false,
+                'message' => $e->getMessage()
+            ]); 
         }
     }
 
