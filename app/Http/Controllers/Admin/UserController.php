@@ -389,6 +389,9 @@ class UserController extends Controller
 
             $user->update();
 
+            $role = Role::findOrFail($user->role_id);
+            $user->syncRoles([$role]);
+
             if($user->hasRole('player')){
                 $player                 = $user->player;
                 $player->user_id        = $user->id;

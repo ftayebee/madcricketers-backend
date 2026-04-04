@@ -51,9 +51,8 @@
 
                         <div class="mb-3">
                             <label for="player_selector" class="form-label">Select Players</label>
-                            <select class="form-control select2-hidden-accessible" id="player_selector" name="player_ids[]"
-                                multiple="" style="width: 100%;" data-select2-id="select2-data-player_selector"
-                                tabindex="-1" aria-hidden="true">
+                            <select class="form-control" id="player_selector" name="player_ids[]"
+                                multiple style="width: 100%;">
                                 @foreach (\App\Models\Player::all() as $player)
                                     <option value="{{ $player->id }}"
                                         data-img="{{ $player->user->image ?? '/default.png' }}"
@@ -79,6 +78,63 @@
 
 @push('scripts')
     <script>
+        $(function() {
+            function formatPlayer(player) {
+                if (!player.id) return player.text;
+                let img = $(player.element).data('img');
+                let role = $(player.element).data('role') || 'Player';
+                let battingstyle = $(player.element).data('battingstyle') || '';
+                let bowlingstyle = $(player.element).data('bowlingstyle') || '';
+
+                return `
+                    <div style="display:flex; align-items:center; gap:10px;">
+                        <img src="${img}" onerror="this.src='/default.png'" style="width:35px; height:35px; border-radius:50%; object-fit:cover;">
+                        <div>
+                            <div style="font-weight:600;">${player.text}</div>
+                            <div style="font-size:12px; color:#666;">${role} | ${battingstyle} | ${bowlingstyle}</div>
+                        </div>
+                    </div>
+                `;
+            }
+
+            function formatPlayerSelection(player) {
+                if (!player.id) return player.text;
+                let img = $(player.element).data('img');
+                return `
+                    <div style="display:flex; align-items:center; gap:8px;">
+                        <img src="${img}" onerror="this.src='/default.png'" style="width:22px; height:22px; border-radius:50%; object-fit:cover;">
+                        <span>${player.text}</span>
+                    </div>
+                `;
+            }
+
+            try {
+                window.$playerSelector = $('#player_selector').select2({
+                    placeholder: 'Search and select players...',
+                    dropdownParent: $('#assignPlayerModal'),
+                    width: '100%',
+                    templateResult: formatPlayer,
+                    templateSelection: formatPlayerSelection,
+                    escapeMarkup: function(markup) { return markup; }
+                });
+            } catch (e) {
+                console.error("Select2 Init Error Modal 1: ", e);
+            }
+
+            try {
+                window.$playerSelector2 = $('#player_selector2').select2({
+                    placeholder: 'Search and select players...',
+                    dropdownParent: $('#add-team'),
+                    width: '100%',
+                    templateResult: formatPlayer,
+                    templateSelection: formatPlayerSelection,
+                    escapeMarkup: function(markup) { return markup; }
+                });
+            } catch (e) {
+                console.error("Select2 Init Error Modal 2: ", e);
+            }
+        });
+
         $(document).ready(function() {
             const redirectTo = "{{ url()->current() }}"
             let teamTable = $('#tbl-players').DataTable({
@@ -193,54 +249,13 @@
                         });
                     }
                 });
+
             });
-
-            const $playerSelector = $('#player_selector').select2({
-                placeholder: 'Search and select players...',
-                dropdownParent: $('#assignPlayerModal'),
-                templateResult: formatPlayer,
-                templateSelection: formatPlayerSelection,
-                escapeMarkup: function(markup) {
-                    return markup;
-                }
-            });
-
-            function formatPlayer(player) {
-                if (!player.id) return player.text;
-
-                let img = $(player.element).data('img');
-                let role = $(player.element).data('role');
-                let battingstyle = $(player.element).data('battingstyle');
-                let bowlingstyle = $(player.element).data('bowlingstyle');
-
-                return `
-                    <div style="display:flex; align-items:center; gap:10px;">
-                        <img src="${img}" style="width:35px; height:35px; border-radius:50%; object-fit:cover;">
-                        <div>
-                            <div style="font-weight:600;">${player.text}</div>
-                            <div style="font-size:12px; color:#666;">${role} | ${battingstyle} | ${bowlingstyle}</div>
-                        </div>
-                    </div>
-                `;
-            }
-
-            function formatPlayerSelection(player) {
-                if (!player.id) return player.text;
-
-                let img = $(player.element).data('img');
-
-                return `
-                    <div style="display:flex; align-items:center; gap:8px;">
-                        <img src="${img}" style="width:22px; height:22px; border-radius:50%; object-fit:cover;">
-                        <span>${player.text}</span>
-                    </div>
-                `;
-            }
 
             $(document).on('click', '.btn-assign-players', function() {
                 const teamId = $(this).data('id');
                 $('#modal_team_id').val(teamId);
-                $playerSelector.val(null).trigger('change');
+                $('#player_selector').val(null).trigger('change');
                 $('#assignPlayerModal').modal('show');
             });
 

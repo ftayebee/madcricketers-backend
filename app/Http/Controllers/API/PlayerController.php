@@ -119,6 +119,12 @@ class PlayerController extends Controller
                 'jursey_name'        => 'required|string|max:50',
                 'jursey_size'        => 'required|in:s,m,l,xl,2xl,3xl',
                 'chest_measurement'  => 'nullable|string|max:10',
+                'favourite_football_country' => 'nullable|string|max:255',
+                'favourite_cricket_country' => 'nullable|string|max:255',
+                'favourite_football_league_team' => 'nullable|string|max:255',
+                'married_status'     => 'nullable|string|max:255',
+                'education_batch'    => 'nullable|string|max:255',
+                'ssc_batch'          => 'nullable|string|max:255',
             ]);
 
             if ($validator->fails()) {
@@ -196,6 +202,12 @@ class PlayerController extends Controller
             $player->jursey_name       = $request->input('jursey_name');
             $player->jursey_size       = $request->input('jursey_size');
             $player->chest_measurement = $request->input('chest_measurement');
+            $player->favourite_football_country = $request->input('favourite_football_country');
+            $player->favourite_cricket_country = $request->input('favourite_cricket_country');
+            $player->favourite_football_league_team = $request->input('favourite_football_league_team');
+            $player->married_status    = $request->input('married_status');
+            $player->education_batch   = $request->input('education_batch');
+            $player->ssc_batch         = $request->input('ssc_batch');
             $player->save();
 
             DB::commit();

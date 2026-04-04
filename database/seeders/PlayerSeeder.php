@@ -45,11 +45,21 @@ class PlayerSeeder extends Seeder
 
             // Create player
             Player::create([
-                'user_id' => $user->id,
-                'player_type' => 'registered',
-                'player_role' => $faker->randomElement(['batsman', 'bowler', 'all-rounder', 'wicketkeeper']),
-                'batting_style' => $faker->randomElement(['right-handed', 'left-handed']),
-                'bowling_style' => $faker->randomElement(['fast', 'medium', 'spin', 'none']),
+                'user_id'                        => $user->id,
+                'player_type'                    => 'registered',
+                'player_role'                    => $faker->randomElement(['batsman', 'bowler', 'all-rounder', 'wicketkeeper']),
+                'batting_style'                  => $faker->randomElement(['right-handed', 'left-handed']),
+                'bowling_style'                  => $faker->randomElement(['fast', 'medium', 'spin', 'none']),
+                'jursey_number'                  => $faker->numberBetween(1, 99),
+                'jursey_name'                    => strtoupper($faker->word()),
+                'jursey_size'                    => $faker->randomElement(['s', 'm', 'l', 'xl', '2xl', '3xl']),
+                'chest_measurement'              => $faker->numberBetween(36, 44),
+                'favourite_football_country'     => $faker->country(),
+                'favourite_cricket_country'      => $faker->country(),
+                'favourite_football_league_team' => $faker->company(),
+                'married_status'                 => $faker->randomElement(['Single', 'Married']),
+                'education_batch'                => 'Batch ' . $faker->year(),
+                'ssc_batch'                      => 'SSC ' . $faker->year(),
             ]);
         }
     }

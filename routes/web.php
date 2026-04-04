@@ -51,6 +51,7 @@ Route::prefix('admin')->name('admin.')->group(function(){
 
     Route::prefix('players')->name('players.')->group(function(){
         Route::get('/', [PlayerController::class, 'index'])->name('index'); // working
+        Route::get('/export', [PlayerController::class, 'export'])->name('export');
         Route::get('/loader', [PlayerController::class, 'tableLoader'])->name('loader'); // working
         Route::get('/show/{id}', [PlayerController::class, 'show'])->name('show'); // working
         Route::post('/destroy', [PlayerController::class, 'destroy'])->name('destroy'); // working

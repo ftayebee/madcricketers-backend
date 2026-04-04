@@ -36,9 +36,9 @@
 
                         <div class="col-12 mt-3">
                             <div class="form-group">
-                                <label for="logo">Assign Players</label>
-                                <select class="form-control select2-hidden-accessible" id="player_selector2"
-                                    name="player_ids[]" multiple="" style="width: 100%;" tabindex="-1" aria-hidden="true">
+                                <label for="player_selector2">Assign Players</label>
+                                <select class="form-control" id="player_selector2"
+                                    name="player_ids[]" multiple style="width: 100%;">
                                     @foreach (\App\Models\Player::all() as $player)
                                         <option value="{{ $player->id }}"
                                             data-img="{{ $player->user->image ?? '/default.png' }}"
@@ -59,52 +59,7 @@
                 </div>
             </form>
         </div>
-    </div>
-</div>
 
-@push('scripts')
-    <script>
-        const $playerSelector = $('#player_selector2').select2({
-            placeholder: 'Search and Select Players...',
-            dropdownParent: $('#add-team'),
-            templateResult: formatPlayer,
-            templateSelection: formatPlayerSelection,
-            escapeMarkup: function(markup) {
-                return markup;
-            },
-            closeOnSelect: false
-        });
 
-        function formatPlayer(player) {
-            if (!player.id) return player.text;
 
-            let img = $(player.element).data('img');
-            let role = $(player.element).data('role');
-            let battingstyle = $(player.element).data('battingstyle');
-            let bowlingstyle = $(player.element).data('bowlingstyle');
 
-            return `
-                    <div style="display:flex; align-items:center; gap:10px;">
-                        <img src="${img}" style="width:35px; height:35px; border-radius:50%; object-fit:cover;">
-                        <div>
-                            <div style="font-weight:600;">${player.text}</div>
-                            <div style="font-size:12px; color:#666;">${role} | ${battingstyle} | ${bowlingstyle}</div>
-                        </div>
-                    </div>
-                `;
-        }
-
-        function formatPlayerSelection(player) {
-            if (!player.id) return player.text;
-
-            let img = $(player.element).data('img');
-
-            return `
-                    <div style="display:flex; align-items:center; gap:8px;">
-                        <img src="${img}" style="width:22px; height:22px; border-radius:50%; object-fit:cover;">
-                        <span>${player.text}</span>
-                    </div>
-                `;
-        }
-    </script>
-@endpush

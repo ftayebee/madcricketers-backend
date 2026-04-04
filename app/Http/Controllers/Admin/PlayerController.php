@@ -155,4 +155,37 @@ class PlayerController extends Controller
             ]);
         }
     }
+
+    public function export(Request $request)
+    {
+        try {
+            if (!Auth::user()->can($this->module . '-view')) {
+                throw new Exception('Unauthorized Access');
+            }
+
+            $type = $request->input('type', 'full'); // full or jersey
+            $format = $request->input('format', 'excel'); // excel or pdf
+
+            $fileName = "player_{$type}_list_" . date('Y_m_d_His');
+            $export = new \App\Exports\PlayerListExport($type);
+
+            if ($format === 'pdf') {
+                return \Maatwebsite\Excel\Facades\Excel::download($export, "{$fileName}.pdf", \Maatwebsite\Excel\Excel::DOMPDF);
+            }
+
+            return \Maatwebsite\Excel\Facades\Excel::download($export, "{$fileName}.xlsx");
+
+        } catch (Exception $e) {
+            Log::error("Error exporting player list", [
+                'line' => $e->getLine(),
+                'file' => $e->getFile(),
+                'message' => $e->getMessage()
+            ]);
+
+            return redirect()->back()->with([
+                'success' => false,
+                'message' => 'Error exporting player list.'
+            ]);
+        }
+    }
 }

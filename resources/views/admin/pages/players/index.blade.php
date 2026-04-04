@@ -52,6 +52,17 @@
                                         <option value="wicketkeeper">Wicketkeeper</option>
                                     </select>
                                 </div>
+                                <div class="dropdown d-inline-block" style="margin-left: 20px;">
+                                    <button class="btn btn-secondary dropdown-toggle" type="button" id="exportDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+                                        <i class="fa fa-download"></i> Export
+                                    </button>
+                                    <ul class="dropdown-menu" aria-labelledby="exportDropdown">
+                                        <li><a class="dropdown-item" target="_blank" href="{{ route('admin.players.export', ['type' => 'full', 'format' => 'excel']) }}">Full List (Excel)</a></li>
+                                        <li><a class="dropdown-item" target="_blank" href="{{ route('admin.players.export', ['type' => 'full', 'format' => 'pdf']) }}">Full List (PDF)</a></li>
+                                        <li><a class="dropdown-item" target="_blank" href="{{ route('admin.players.export', ['type' => 'jersey', 'format' => 'excel']) }}">Jersey List (Excel)</a></li>
+                                        <li><a class="dropdown-item" target="_blank" href="{{ route('admin.players.export', ['type' => 'jersey', 'format' => 'pdf']) }}">Jersey List (PDF)</a></li>
+                                    </ul>
+                                </div>
                                 <a href="{{ route('admin.settings.users.create') }}" class="btn btn-primary"
                                     style="margin-left: 20px;">
                                     <i class="fa fa-plus"></i> Add New
