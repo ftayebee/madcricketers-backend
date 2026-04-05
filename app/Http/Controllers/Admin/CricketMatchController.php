@@ -16,7 +16,7 @@ use Illuminate\Http\Request;
 use App\Models\MatchDelivery;
 use App\Models\MatchScoreBoard;
 use App\Models\CricketMatchToss;
-use App\Events\CricketMatchUpdate;
+use App\Events\CricketMatchUpdateEvent;
 use App\Models\TournamentTeamStat;
 use Illuminate\Support\Facades\DB;
 use App\Models\TournamentGroupTeam;
@@ -805,7 +805,7 @@ class CricketMatchController extends Controller
             $battingTeamId = $request->team_id;
             $playerId      = $request->player_id;
 
-            $scoreboard = MatchScoreboard::where('match_id', $matchId)->get();
+            $scoreboard = MatchScoreBoard::where('match_id', $matchId)->get();
 
             if ($scoreboard->isEmpty()) {
                 return response()->json([
@@ -1877,7 +1877,6 @@ class CricketMatchController extends Controller
                 ->where('delivery_type', 'normal')
                 ->latest('id')
                 ->first();
-            $maxOvers = $match->max_overs ?? 5;
 
             $isOverCompleted = false;
 
@@ -1920,10 +1919,11 @@ class CricketMatchController extends Controller
             );
 
             // ---------- Delivery type & extras ----------
-            $deliveryType = 'normal';
-            $extraRuns    = 0;
-            $batsmanRuns  = $runs; // default runs off the bat
-            $legalBall    = true;
+            $deliveryType   = 'normal';
+            $extraRuns      = 0;
+            $batsmanRuns    = $runs; // default runs off the bat
+            $legalBall      = true;
+            $extraInputRuns = 0; // initialised here so strike-rotation logic below can safely reference it
 
             if (!empty($extras)) {
                 $type = strtoupper($extras['type'] ?? '');
@@ -2181,17 +2181,20 @@ class CricketMatchController extends Controller
                     $innings2 = MatchScoreBoard::where('match_id', $matchId)->where('innings', 2)->first();
 
                     if ($innings1 && $innings2) {
+                        $innings2TeamName = optional($innings2->team)->name ?? 'Team 2';
+                        $innings1TeamName = optional($innings1->team)->name ?? 'Team 1';
+
                         if ($innings2->runs > $innings1->runs) {
                             $remainingWickets = 10 - $innings2->wickets;
                             $match->winning_team_id = $innings2->team_id;
-                            $match->result_summary = $match->teamB->name . " won by {$remainingWickets} wickets";
+                            $match->result_summary  = "{$innings2TeamName} won by {$remainingWickets} wickets";
                         } elseif ($innings2->runs < $innings1->runs && $innings2->overs >= $maxOvers) {
                             $margin = $innings1->runs - $innings2->runs;
                             $match->winning_team_id = $innings1->team_id;
-                            $match->result_summary = $match->teamA->name . " won by {$margin} runs";
+                            $match->result_summary  = "{$innings1TeamName} won by {$margin} runs";
                         } elseif ($innings2->runs == $innings1->runs) {
                             $match->winning_team_id = null;
-                            $match->result_summary = "Match tied";
+                            $match->result_summary  = "Match tied";
                         }
 
                         $match->status = 'completed';
@@ -2200,16 +2203,14 @@ class CricketMatchController extends Controller
                 }
             }
 
-            // ---------- Check if chasing team has already won (target reached early) ----------
-            if ($innings == 1) {
-                $innings1 = MatchScoreBoard::where('match_id', $matchId)->where('innings', 1)->first();
-
-                if ($innings1->match->max_overs == intval(intdiv($legalBalls, 6))) {
-                    $innings2 = MatchScoreBoard::where('match_id', $matchId)->where('innings', 2)->first();
+            // ---------- If innings 1 just completed overs, ensure innings 2 is activated ----------
+            if ($innings == 1 && intdiv($legalBalls, 6) >= $maxOvers) {
+                $innings2 = MatchScoreBoard::where('match_id', $matchId)->where('innings', 2)->first();
+                if ($innings2 && $innings2->status !== 'running') {
                     $innings2->status = 'running';
                     $innings2->save();
-                    $isInningsEnded = true;
                 }
+                $isInningsEnded = true;
             }
 
             if ($innings == 2) {
@@ -2400,6 +2401,44 @@ class CricketMatchController extends Controller
             $data = json_decode($this->getCurrentOver($matchId)->getContent(), true);
             Log::info('Current Over Data: ', $data);
             $isOverCompleted = $data['legalBalls'] >= 6;
+
+            // ---------- Broadcast real-time update ----------
+            $broadcastData = [
+                'battingTeam'   => ['id' => $scoreboard->team_id],
+                'bowlingTeam'   => ['id' => $bowlingTeamId],
+                'scoreboard'    => [
+                    'team_id'  => $scoreboard->team_id,
+                    'innings'  => $scoreboard->innings,
+                    'runs'     => $scoreboard->runs,
+                    'wickets'  => $scoreboard->wickets,
+                    'overs'    => $scoreboard->overs,
+                    'status'   => $scoreboard->status,
+                ],
+                'striker'       => in_array($striker->status, ['batting', 'on-strike']) ? [
+                    'id'     => $striker->player_id,
+                    'runs'   => $striker->runs_scored,
+                    'balls'  => $striker->balls_faced,
+                    'status' => $striker->status,
+                ] : null,
+                'nonStriker'    => in_array($nonStriker->status, ['batting', 'on-strike']) ? [
+                    'id'     => $nonStriker->player_id,
+                    'runs'   => $nonStriker->runs_scored,
+                    'balls'  => $nonStriker->balls_faced,
+                    'status' => $nonStriker->status,
+                ] : null,
+                'currentBowler' => [
+                    'id'            => $bowlerId,
+                    'overs_bowled'  => $bowlerInfo->overs_bowled,
+                    'runs_conceded' => $bowlerInfo->runs_conceded,
+                    'wickets_taken' => $bowlerInfo->wickets_taken,
+                ],
+                'currentOver'   => $data['data'] ?? null,
+                'inningsStatus' => $scoreboard->status,
+                'matchResult'   => $match->result_summary,
+                'is_tournament' => (bool) $match->tournament_id,
+            ];
+
+            event(new CricketMatchUpdateEvent($match, $broadcastData));
 
             // ---------- Prepare response ----------
             return response()->json([

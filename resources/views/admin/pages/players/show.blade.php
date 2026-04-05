@@ -86,7 +86,7 @@
                                 <div>
                                     <h3 class="mb-1">{{ $user->full_name ?? 'Unnamed Player' }}</h3>
                                     <span
-                                        class="badge bg-primary fs-6">{{ strtoupper($user->player->player_type) ?? 'Player' }}</span>
+                                        class="badge bg-primary fs-6">{{ strtoupper($user->player?->player_type ?? 'Player') }}</span>
                                     @if ($user->team)
                                         <span class="badge bg-secondary ms-1">{{ $user->team->name }}</span>
                                     @endif
@@ -105,7 +105,7 @@
                                             id="approveSwitch{{ $user->id }}" name="approve"
                                             {{ $user->player && $user->player->player_type === 'registered' ? 'checked' : '' }}>
                                         <label class="form-check-label" for="approveSwitch{{ $user->id }}">
-                                            {{ $user->player->player_type === 'registered' ? 'Registered' : 'Guest' }}
+                                            {{ ($user->player?->player_type === 'registered') ? 'Registered' : 'Guest' }}
                                         </label>
                                     </div>
                                 </form>

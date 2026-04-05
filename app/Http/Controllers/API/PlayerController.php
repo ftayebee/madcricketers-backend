@@ -159,7 +159,7 @@ class PlayerController extends Controller
             $user->religion     = $request->input('religion');
             $user->national_id  = $request->input('national_id');
             $user->address      = $request->input('address');
-            $user->role_id      = 3;
+            $user->role_id      = Role::where('name', 'player')->first()->id;
 
             if ($request->hasFile('image')) {
                 $file = $request->file('image');

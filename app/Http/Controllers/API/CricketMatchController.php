@@ -32,6 +32,7 @@ class CricketMatchController extends Controller
                 'teamB:id,name,logo',
                 'winningTeam:id,name',
                 'tournament:id,name,slug,start_date,end_date,status',
+                'scoreboard:id,match_id,team_id,innings,runs,wickets,overs,status',
             ])
                 ->whereIn('status', ['live'])
                 ->orderByRaw("
@@ -52,6 +53,9 @@ class CricketMatchController extends Controller
                 $groupB = optional($match->teamB->groups()
                     ->where('tournament_group_teams.tournament_id', $match->tournament_id)
                     ->first())->name;
+
+                $sbA = $match->scoreboard->where('team_id', $match->team_a_id)->sortByDesc('innings')->first();
+                $sbB = $match->scoreboard->where('team_id', $match->team_b_id)->sortByDesc('innings')->first();
 
                 return [
                     'id' => $match->id,
@@ -74,16 +78,16 @@ class CricketMatchController extends Controller
                         'name' => $match->teamA->name,
                         'logo' => $match->teamA->logo,
                         'group' => $groupA,
-                        'score' => 100,
-                        'overs' => 20
+                        'score' => $sbA ? "{$sbA->runs}/{$sbA->wickets}" : null,
+                        'overs' => $sbA ? $sbA->overs : null,
                     ],
                     'team_b' => [
                         'id' => $match->teamB->id,
                         'name' => $match->teamB->name,
                         'logo' => $match->teamB->logo,
                         'group' => $groupB,
-                        'score' => 100,
-                        'overs' => 20
+                        'score' => $sbB ? "{$sbB->runs}/{$sbB->wickets}" : null,
+                        'overs' => $sbB ? $sbB->overs : null,
                     ],
                     'winning_team' => $match->winningTeam->name ?? null,
                 ];
@@ -116,6 +120,7 @@ class CricketMatchController extends Controller
                 'teamB:id,name,logo',
                 'winningTeam:id,name',
                 'tournament:id,name,slug,start_date,end_date,status',
+                'scoreboard:id,match_id,team_id,innings,runs,wickets,overs,status',
             ])
                 ->whereIn('status', ['upcoming'])
                 ->orderByRaw("
@@ -136,6 +141,9 @@ class CricketMatchController extends Controller
                 $groupB = optional($match->teamB->groups()
                     ->where('tournament_group_teams.tournament_id', $match->tournament_id)
                     ->first())->name;
+
+                $sbA = $match->scoreboard->where('team_id', $match->team_a_id)->sortByDesc('innings')->first();
+                $sbB = $match->scoreboard->where('team_id', $match->team_b_id)->sortByDesc('innings')->first();
 
                 return [
                     'id' => $match->id,
@@ -158,16 +166,16 @@ class CricketMatchController extends Controller
                         'name' => $match->teamA->name,
                         'logo' => $match->teamA->logo,
                         'group' => $groupA,
-                        'score' => 100,
-                        'overs' => 20
+                        'score' => $sbA ? "{$sbA->runs}/{$sbA->wickets}" : null,
+                        'overs' => $sbA ? $sbA->overs : null,
                     ],
                     'team_b' => [
                         'id' => $match->teamB->id,
                         'name' => $match->teamB->name,
                         'logo' => $match->teamB->logo,
                         'group' => $groupB,
-                        'score' => 100,
-                        'overs' => 20
+                        'score' => $sbB ? "{$sbB->runs}/{$sbB->wickets}" : null,
+                        'overs' => $sbB ? $sbB->overs : null,
                     ],
                     'winning_team' => $match->winningTeam->name ?? null,
                 ];
@@ -200,6 +208,7 @@ class CricketMatchController extends Controller
                 'teamB:id,name,logo',
                 'winningTeam:id,name',
                 'tournament:id,name',
+                'scoreboard:id,match_id,team_id,innings,runs,wickets,overs,status',
             ])
                 ->whereIn('status', ['completed'])
                 ->orderByDesc('match_date')
@@ -213,6 +222,9 @@ class CricketMatchController extends Controller
                 $groupB = optional($match->teamB->groups()
                     ->where('tournament_group_teams.tournament_id', $match->tournament_id)
                     ->first())->name;
+
+                $sbA = $match->scoreboard->where('team_id', $match->team_a_id)->sortByDesc('innings')->first();
+                $sbB = $match->scoreboard->where('team_id', $match->team_b_id)->sortByDesc('innings')->first();
 
                 return [
                     'id' => $match->id,
@@ -228,16 +240,16 @@ class CricketMatchController extends Controller
                         'name' => $match->teamA->name,
                         'logo' => $match->teamA->logo,
                         'group' => $groupA,
-                        'score' => 200,
-                        'overs' => 30
+                        'score' => $sbA ? "{$sbA->runs}/{$sbA->wickets}" : null,
+                        'overs' => $sbA ? $sbA->overs : null,
                     ],
                     'team_b' => [
                         'id' => $match->teamB->id,
                         'name' => $match->teamB->name,
                         'logo' => $match->teamB->logo,
                         'group' => $groupB,
-                        'score' => 200,
-                        'overs' => 30
+                        'score' => $sbB ? "{$sbB->runs}/{$sbB->wickets}" : null,
+                        'overs' => $sbB ? $sbB->overs : null,
                     ],
                     'winning_team' => $match->winningTeam->name ?? null,
                 ];
@@ -303,7 +315,7 @@ class CricketMatchController extends Controller
         } catch (ModelNotFoundException $e) {
             Log::error("Cricket match not found", [
                 'message' => $e->getMessage(),
-                'slug' => $slug,
+                'id' => $id,
             ]);
             return response()->json([
                 'success' => false,
@@ -371,7 +383,7 @@ class CricketMatchController extends Controller
 
                 if ($lastMatches->count() > 0) {
                     foreach ($lastMatches as $m) {
-                        if ($m->winner_team_id == $teamId) {
+                        if ($m->winning_team_id == $teamId) {
                             $form[] = 'W';
                         } else {
                             $form[] = 'L';
@@ -426,7 +438,7 @@ class CricketMatchController extends Controller
             })
             ->pluck('players.id');
         $battedPlayers = MatchPlayer::where('match_id', $matchId)
-            ->where('team_id', $matchId)
+            ->where('team_id', $teamId)
             ->whereIn('status', ['batting', 'on-strike', 'bowled', 'caught', 'bowling', 'run_out', 'lbw', 'retired-hurt', 'fielding', 'hit-wicket', 'closed', 'stumped', 'ready'])
             ->pluck('player_id');
 
@@ -648,13 +660,11 @@ class CricketMatchController extends Controller
                 ->where('team_id', $battingTeamId)
                 ->pluck('player_id');
 
+            // Exclude players who are currently batting OR have already batted
+            // (keep 'retired-hurt' in the list since they may bat again)
             $battedPlayerIds = DB::table('match_players')
                 ->where('match_id', $matchId)
                 ->where('team_id', $battingTeamId)
-                ->where(function ($query) {
-                    $query->whereNotNull('runs_scored')
-                        ->orWhereNotNull('balls_faced');
-                })
                 ->whereNotIn('status', ['ready', 'retired-hurt'])
                 ->pluck('player_id');
 

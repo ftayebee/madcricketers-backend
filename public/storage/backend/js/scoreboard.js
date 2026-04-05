@@ -275,16 +275,23 @@ $(document).ready(function () {
 
     // Initialize on page load
     function initializeOverSystem() {
+        // If toss hasn't been done yet, don't restore any bowler-selection state
+        if (!tossCompleted) {
+            clearOverState();
+            startCheckingOver();
+            return;
+        }
+
         // Load saved state
         const savedIsSelectingBowler = localStorage.getItem('isSelectingBowler');
         const savedCurrentOver = parseInt(localStorage.getItem('currentOverNumber')) || 0;
         const savedIsFirstOver = localStorage.getItem('isFirstOverOfInnings');
-                
+
         // Set initial states
         isSelectingBowler = savedIsSelectingBowler === 'true';
         currentOverNumber = savedCurrentOver;
         isFirstOverOfInnings = savedIsFirstOver === 'true';
-        
+
         // Check if we need to show modal on page load
         if (isSelectingBowler) {
             // Only show modal if we're actually in an over selection state
@@ -293,12 +300,15 @@ $(document).ready(function () {
             // Show modal for first over of innings
             openBowlerModal();
         }
-        
+
         startCheckingOver();
     }
 
     // Modified openBowlerModal to prevent duplicate openings
     async function openBowlerModal() {
+        // Guard: toss must be completed before showing bowler modal
+        if (!tossCompleted) return;
+
         // Prevent opening if already selecting or modal already shown
         if (isSelectingBowler && $('#bowlerModal').hasClass('show')) {
             console.log("Modal already open, skipping...");
@@ -306,10 +316,20 @@ $(document).ready(function () {
         }
 
         try {
-            loadFullMatchState(matchId);
-            const matchState = getMatchState();
-            const bowlers = await getPlayersList(matchState.bowlingTeamId, 'bowling');
-            populateBowlerModal(bowlers);
+            // Fetch fresh match state directly — don't rely on stale localStorage
+            const stateData = await fetchJSON(
+                `/admin/cricket-matches/scoreboard/full-match-state/${matchId}`
+            );
+            if (!stateData.success) throw new Error(stateData.message || 'Failed to load match state');
+
+            const bowlingTeamId = stateData.match_state?.bowlingTeamId;
+            if (!bowlingTeamId) throw new Error('Bowling team not determined yet. Please check toss.');
+
+            // Update localStorage so the rest of the page stays in sync
+            setMatchState(stateData.match_state);
+
+            const bowlers = await getPlayersList(bowlingTeamId, 'bowling');
+            populateBowlerModal(bowlers, bowlingTeamId);
 
             $('#bowlerModal').modal('show');
             isSelectingBowler = true;
@@ -319,13 +339,13 @@ $(document).ready(function () {
             console.error(err);
             $('#bowlerList').html(`
                 <div class="alert alert-danger mb-0">
-                    Failed to load bowlers
+                    ${err.message || 'Failed to load bowlers'}
                 </div>
             `);
         }
     }
 
-    function populateBowlerModal(bowlingPlayers) {
+    function populateBowlerModal(bowlingPlayers, bowlingTeamId) {
         const bowlerList = $('#bowlerList');
         bowlerList.empty();
 
@@ -385,7 +405,8 @@ $(document).ready(function () {
         bowlerList.off('click', '.bowler-card');
         bowlerList.on('click', '.bowler-card', function () {
             const bowlerId = $(this).data('bowler-id');
-            sendBowlerData(matchId, matchState.bowlingTeamId, bowlerId);
+            const teamId = bowlingTeamId || getMatchState().bowlingTeamId;
+            sendBowlerData(matchId, teamId, bowlerId);
 
             $('#bowlerModal').modal('hide');
             onBowlerSelected();

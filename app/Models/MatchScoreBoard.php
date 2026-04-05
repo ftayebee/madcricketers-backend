@@ -39,10 +39,10 @@ class MatchScoreBoard extends Model
             ->map(function ($player) {
                 return [
                     'id' => $player->player_id,
-                    'runs' => $player->runs,
-                    'balls' => $player->balls,
+                    'runs' => $player->runs_scored,
+                    'balls' => $player->balls_faced,
                     'status' => $player->status,
-                    'strikeRate' => $player->balls > 0 ? round(($player->runs / $player->balls) * 100, 2) : 0,
+                    'strikeRate' => $player->balls_faced > 0 ? round(($player->runs_scored / $player->balls_faced) * 100, 2) : 0,
                     'fours' => $player->fours,
                     'sixes' => $player->sixes
                 ];

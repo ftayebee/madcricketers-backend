@@ -227,8 +227,11 @@ class UserController extends Controller
                     $quality -= 5;
                 }
 
-                // Save image
-                $uploadPath = storage_path('app/public/uploads/users');
+                // Save image — use players/ folder when creating a player user
+                $assignedRoleId = $request->input('general.role_id');
+                $assignedRole   = \Spatie\Permission\Models\Role::find($assignedRoleId);
+                $uploadFolder   = ($assignedRole && $assignedRole->name === 'player') ? 'players' : 'users';
+                $uploadPath     = storage_path('app/public/uploads/' . $uploadFolder);
                 if (!file_exists($uploadPath)) {
                     mkdir($uploadPath, 0775, true);
                 }

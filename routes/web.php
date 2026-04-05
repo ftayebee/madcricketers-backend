@@ -18,7 +18,7 @@ Route::get('/', function () {
 });
 Auth::routes();
 
-Route::prefix('admin')->name('admin.')->group(function(){
+Route::prefix('admin')->name('admin.')->middleware(['auth'])->group(function(){
     Route::get('/dashboard', [PageController::class, 'dashboard'])->name('dashboard');
     Route::get('/profile', [PageController::class, 'profile'])->name('profile');
 

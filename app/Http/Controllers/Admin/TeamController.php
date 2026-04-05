@@ -160,6 +160,10 @@ class TeamController extends Controller
 
             $team->save();
 
+            if ($request->filled('player_ids')) {
+                $team->players()->sync($request->input('player_ids'));
+            }
+
             return redirect()->back()->with([
                 'success' => true,
                 'message' => 'Team has been created.',
