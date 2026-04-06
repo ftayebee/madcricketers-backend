@@ -65,14 +65,14 @@ class CricketMatchController extends Controller
                     'venue' => $match->venue,
                     'result_summary' => $match->result_summary,
                     'status' => $match->status,
-                    'tournament' => [
+                    'tournament' => $match->tournament ? [
                         'slug' => $match->tournament->slug ?? null,
                         'name' => $match->tournament->name ?? null,
                         'id' => $match->tournament->id ?? null,
                         'start_date' => Carbon::parse($match->tournament->start_date)->format('Y-m-d'),
                         'end_date' => Carbon::parse($match->tournament->end_date)->format('Y-m-d'),
                         'status' => $match->tournament->status ?? null,
-                    ],
+                    ] : null,
                     'team_a' => [
                         'id' => $match->teamA->id,
                         'name' => $match->teamA->name,
@@ -153,14 +153,14 @@ class CricketMatchController extends Controller
                     'venue' => $match->venue,
                     'result_summary' => $match->result_summary,
                     'status' => $match->status,
-                    'tournament' => [
+                    'tournament' => $match->tournament ? [
                         'slug' => $match->tournament->slug ?? null,
                         'name' => $match->tournament->name ?? null,
                         'id' => $match->tournament->id ?? null,
                         'start_date' => Carbon::parse($match->tournament->start_date)->format('Y-m-d'),
                         'end_date' => Carbon::parse($match->tournament->end_date)->format('Y-m-d'),
                         'status' => $match->tournament->status ?? null,
-                    ],
+                    ] : null,
                     'team_a' => [
                         'id' => $match->teamA->id,
                         'name' => $match->teamA->name,
@@ -277,28 +277,30 @@ class CricketMatchController extends Controller
     public function getMatchDetailBySlug(Request $request, $id)
     {
         try {
+            Log::info('Match ID: ' . $id);
             $match = CricketMatch::with([
                 'teamA:id,name,logo',
                 'teamB:id,name,logo',
                 'winningTeam:id,name',
                 'tournament:id,name,slug,start_date,end_date,status',
+                'scoreboard',
 
-                'players.player:id,name,role,team_id',
-                'players.battingStats',
-                'players.bowlingStats',
+                'players.player:id,user_id,player_role',
+                'players.player.user:id,full_name',
 
                 // Deliveries (ball by ball)
-                'deliveries.batsman:id,name',
-                'deliveries.bowler:id,name',
-                'deliveries.fielder:id,name',
+                'deliveries.batsman.user:id,full_name',
+                'deliveries.bowler.user:id,full_name',
+                'deliveries.fielder.user:id,full_name',
 
                 // Fall of wickets
-                'wickets.player:id,name',
-                'wickets.bowler:id,name',
+                'wickets.batter.user:id,full_name',
+                'wickets.bowler.player.user:id,full_name',
+                'wickets.fielder.player.user:id,full_name',
 
                 // Partnerships
-                'partnerships.batsman1:id,name',
-                'partnerships.batsman2:id,name',
+                'partnerships.batter1.user:id,full_name',
+                'partnerships.batter2.user:id,full_name',
 
                 'scoreboard.team:id,name,logo',
 
@@ -449,35 +451,76 @@ class CricketMatchController extends Controller
 
     public function getCurrentOver($matchId)
     {
-        return CurrentOverService::get($matchId);
+        $scoreboard = MatchScoreBoard::where('match_id', $matchId)->where('status', 'running')->first();
+        if (!$scoreboard) {
+            $scoreboard = MatchScoreBoard::where('match_id', $matchId)->orderBy('innings', 'desc')->first();
+        }
+
+        $balls = CurrentOverService::get($matchId);
+        $overNumber = $scoreboard ? floor(floatval($scoreboard->overs)) + 1 : 1;
+
+        return [
+            'over_number' => $overNumber,
+            'balls' => $balls
+        ];
     }
 
     public function getStriker($matchId)
     {
-        $batsman = MatchPlayer::where('match_id', $matchId)
+        $matchPlayer = MatchPlayer::with('player.user')
+            ->where('match_id', $matchId)
             ->where('status', 'on-strike')
             ->first();
 
-        return $batsman ? Player::find($batsman->player_id) : null;
+        if (!$matchPlayer) return null;
+
+        return [
+            'id'    => $matchPlayer->player_id,
+            'name'  => $matchPlayer->player?->user?->full_name ?? '---',
+            'image' => $matchPlayer->player?->image,
+            'runs'  => $matchPlayer->runs_scored,
+            'balls' => $matchPlayer->balls_faced,
+            'status' => $matchPlayer->status
+        ];
     }
 
     public function getNonStriker($matchId)
     {
-        $batsman = MatchPlayer::where('match_id', $matchId)
+        $matchPlayer = MatchPlayer::with('player.user')
+            ->where('match_id', $matchId)
             ->where('status', 'batting')
             ->first();
 
-        return $batsman ? Player::find($batsman->player_id) : null;
+        if (!$matchPlayer) return null;
+
+        return [
+            'id'    => $matchPlayer->player_id,
+            'name'  => $matchPlayer->player?->user?->full_name ?? '---',
+            'image' => $matchPlayer->player?->image,
+            'runs'  => $matchPlayer->runs_scored,
+            'balls' => $matchPlayer->balls_faced,
+            'status' => $matchPlayer->status
+        ];
     }
 
     public function getCurrentBowler($matchId)
     {
-        $bowler = MatchPlayer::where('match_id', $matchId)
+        $matchPlayer = MatchPlayer::with('player.user')
+            ->where('match_id', $matchId)
             ->where('status', 'bowling')
             ->latest('id')
             ->first();
 
-        return $bowler ? Player::find($bowler->player_id) : null;
+        if (!$matchPlayer) return null;
+
+        return [
+            'id'      => $matchPlayer->player_id,
+            'name'    => $matchPlayer->player?->user?->full_name ?? '---',
+            'image'   => $matchPlayer->player?->image,
+            'overs'   => $matchPlayer->overs_bowled,
+            'runs'    => $matchPlayer->runs_conceded,
+            'wickets' => $matchPlayer->wickets_taken
+        ];
     }
 
     public function calculateMatchProbability($matchId)
@@ -534,8 +577,8 @@ class CricketMatchController extends Controller
                 $battingPlayers = $battingTeam->playersForTournamentMatch($match->id, $match->tournament_id)->get();
                 $bowlingPlayers = $bowlingTeam->playersForTournamentMatch($match->id, $match->tournament_id)->get();
             } else {
-                $battingPlayers = $battingTeam->playersForFriendlyMatch($match->id, $match->tournament_id)->get();
-                $bowlingPlayers = $bowlingTeam->playersForFriendlyMatch($match->id, $match->tournament_id)->get();
+                $battingPlayers = $battingTeam->playersForFriendlyMatch($match->id)->get();
+                $bowlingPlayers = $bowlingTeam->playersForFriendlyMatch($match->id)->get();
             }
 
             $currentRunRate = 0;
@@ -567,6 +610,16 @@ class CricketMatchController extends Controller
             $projection  = $this->calculateProjectedScore($currentRunRate, $match);
             $yetToBatList= $this->yetToBatPlayers($battingTeam->id, $match->id);
 
+            $currentScoreboard = MatchScoreBoard::where('match_id', $match->id)
+                ->where('status', 'running')
+                ->first();
+
+            if (!$currentScoreboard) {
+                $currentScoreboard = MatchScoreBoard::where('match_id', $match->id)
+                    ->orderBy('innings', 'desc')
+                    ->first();
+            }
+
             return response()->json([
                 'success' => true,
                 'matchData' => [
@@ -583,6 +636,7 @@ class CricketMatchController extends Controller
                         'players' => $bowlingPlayers
                     ],
                     'scoreboards' => $scoreboards,
+                    'scoreboard'  => $currentScoreboard,
                     'striker'     => $striker,
                     'nonStriker'  => $nonStriker,
                     'bowler'      => $bowler,
