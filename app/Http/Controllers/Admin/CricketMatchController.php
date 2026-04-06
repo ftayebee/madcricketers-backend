@@ -99,8 +99,8 @@ class CricketMatchController extends Controller
 
             $formattedData = $matches->map(function ($match) {
 
-                $viewUrl  = route('admin.cricket-matches.show', $match->id);
-                $editUrl  = route('admin.cricket-matches.edit', $match->id);
+                $viewUrl = route('admin.cricket-matches.show', $match->id);
+                $editUrl = route('admin.cricket-matches.edit', $match->id);
                 $startUrl = route('admin.cricket-matches.scoreboard.view', $match->id);
 
                 /* ===============================
@@ -128,52 +128,52 @@ class CricketMatchController extends Controller
 
                 $resultText = match ($status) {
                     'Completed' => $match->result_summary ?? 'Match Completed',
-                    'Live'      => 'Match in progress',
-                    default     => Carbon::parse($match->match_date)->format('d M Y, h:i A')
+                    'Live' => 'Match in progress',
+                    default => Carbon::parse($match->match_date)->format('d M Y, h:i A')
                 };
 
                 return [
                     'id' => $match->id,
 
-                    'title'      => $match->title,
+                    'title' => $match->title,
                     'tournament' => $match->tournament?->name,
-                    'venue'      => $match->venue,
+                    'venue' => $match->venue,
 
-                    'team_a'       => $match->teamA?->name,
-                    'team_b'       => $match->teamB?->name,
+                    'team_a' => $match->teamA?->name,
+                    'team_b' => $match->teamB?->name,
                     'team_a_score' => $teamAScore,
                     'team_b_score' => $teamBScore,
 
                     'match_date' => Carbon::parse($match->match_date)->format('d M, Y'),
                     'match_type' => ucfirst($match->match_type),
-                    'status'     => $status,
-                    'max_overs'  => $match->max_overs,
+                    'status' => $status,
+                    'max_overs' => $match->max_overs,
 
-                    'winning_team'   => $match->winningTeam?->name,
+                    'winning_team' => $match->winningTeam?->name,
                     'result_summary' => $resultText,
 
                     // Permissions
-                    'canView'   => Auth::user()->can($this->module . '-view'),
-                    'canScore'  => Auth::user()->can($this->module . '-edit'),
-                    'canEdit'   => Auth::user()->can($this->module . '-edit'),
+                    'canView' => Auth::user()->can($this->module . '-view'),
+                    'canScore' => Auth::user()->can($this->module . '-edit'),
+                    'canEdit' => Auth::user()->can($this->module . '-edit'),
                     'canDelete' => Auth::user()->can($this->module . '-delete'),
 
                     // URLs
-                    'viewUrl'  => $viewUrl,
+                    'viewUrl' => $viewUrl,
                     'startUrl' => $startUrl,
-                    'editUrl'  => $editUrl,
+                    'editUrl' => $editUrl,
                 ];
             });
 
             return response()->json([
                 'success' => true,
-                'data'    => $formattedData
+                'data' => $formattedData
             ]);
         } catch (Exception $e) {
 
             Log::error("Error loading cricket matches", [
-                'line'    => $e->getLine(),
-                'file'    => $e->getFile(),
+                'line' => $e->getLine(),
+                'file' => $e->getFile(),
                 'message' => $e->getMessage()
             ]);
 
@@ -236,15 +236,15 @@ class CricketMatchController extends Controller
             }
 
             $validator = Validator::make($request->all(), [
-                'title'      => 'nullable|string|max:255',
-                'venue'      => 'nullable|string|max:255',
-                'team_a_id'  => 'required|exists:teams,id|different:team_b_id',
-                'team_b_id'  => 'required|exists:teams,id|different:team_a_id',
+                'title' => 'nullable|string|max:255',
+                'venue' => 'nullable|string|max:255',
+                'team_a_id' => 'required|exists:teams,id|different:team_b_id',
+                'team_b_id' => 'required|exists:teams,id|different:team_a_id',
                 'match_date' => 'nullable|date',
-                'max_overs'  => 'nullable|integer|min:1',
-                'bowler_max_overs'  => 'nullable|integer|min:1',
+                'max_overs' => 'nullable|integer|min:1',
+                'bowler_max_overs' => 'nullable|integer|min:1',
                 'match_type' => 'required|in:tournament,regular',
-                'status'     => 'required|in:live,upcoming,completed',
+                'status' => 'required|in:live,upcoming,completed',
             ]);
 
             if ($validator->fails()) {
@@ -258,16 +258,16 @@ class CricketMatchController extends Controller
 
             $matchTitle = $request->title ?: $teamA->name . ' vs ' . $teamB->name;
 
-            $match             = new CricketMatch();
-            $match->title      = $matchTitle;
-            $match->venue      = $request->venue;
-            $match->team_a_id  = $request->team_a_id;
-            $match->team_b_id  = $request->team_b_id;
+            $match = new CricketMatch();
+            $match->title = $matchTitle;
+            $match->venue = $request->venue;
+            $match->team_a_id = $request->team_a_id;
+            $match->team_b_id = $request->team_b_id;
             $match->match_date = $request->match_date;
-            $match->max_overs  = $request->max_overs;
+            $match->max_overs = $request->max_overs;
             $match->match_type = $request->match_type;
-            $match->status     = $request->status;
-            $match->bowler_max_overs  = $request->bowler_max_overs;
+            $match->status = $request->status;
+            $match->bowler_max_overs = $request->bowler_max_overs;
             $match->save();
 
             DB::commit();
@@ -287,7 +287,7 @@ class CricketMatchController extends Controller
             return redirect()->back()->withInput()->with([
                 'success' => false,
                 'message' => 'An error occurred while creating the match.',
-                'error'   => $e->getMessage(),
+                'error' => $e->getMessage(),
             ]);
         }
     }
@@ -581,8 +581,8 @@ class CricketMatchController extends Controller
 
         $match_result = $match->status === 'completed' ? [
             'winning_team_id' => $match->winning_team_id,
-            'winning_team'    => $match->winningTeam?->name ?? 'Unknown',
-            'summary'         => $match->result_summary ?? '',
+            'winning_team' => $match->winningTeam?->name ?? 'Unknown',
+            'summary' => $match->result_summary ?? '',
         ] : null;
 
         return view('admin.pages.cricket-matches.show', compact('match', 'inningsData', 'match_result'));
@@ -602,7 +602,7 @@ class CricketMatchController extends Controller
                 return response()->json([
                     'success' => false,
                     'message' => 'Failed to select batsman.',
-                    'errors'  => $validator->errors()
+                    'errors' => $validator->errors()
                 ]);
             }
 
@@ -626,43 +626,43 @@ class CricketMatchController extends Controller
 
             $matchPlayer = MatchPlayer::updateOrCreate(
                 [
-                    'match_id'  => $matchId,
-                    'team_id'   => $teamId,
+                    'match_id' => $matchId,
+                    'team_id' => $teamId,
                     'player_id' => $playerId,
                 ],
                 [
-                    'runs_scored'    => 0,
-                    'balls_faced'    => 0,
-                    'wickets_taken'  => 0,
-                    'overs_bowled'   => 0,
-                    'status'         => $status,
+                    'runs_scored' => 0,
+                    'balls_faced' => 0,
+                    'wickets_taken' => 0,
+                    'overs_bowled' => 0,
+                    'status' => $status,
                 ]
             );
 
             $playerStat = PlayerStat::firstOrNew(['player_id' => $playerId]);
             if (!$playerStat->exists) {
-                $playerStat->total_runs            = 0;
-                $playerStat->balls_faced           = 0;
-                $playerStat->fours                 = 0;
-                $playerStat->sixes                 = 0;
-                $playerStat->strike_rate           = 0.0;
-                $playerStat->average               = 0.0;
-                $playerStat->innings_bowled        = 0;
-                $playerStat->overs_bowled          = 0;
-                $playerStat->runs_conceded         = 0;
-                $playerStat->wickets               = 0;
-                $playerStat->bowling_average       = 0.0;
-                $playerStat->economy_rate          = 0.0;
-                $playerStat->catches               = 0;
-                $playerStat->runouts               = 0;
-                $playerStat->stumpings             = 0;
-                $playerStat->matches_played        = 0;
-                $playerStat->innings_batted        = 0;
+                $playerStat->total_runs = 0;
+                $playerStat->balls_faced = 0;
+                $playerStat->fours = 0;
+                $playerStat->sixes = 0;
+                $playerStat->strike_rate = 0.0;
+                $playerStat->average = 0.0;
+                $playerStat->innings_bowled = 0;
+                $playerStat->overs_bowled = 0;
+                $playerStat->runs_conceded = 0;
+                $playerStat->wickets = 0;
+                $playerStat->bowling_average = 0.0;
+                $playerStat->economy_rate = 0.0;
+                $playerStat->catches = 0;
+                $playerStat->runouts = 0;
+                $playerStat->stumpings = 0;
+                $playerStat->matches_played = 0;
+                $playerStat->innings_batted = 0;
             }
 
             if ($playerStat->last_match_id != $matchId) {
                 $playerStat->matches_played += 1;
-                $playerStat->last_match_id  = $matchId;
+                $playerStat->last_match_id = $matchId;
             }
 
             if ($playerStat->last_batting_match_id != $matchId) {
@@ -703,14 +703,14 @@ class CricketMatchController extends Controller
 
                 if ($player2Id) {
                     Partnership::create([
-                        'match_id'    => $matchId,
-                        'team_id'     => $teamId,
+                        'match_id' => $matchId,
+                        'team_id' => $teamId,
                         'batter_1_id' => $player2Id,
                         'batter_2_id' => $playerId,
-                        'runs'        => 0,
-                        'balls'       => 0,
-                        'start_over'  => 0.0,
-                        'innings'     => $currentInnings,
+                        'runs' => 0,
+                        'balls' => 0,
+                        'start_over' => 0.0,
+                        'innings' => $currentInnings,
                     ]);
                 }
             } else {
@@ -725,34 +725,34 @@ class CricketMatchController extends Controller
 
                 $playerTournamentStat = TournamentPlayerStat::firstOrNew([
                     'tournament_id' => $tournamentId,
-                    'player_id'     => $playerId,
+                    'player_id' => $playerId,
                 ]);
 
                 if (!$playerTournamentStat->exists) {
-                    $playerTournamentStat->matches_played   = 0;
-                    $playerTournamentStat->innings_batted   = 0;
-                    $playerTournamentStat->total_runs       = 0;
-                    $playerTournamentStat->balls_faced      = 0;
-                    $playerTournamentStat->fifties          = 0;
-                    $playerTournamentStat->hundreds         = 0;
-                    $playerTournamentStat->sixes            = 0;
-                    $playerTournamentStat->fours            = 0;
-                    $playerTournamentStat->strike_rate      = 0.0;
-                    $playerTournamentStat->average          = 0.0;
-                    $playerTournamentStat->innings_bowled   = 0;
-                    $playerTournamentStat->overs_bowled     = 0;
-                    $playerTournamentStat->runs_conceded    = 0;
-                    $playerTournamentStat->wickets          = 0;
-                    $playerTournamentStat->bowling_average  = 0.0;
-                    $playerTournamentStat->economy_rate     = 0.0;
-                    $playerTournamentStat->catches          = 0;
-                    $playerTournamentStat->runouts          = 0;
-                    $playerTournamentStat->stumpings        = 0;
+                    $playerTournamentStat->matches_played = 0;
+                    $playerTournamentStat->innings_batted = 0;
+                    $playerTournamentStat->total_runs = 0;
+                    $playerTournamentStat->balls_faced = 0;
+                    $playerTournamentStat->fifties = 0;
+                    $playerTournamentStat->hundreds = 0;
+                    $playerTournamentStat->sixes = 0;
+                    $playerTournamentStat->fours = 0;
+                    $playerTournamentStat->strike_rate = 0.0;
+                    $playerTournamentStat->average = 0.0;
+                    $playerTournamentStat->innings_bowled = 0;
+                    $playerTournamentStat->overs_bowled = 0;
+                    $playerTournamentStat->runs_conceded = 0;
+                    $playerTournamentStat->wickets = 0;
+                    $playerTournamentStat->bowling_average = 0.0;
+                    $playerTournamentStat->economy_rate = 0.0;
+                    $playerTournamentStat->catches = 0;
+                    $playerTournamentStat->runouts = 0;
+                    $playerTournamentStat->stumpings = 0;
                 }
 
                 if ($playerTournamentStat->last_match_id != $matchId) {
                     $playerTournamentStat->matches_played += 1;
-                    $playerTournamentStat->last_match_id  = $matchId;
+                    $playerTournamentStat->last_match_id = $matchId;
                 }
 
                 if ($playerTournamentStat->last_batting_match_id != $matchId) {
@@ -790,8 +790,8 @@ class CricketMatchController extends Controller
     {
         try {
             $validator = Validator::make($request->all(), [
-                'match_id'  => 'required|exists:cricket_matches,id',
-                'team_id'   => 'required|exists:teams,id',
+                'match_id' => 'required|exists:cricket_matches,id',
+                'team_id' => 'required|exists:teams,id',
                 'player_id' => 'required|exists:players,id',
             ]);
 
@@ -800,13 +800,13 @@ class CricketMatchController extends Controller
                 return response()->json([
                     'success' => false,
                     'message' => 'Failed to select bowler.',
-                    'errors'  => $validator->errors()
+                    'errors' => $validator->errors()
                 ]);
             }
 
-            $matchId       = $request->match_id;
+            $matchId = $request->match_id;
             $battingTeamId = $request->team_id;
-            $playerId      = $request->player_id;
+            $playerId = $request->player_id;
 
             $scoreboard = MatchScoreBoard::where('match_id', $matchId)->get();
 
@@ -850,8 +850,8 @@ class CricketMatchController extends Controller
             ]);
         } catch (\Exception $e) {
             Log::error("Error selecting bowler", [
-                'line'    => $e->getLine(),
-                'file'    => $e->getFile(),
+                'line' => $e->getLine(),
+                'file' => $e->getFile(),
                 'message' => $e->getMessage(),
             ]);
 
@@ -877,8 +877,8 @@ class CricketMatchController extends Controller
     {
         try {
             $matchId = $request->match_id;
-            $teamId  = $request->team_id;
-            $type    = $request->type;
+            $teamId = $request->team_id;
+            $type = $request->type;
             $players = collect();
 
             if (!in_array($type, ['batting', 'bowling'])) {
@@ -940,13 +940,13 @@ class CricketMatchController extends Controller
 
             return response()->json([
                 'success' => true,
-                'data'    => $players,
+                'data' => $players,
             ]);
         } catch (\Exception $e) {
 
             Log::error('Error fetching players list', [
                 'message' => $e->getMessage(),
-                'line'    => $e->getLine(),
+                'line' => $e->getLine(),
             ]);
 
             return response()->json([
@@ -960,7 +960,7 @@ class CricketMatchController extends Controller
     {
         try {
             $matchId = $request->match_id;
-            $match   = CricketMatch::findOrFail($matchId);
+            $match = CricketMatch::findOrFail($matchId);
 
             // --- Shared: load scoreboards ---
             $scoreboards = MatchScoreBoard::where('match_id', $matchId)
@@ -983,8 +983,8 @@ class CricketMatchController extends Controller
                     ],
                     'match_result' => $match->status === 'completed' ? [
                         'winning_team_id' => $match->winning_team_id,
-                        'winning_team'    => $match->winningTeam?->name ?? 'Unknown',
-                        'summary'         => $match->result_summary ?? '',
+                        'winning_team' => $match->winningTeam?->name ?? 'Unknown',
+                        'summary' => $match->result_summary ?? '',
                     ] : null,
                     'message' => 'No toss yet, scoreboard not started.',
                 ]);
@@ -1027,8 +1027,8 @@ class CricketMatchController extends Controller
                     ->map(function ($mp) {
                         $user = $mp->player?->user;
                         $oversBowled = $mp->overs_bowled ?? 0;
-                        $overPart    = floor($oversBowled);
-                        $ballPart    = round(($oversBowled - $overPart) * 10);
+                        $overPart = floor($oversBowled);
+                        $ballPart = round(($oversBowled - $overPart) * 10);
                         $decimalOvers = $overPart + ($ballPart / 6);
 
                         return [
@@ -1058,20 +1058,20 @@ class CricketMatchController extends Controller
                             'batter1' => [
                                 'id' => $p->batter_1_id,
                                 'name' => $p->batter1?->user?->full_name ?? 'Unknown',
-                                'role'  => strtoupper(str_replace('-', ' ', $p->batter1?->batting_style)) ?? 'Unknown',
+                                'role' => strtoupper(str_replace('-', ' ', $p->batter1?->batting_style)) ?? 'Unknown',
                                 'runs' => $p->player1_runs,
                                 'balls' => $p->batter_1_balls ?? 0,
                                 'percent' => $batter1Percent,
-                                'img'     => $p->batter1?->user?->image ?? 'https://coffective.com/wp-content/uploads/2018/06/default-featured-image.png.jpg',
+                                'img' => $p->batter1?->user?->image ?? 'https://coffective.com/wp-content/uploads/2018/06/default-featured-image.png.jpg',
                             ],
                             'batter2' => $p->batter2 ? [
                                 'id' => $p->batter_2_id,
                                 'name' => $p->batter2?->user?->full_name ?? 'Unknown',
-                                'role'  => strtoupper(str_replace('-', ' ', $p->batter2?->batting_style)) ?? 'Unknown',
+                                'role' => strtoupper(str_replace('-', ' ', $p->batter2?->batting_style)) ?? 'Unknown',
                                 'runs' => $p->player2_runs,
                                 'balls' => $p->batter_2_balls ?? 0,
                                 'percent' => $batter2Percent,
-                                'img'     => $p->batter1?->user?->image ?? 'https://coffective.com/wp-content/uploads/2018/06/default-featured-image.png.jpg',
+                                'img' => $p->batter1?->user?->image ?? 'https://coffective.com/wp-content/uploads/2018/06/default-featured-image.png.jpg',
                             ] : null,
                             'runs' => $p->runs,
                             'balls' => $p->balls,
@@ -1202,9 +1202,9 @@ class CricketMatchController extends Controller
                 'match_state' => $matchState,
                 'match_result' => $match->status === 'completed' ? [
                     'winning_team_id' => $match->winning_team_id,
-                    'winning_team'    => $match->winningTeam?->name ?? 'Unknown',
-                    'summary'         => $match->result_summary ?? '',
-                    'scoreboards'     => [
+                    'winning_team' => $match->winningTeam?->name ?? 'Unknown',
+                    'summary' => $match->result_summary ?? '',
+                    'scoreboards' => [
                         'teamA' => $scoreboards->where('team_id', $match->team_a_id)->first()->load('team'),
                         'teamB' => $scoreboards->where('team_id', $match->team_b_id)->first()->load('team'),
                     ],
@@ -1213,8 +1213,8 @@ class CricketMatchController extends Controller
         } catch (\Exception $e) {
             Log::error('Error loading match state X', [
                 'message' => $e->getMessage(),
-                'file'    => $e->getFile(),
-                'line'    => $e->getLine()
+                'file' => $e->getFile(),
+                'line' => $e->getLine()
             ]);
 
             return response()->json([
@@ -1257,9 +1257,9 @@ class CricketMatchController extends Controller
                 ], 422);
             }
 
-            $matchId  = $request->match_id;
+            $matchId = $request->match_id;
             $bowlerId = $request->bowler_id;
-            $teamId   = $request->team_id;
+            $teamId = $request->team_id;
 
             $match = CricketMatch::find($matchId);
 
@@ -1271,49 +1271,49 @@ class CricketMatchController extends Controller
 
                 MatchPlayer::updateOrCreate(
                     [
-                        'match_id'  => $matchId,
+                        'match_id' => $matchId,
                         'player_id' => $bowlerId
                     ],
                     array_merge(
                         ['team_id' => $teamId, 'status' => 'bowling'], // always set
                         MatchPlayer::where('match_id', $matchId)->where('player_id', $bowlerId)->exists()
-                            ? []
-                            : [
-                                'overs_bowled'  => 0,
-                                'runs_conceded' => 0,
-                                'wickets_taken' => 0,
-                                'maidens'       => 0,
-                            ]
+                        ? []
+                        : [
+                            'overs_bowled' => 0,
+                            'runs_conceded' => 0,
+                            'wickets_taken' => 0,
+                            'maidens' => 0,
+                        ]
                     )
                 );
 
                 $playerStat = PlayerStat::firstOrNew(['player_id' => $bowlerId]);
 
                 if (!$playerStat->exists) {
-                    $playerStat->matches_played   = 0;
-                    $playerStat->innings_batted   = 0;
-                    $playerStat->total_runs       = 0;
-                    $playerStat->balls_faced      = 0;
-                    $playerStat->fifties          = 0;
-                    $playerStat->hundreds         = 0;
-                    $playerStat->sixes            = 0;
-                    $playerStat->fours            = 0;
-                    $playerStat->strike_rate      = 0;
-                    $playerStat->average          = 0;
-                    $playerStat->innings_bowled   = 0;
-                    $playerStat->overs_bowled     = 0;
-                    $playerStat->runs_conceded    = 0;
-                    $playerStat->wickets          = 0;
-                    $playerStat->bowling_average  = 0;
-                    $playerStat->economy_rate     = 0;
-                    $playerStat->catches          = 0;
-                    $playerStat->runouts          = 0;
-                    $playerStat->stumpings        = 0;
+                    $playerStat->matches_played = 0;
+                    $playerStat->innings_batted = 0;
+                    $playerStat->total_runs = 0;
+                    $playerStat->balls_faced = 0;
+                    $playerStat->fifties = 0;
+                    $playerStat->hundreds = 0;
+                    $playerStat->sixes = 0;
+                    $playerStat->fours = 0;
+                    $playerStat->strike_rate = 0;
+                    $playerStat->average = 0;
+                    $playerStat->innings_bowled = 0;
+                    $playerStat->overs_bowled = 0;
+                    $playerStat->runs_conceded = 0;
+                    $playerStat->wickets = 0;
+                    $playerStat->bowling_average = 0;
+                    $playerStat->economy_rate = 0;
+                    $playerStat->catches = 0;
+                    $playerStat->runouts = 0;
+                    $playerStat->stumpings = 0;
                 }
 
                 if ($playerStat->last_match_id != $matchId) {
                     $playerStat->matches_played += 1;
-                    $playerStat->last_match_id  = $matchId;
+                    $playerStat->last_match_id = $matchId;
                 }
 
                 if ($playerStat->last_bowling_match_id != $matchId) {
@@ -1326,34 +1326,34 @@ class CricketMatchController extends Controller
                 if ($match->tournament_id) {
                     $playerTournamentStat = TournamentPlayerStat::firstOrNew([
                         'tournament_id' => $match->tournament_id,
-                        'player_id'     => $bowlerId
+                        'player_id' => $bowlerId
                     ]);
 
                     if (!$playerTournamentStat->exists) {
-                        $playerTournamentStat->matches_played   = 0;
-                        $playerTournamentStat->innings_batted   = 0;
-                        $playerTournamentStat->total_runs       = 0;
-                        $playerTournamentStat->balls_faced      = 0;
-                        $playerTournamentStat->fifties          = 0;
-                        $playerTournamentStat->hundreds         = 0;
-                        $playerTournamentStat->sixes            = 0;
-                        $playerTournamentStat->fours            = 0;
-                        $playerTournamentStat->strike_rate      = 0;
-                        $playerTournamentStat->average          = 0;
-                        $playerTournamentStat->innings_bowled   = 0;
-                        $playerTournamentStat->overs_bowled     = 0;
-                        $playerTournamentStat->runs_conceded    = 0;
-                        $playerTournamentStat->wickets          = 0;
-                        $playerTournamentStat->bowling_average  = 0;
-                        $playerTournamentStat->economy_rate     = 0;
-                        $playerTournamentStat->catches          = 0;
-                        $playerTournamentStat->runouts          = 0;
-                        $playerTournamentStat->stumpings        = 0;
+                        $playerTournamentStat->matches_played = 0;
+                        $playerTournamentStat->innings_batted = 0;
+                        $playerTournamentStat->total_runs = 0;
+                        $playerTournamentStat->balls_faced = 0;
+                        $playerTournamentStat->fifties = 0;
+                        $playerTournamentStat->hundreds = 0;
+                        $playerTournamentStat->sixes = 0;
+                        $playerTournamentStat->fours = 0;
+                        $playerTournamentStat->strike_rate = 0;
+                        $playerTournamentStat->average = 0;
+                        $playerTournamentStat->innings_bowled = 0;
+                        $playerTournamentStat->overs_bowled = 0;
+                        $playerTournamentStat->runs_conceded = 0;
+                        $playerTournamentStat->wickets = 0;
+                        $playerTournamentStat->bowling_average = 0;
+                        $playerTournamentStat->economy_rate = 0;
+                        $playerTournamentStat->catches = 0;
+                        $playerTournamentStat->runouts = 0;
+                        $playerTournamentStat->stumpings = 0;
                     }
 
                     if ($playerTournamentStat->last_match_id != $matchId) {
                         $playerTournamentStat->matches_played += 1;
-                        $playerTournamentStat->last_match_id  = $matchId;
+                        $playerTournamentStat->last_match_id = $matchId;
                     }
 
                     if ($playerTournamentStat->last_bowling_match_id != $matchId) {
@@ -1374,20 +1374,22 @@ class CricketMatchController extends Controller
 
             if ($bowling) {
                 $bowling = [
-                    'id'            => $bowling->player_id,
-                    'name'          => optional(optional($bowling->player)->user)->full_name ?? 'Unknown',
-                    'style'         => optional($bowling->player)->bowling_style ?? 'Unknown',
-                    'overs'         => $bowling->overs_bowled ?? 0,
+                    'id' => $bowling->player_id,
+                    'name' => optional(optional($bowling->player)->user)->full_name ?? 'Unknown',
+                    'style' => optional($bowling->player)->bowling_style ?? 'Unknown',
+                    'overs' => $bowling->overs_bowled ?? 0,
                     'runs_conceded' => $bowling->runs_conceded ?? 0,
-                    'wickets'       => $bowling->wickets_taken ?? 0,
-                    'economy_rate'  => $bowling->overs_bowled > 0
+                    'wickets' => $bowling->wickets_taken ?? 0,
+                    'economy_rate' => $bowling->overs_bowled > 0
                         ? round($bowling->runs_conceded / $bowling->overs_bowled, 2)
                         : 0,
-                    'maidens'       => $bowling->maidens ?? 0
+                    'maidens' => $bowling->maidens ?? 0
                 ];
             } else {
                 $bowling = null;
             }
+
+            event(new CricketMatchUpdateEvent($match, $this->getBroadcastData($match)));
 
             return response()->json([
                 'success' => true,
@@ -1403,7 +1405,7 @@ class CricketMatchController extends Controller
             return response()->json([
                 'success' => false,
                 'message' => 'Failed to select bowler',
-                'error'   => $e->getMessage()
+                'error' => $e->getMessage()
             ], 500);
         }
     }
@@ -1463,24 +1465,30 @@ class CricketMatchController extends Controller
                         $class .= ' run-ball';
                         $ballLabel = 'WD';
                         $titleLabel = 'WD';
-                        if ($d->runs_extras) $ballLabel .= $d->runs_extras;
-                        if ($d->is_wicket) $ballLabel .= 'W';
+                        if ($d->runs_extras)
+                            $ballLabel .= $d->runs_extras;
+                        if ($d->is_wicket)
+                            $ballLabel .= 'W';
                         break;
 
                     case 'bye':
                         $class .= ' run-ball extra-ball';
                         $ballLabel = 'B';
                         $titleLabel = 'BY';
-                        if ($d->runs_extras) $ballLabel .= $d->runs_extras;
-                        if ($d->is_wicket) $ballLabel .= 'W';
+                        if ($d->runs_extras)
+                            $ballLabel .= $d->runs_extras;
+                        if ($d->is_wicket)
+                            $ballLabel .= 'W';
                         break;
 
                     case 'leg-bye':
                         $class .= ' run-ball extra-ball';
                         $ballLabel = 'LB';
                         $titleLabel = 'LB';
-                        if ($d->runs_extras) $ballLabel .= $d->runs_extras;
-                        if ($d->is_wicket) $ballLabel .= 'W';
+                        if ($d->runs_extras)
+                            $ballLabel .= $d->runs_extras;
+                        if ($d->is_wicket)
+                            $ballLabel .= 'W';
                         break;
 
                     default:
@@ -1668,10 +1676,10 @@ class CricketMatchController extends Controller
                 ['match_id' => $scoreboard->match_id, 'innings' => $nextInnings],
                 [
                     'team_id' => $nextBattingTeamId,
-                    'runs'    => 0,
-                    'overs'   => '0.0',
+                    'runs' => 0,
+                    'overs' => '0.0',
                     'wickets' => 0,
-                    'status'  => 'running'
+                    'status' => 'running'
                 ]
             );
             $this->updateMatchPlayers($nextScoreboard, $scoreboard);
@@ -1684,7 +1692,7 @@ class CricketMatchController extends Controller
     {
         try {
             $matchId = $request->match_id;
-            $match   = CricketMatch::findOrFail($matchId);
+            $match = CricketMatch::findOrFail($matchId);
 
             $scoreboard = MatchScoreBoard::where('match_id', $matchId)
                 ->where('status', 'running')
@@ -1697,11 +1705,11 @@ class CricketMatchController extends Controller
                 ]);
             }
 
-            $currentInnings     = $scoreboard->innings;
-            $battingTeamId      = $scoreboard->team_id;
-            $bowlingTeamId      = ($battingTeamId == $match->team_a_id) ? $match->team_b_id : $match->team_a_id;
-            $nextBattingTeamId  = $bowlingTeamId;
-            $nextInnings        = $currentInnings + 1;
+            $currentInnings = $scoreboard->innings;
+            $battingTeamId = $scoreboard->team_id;
+            $bowlingTeamId = ($battingTeamId == $match->team_a_id) ? $match->team_b_id : $match->team_a_id;
+            $nextBattingTeamId = $bowlingTeamId;
+            $nextInnings = $currentInnings + 1;
 
             // Count wickets fallen
             $currentInningsWicketFallen = FallOfWicket::where('match_id', $matchId)
@@ -1732,10 +1740,10 @@ class CricketMatchController extends Controller
                         ['match_id' => $matchId, 'innings' => $nextInnings],
                         [
                             'team_id' => $nextBattingTeamId,
-                            'runs'    => 0,
-                            'overs'   => '0.0',
+                            'runs' => 0,
+                            'overs' => '0.0',
                             'wickets' => 0,
-                            'status'  => 'running'
+                            'status' => 'running'
                         ]
                     );
 
@@ -1750,7 +1758,7 @@ class CricketMatchController extends Controller
                 } else {
                     // Second innings ended -> decide winner
                     if ($scoreboards->count() == 2) {
-                        $firstInnings  = $scoreboards->where('innings', 1)->first();
+                        $firstInnings = $scoreboards->where('innings', 1)->first();
                         $secondInnings = $scoreboards->where('innings', 2)->first();
 
                         $winner = null;
@@ -1804,7 +1812,7 @@ class CricketMatchController extends Controller
         } catch (\Exception $e) {
             Log::error('Error completing innings', [
                 'message' => $e->getMessage(),
-                'line'    => $e->getLine()
+                'line' => $e->getLine()
             ]);
 
             return response()->json([
@@ -1833,21 +1841,21 @@ class CricketMatchController extends Controller
     {
         try {
             $validator = Validator::make($request->all(), [
-                'match_id'           => 'required|exists:cricket_matches,id',
-                'striker_id'         => 'nullable|exists:players,id',
-                'non_striker_id'     => 'nullable|exists:players,id',
-                'bowler_id'          => 'required|exists:players,id',
-                'runs'               => 'required|integer|min:0',
-                'extras'             => 'nullable|array',
-                'extras.type'        => 'required_with:extras|string',
-                'extras.runs'        => 'required_with:extras|integer|min:0',
-                'extras.run_out'     => 'sometimes|boolean',
+                'match_id' => 'required|exists:cricket_matches,id',
+                'striker_id' => 'nullable|exists:players,id',
+                'non_striker_id' => 'nullable|exists:players,id',
+                'bowler_id' => 'required|exists:players,id',
+                'runs' => 'required|integer|min:0',
+                'extras' => 'nullable|array',
+                'extras.type' => 'required_with:extras|string',
+                'extras.runs' => 'required_with:extras|integer|min:0',
+                'extras.run_out' => 'sometimes|boolean',
                 'extras.batsman_out' => 'sometimes|exists:players,id',
-                'extras.caught_by'   => 'sometimes|exists:players,id',
-                'extras.stumped_by'  => 'sometimes|exists:players,id',
-                'wicket'             => 'nullable|string',
-                'batsman_out'        => 'nullable|exists:players,id',
-                'legal_ball'         => 'nullable|boolean',
+                'extras.caught_by' => 'sometimes|exists:players,id',
+                'extras.stumped_by' => 'sometimes|exists:players,id',
+                'wicket' => 'nullable|string',
+                'batsman_out' => 'nullable|exists:players,id',
+                'legal_ball' => 'nullable|boolean',
             ]);
 
             if ($validator->fails()) {
@@ -1855,20 +1863,20 @@ class CricketMatchController extends Controller
                 return response()->json([
                     'success' => false,
                     'message' => 'Invalid data',
-                    'errors'  => $validator->errors()
+                    'errors' => $validator->errors()
                 ], 422);
             }
 
             DB::beginTransaction();
 
             // ---------- Extract request ----------
-            $matchId      = $request->match_id;
-            $strikerId    = $request->striker_id;
+            $matchId = $request->match_id;
+            $strikerId = $request->striker_id;
             $nonStrikerId = $request->non_striker_id;
-            $bowlerId     = $request->bowler_id;
-            $runs         = (int) $request->runs;
-            $extras       = $request->extras ?? [];
-            $legalBall    = $request->has('legal_ball') ? (bool) $request->legal_ball : true;
+            $bowlerId = $request->bowler_id;
+            $runs = (int) $request->runs;
+            $extras = $request->extras ?? [];
+            $legalBall = $request->has('legal_ball') ? (bool) $request->legal_ball : true;
 
             $match = CricketMatch::findOrFail($matchId);
             $maxOvers = $match->max_overs ?? 10;
@@ -1927,10 +1935,10 @@ class CricketMatchController extends Controller
             );
 
             // ---------- Delivery type & extras ----------
-            $deliveryType   = 'normal';
-            $extraRuns      = 0;
-            $batsmanRuns    = $runs; // default runs off the bat
-            $legalBall      = true;
+            $deliveryType = 'normal';
+            $extraRuns = 0;
+            $batsmanRuns = $runs; // default runs off the bat
+            $legalBall = true;
             $extraInputRuns = 0; // initialised here so strike-rotation logic below can safely reference it
 
             if (!empty($extras)) {
@@ -1942,35 +1950,35 @@ class CricketMatchController extends Controller
                         $deliveryType = 'no-ball';
                         $legalBall = false;
                         $batsmanRuns = $extraInputRuns;
-                        $extraRuns   = 1;
+                        $extraRuns = 1;
                         break;
 
                     case 'WD': // Wide
                         $deliveryType = 'wide';
                         $legalBall = false;
                         $batsmanRuns = 0;
-                        $extraRuns   = 1 + $extraInputRuns;
+                        $extraRuns = 1 + $extraInputRuns;
                         break;
 
                     case 'LB': // Leg Bye
                         $deliveryType = 'leg-bye';
                         $batsmanRuns = 0;
-                        $extraRuns   = $extraInputRuns;
+                        $extraRuns = $extraInputRuns;
                         break;
 
                     case 'B': // Bye
                         $deliveryType = 'bye';
                         $batsmanRuns = 0;
-                        $extraRuns   = $extraInputRuns;
+                        $extraRuns = $extraInputRuns;
                         break;
                 }
             }
 
             // ---------- Wicket detection ----------
-            $wicketType     = 'none';
+            $wicketType = 'none';
             $wicketPlayerId = null;
-            $caughtBy       = $extras['caught_by'] ?? null;
-            $stumpedBy      = $extras['stumped_by'] ?? null;
+            $caughtBy = $extras['caught_by'] ?? null;
+            $stumpedBy = $extras['stumped_by'] ?? null;
 
             if (!empty($request->wicket) && strtolower($request->wicket) !== 'none') {
                 $wicketType = strtolower($request->wicket);
@@ -1999,7 +2007,8 @@ class CricketMatchController extends Controller
                     $isOverCompleted = true;
                 } else {
                     $ball++;
-                    if ($over == 0) $over = 1;
+                    if ($over == 0)
+                        $over = 1;
                 }
             } else {
                 if ($over == 0) {
@@ -2023,28 +2032,29 @@ class CricketMatchController extends Controller
 
             // ---------- Insert delivery ----------
             $deliveryPayload = [
-                'match_id'         => $matchId,
-                'innings'          => $innings,
-                'over_number'      => $over,
-                'ball_in_over'     => $ball,
-                'bowler_id'        => $bowlerId,
-                'batsman_id'       => $strikerId,
-                'non_striker_id'   => $nonStrikerId,
-                'batting_team_id'  => $scoreboard->team_id,
-                'bowling_team_id'  => $bowlerInfo->team_id ?? null,
-                'runs_batsman'     => $batsmanRuns,
-                'runs_extras'      => $extraRuns,
-                'delivery_type'    => $deliveryType,
-                'is_wicket'        => $isWicket,
-                'wicket_type'      => $wicketType,
+                'match_id' => $matchId,
+                'innings' => $innings,
+                'over_number' => $over,
+                'ball_in_over' => $ball,
+                'bowler_id' => $bowlerId,
+                'batsman_id' => $strikerId,
+                'non_striker_id' => $nonStrikerId,
+                'batting_team_id' => $scoreboard->team_id,
+                'bowling_team_id' => $bowlerInfo->team_id ?? null,
+                'runs_batsman' => $batsmanRuns,
+                'runs_extras' => $extraRuns,
+                'delivery_type' => $deliveryType,
+                'is_wicket' => $isWicket,
+                'wicket_type' => $wicketType,
                 'wicket_player_id' => $isWicket ? $wicketPlayerId : null,
-                'fielder_id'       => $caughtBy ?? $stumpedBy ?? null,
+                'fielder_id' => $caughtBy ?? $stumpedBy ?? null,
             ];
 
             $delivery = MatchDelivery::create($deliveryPayload);
 
             // ---------- Update striker & bowler stats ----------
-            if ($legalBall) $striker->balls_faced += 1;
+            if ($legalBall)
+                $striker->balls_faced += 1;
             if ($batsmanRuns > 0) {
                 $striker->runs_scored += $batsmanRuns;
             }
@@ -2057,8 +2067,9 @@ class CricketMatchController extends Controller
 
             $striker->save();
 
-            $overPart  = floor($bowlerInfo->overs_bowled);
-            $ballPart  = round(($bowlerInfo->overs_bowled - $overPart) * 10);
+            $oversBowled = $bowlerInfo->overs_bowled ?? 0;
+            $overPart = floor($oversBowled);
+            $ballPart = round(($oversBowled - $overPart) * 10);
 
             if (!in_array($deliveryType, ['no-ball', 'wide'])) {
                 $ballPart++;
@@ -2069,9 +2080,9 @@ class CricketMatchController extends Controller
             }
 
             $bowlerInfo->overs_bowled = $overPart + ($ballPart / 10);
-            $bowlerInfo->runs_conceded += ($batsmanRuns + $extraRuns);
+            $bowlerInfo->runs_conceded = ($bowlerInfo->runs_conceded ?? 0) + ($batsmanRuns + $extraRuns);
             if ($isWicket && $wicketType != 'run_out') {
-                $bowlerInfo->wickets_taken++;
+                $bowlerInfo->wickets_taken = ($bowlerInfo->wickets_taken ?? 0) + 1;
             }
             $bowlerInfo->save();
 
@@ -2089,7 +2100,7 @@ class CricketMatchController extends Controller
             $oversFormatted = intval(intdiv($legalBalls, 6)) . '.' . ($legalBalls % 6);
 
             $scoreboard->update([
-                'runs'  => $totalRuns,
+                'runs' => $totalRuns,
                 'overs' => $oversFormatted,
                 'status' => $scoreboard->status
             ]);
@@ -2109,16 +2120,16 @@ class CricketMatchController extends Controller
                 $partnership->save();
             } else {
                 Partnership::create([
-                    'match_id'     => $matchId,
-                    'team_id'      => $scoreboard->team_id,
-                    'batter_1_id'  => $strikerId,
+                    'match_id' => $matchId,
+                    'team_id' => $scoreboard->team_id,
+                    'batter_1_id' => $strikerId,
                     'player1_runs' => ($striker->runs_scored ?? 0),
-                    'batter_2_id'  => $nonStrikerId,
+                    'batter_2_id' => $nonStrikerId,
                     'player2_runs' => ($nonStriker->runs_scored ?? 0),
-                    'runs'         => $runs,
-                    'balls'        => $legalBall ? 1 : 0,
-                    'start_over'   => $over,
-                    'end_over'     => $over,
+                    'runs' => $runs,
+                    'balls' => $legalBall ? 1 : 0,
+                    'start_over' => $over,
+                    'end_over' => $over,
                 ]);
             }
 
@@ -2127,16 +2138,16 @@ class CricketMatchController extends Controller
                 $scoreboard->increment('wickets');
 
                 $fow = FallOfWicket::create([
-                    'match_id'       => $matchId,
-                    'team_id'        => $scoreboard->team_id,
-                    'wicket_number'  => $scoreboard->wickets,
-                    'runs'           => $scoreboard->runs,
-                    'overs'          => $scoreboard->overs,
-                    'batter_id'      => $wicketPlayerId,
-                    'bowler_id'      => $bowlerId,
+                    'match_id' => $matchId,
+                    'team_id' => $scoreboard->team_id,
+                    'wicket_number' => $scoreboard->wickets,
+                    'runs' => $scoreboard->runs,
+                    'overs' => $scoreboard->overs,
+                    'batter_id' => $wicketPlayerId,
+                    'bowler_id' => $bowlerId,
                     'dismissal_type' => $wicketType,
-                    'caught_by'      => $caughtBy,
-                    'stumped_by'     => $stumpedBy,
+                    'caught_by' => $caughtBy,
+                    'stumped_by' => $stumpedBy,
                 ]);
 
                 // update dismissed player status
@@ -2195,14 +2206,14 @@ class CricketMatchController extends Controller
                         if ($innings2->runs > $innings1->runs) {
                             $remainingWickets = 10 - $innings2->wickets;
                             $match->winning_team_id = $innings2->team_id;
-                            $match->result_summary  = "{$innings2TeamName} won by {$remainingWickets} wickets";
+                            $match->result_summary = "{$innings2TeamName} won by {$remainingWickets} wickets";
                         } elseif ($innings2->runs < $innings1->runs && $innings2->overs >= $maxOvers) {
                             $margin = $innings1->runs - $innings2->runs;
                             $match->winning_team_id = $innings1->team_id;
-                            $match->result_summary  = "{$innings1TeamName} won by {$margin} runs";
+                            $match->result_summary = "{$innings1TeamName} won by {$margin} runs";
                         } elseif ($innings2->runs == $innings1->runs) {
                             $match->winning_team_id = null;
-                            $match->result_summary  = "Match tied";
+                            $match->result_summary = "Match tied";
                         }
 
                         $match->status = 'completed';
@@ -2223,14 +2234,14 @@ class CricketMatchController extends Controller
 
             if ($innings == 2) {
                 $innings1 = MatchScoreBoard::where('match_id', $matchId)->where('innings', 1)->first();
-                $target   = $innings1->runs + 1;
+                $target = $innings1->runs + 1;
 
                 if ($scoreboard->runs >= $target) {
                     $remainingWickets = $scoreboard->team->players->count() - $scoreboard->wickets;
 
                     $match->winning_team_id = $scoreboard->team_id;
-                    $match->result_summary  = $scoreboard->team->name . " won by {$remainingWickets} wickets";
-                    $match->status          = 'completed';
+                    $match->result_summary = $scoreboard->team->name . " won by {$remainingWickets} wickets";
+                    $match->status = 'completed';
                     $match->save();
 
                     $scoreboard->status = 'ended';
@@ -2244,10 +2255,10 @@ class CricketMatchController extends Controller
             if ($strikerId) {
                 $strikerStat = PlayerStat::firstOrCreate(['player_id' => $strikerId]);
 
-                $strikerStat->total_runs   += $batsmanRuns;
-                $strikerStat->balls_faced  += $legalBall ? 1 : 0;
-                $strikerStat->fours        += ($batsmanRuns == 4) ? 1 : 0;
-                $strikerStat->sixes        += ($batsmanRuns == 6) ? 1 : 0;
+                $strikerStat->total_runs = ($strikerStat->total_runs ?? 0) + $batsmanRuns;
+                $strikerStat->balls_faced = ($strikerStat->balls_faced ?? 0) + ($legalBall ? 1 : 0);
+                $strikerStat->fours = ($strikerStat->fours ?? 0) + (($batsmanRuns == 4) ? 1 : 0);
+                $strikerStat->sixes = ($strikerStat->sixes ?? 0) + (($batsmanRuns == 6) ? 1 : 0);
 
                 if ($strikerStat->balls_faced > 0) {
                     $strikerStat->strike_rate = round(($strikerStat->total_runs / $strikerStat->balls_faced) * 100, 2);
@@ -2258,12 +2269,12 @@ class CricketMatchController extends Controller
                 if ($match->tournament) {
                     $playerTournamentStat = TournamentPlayerStat::firstOrCreate([
                         'tournament_id' => $match->tournament_id,
-                        'player_id'     => $strikerId
+                        'player_id' => $strikerId
                     ]);
 
                     if (!$playerTournamentStat->matches_played || $playerTournamentStat->last_match_id != $match->id) {
                         $playerTournamentStat->matches_played += 1;
-                        $playerTournamentStat->last_match_id  = $match->id;
+                        $playerTournamentStat->last_match_id = $match->id;
                     }
 
                     if ($legalBall && $runs >= 0) {
@@ -2273,19 +2284,19 @@ class CricketMatchController extends Controller
                         }
                     }
 
-                    $playerTournamentStat->total_runs   += $batsmanRuns;
-                    $playerTournamentStat->balls_faced  += $legalBall ? 1 : 0;
-                    $playerTournamentStat->fours        += ($batsmanRuns == 4) ? 1 : 0;
-                    $playerTournamentStat->sixes        += ($batsmanRuns == 6) ? 1 : 0;
+                    $playerTournamentStat->total_runs = ($playerTournamentStat->total_runs ?? 0) + $batsmanRuns;
+                    $playerTournamentStat->balls_faced = ($playerTournamentStat->balls_faced ?? 0) + ($legalBall ? 1 : 0);
+                    $playerTournamentStat->fours = ($playerTournamentStat->fours ?? 0) + (($batsmanRuns == 4) ? 1 : 0);
+                    $playerTournamentStat->sixes = ($playerTournamentStat->sixes ?? 0) + (($batsmanRuns == 6) ? 1 : 0);
 
                     if ($playerTournamentStat->balls_faced > 0) {
                         $playerTournamentStat->strike_rate = round(($playerTournamentStat->total_runs / $playerTournamentStat->balls_faced) * 100, 2);
                     }
 
                     if ($playerTournamentStat->total_runs >= 50 && $playerTournamentStat->total_runs < 100) {
-                        $playerTournamentStat->fifties += 1;
+                        $playerTournamentStat->fifties = ($playerTournamentStat->fifties ?? 0) + 1;
                     } elseif ($playerTournamentStat->total_runs >= 100) {
-                        $playerTournamentStat->hundreds += 1;
+                        $playerTournamentStat->hundreds = ($playerTournamentStat->hundreds ?? 0) + 1;
                     }
 
                     if ($playerTournamentStat->innings_batted > 0) {
@@ -2303,12 +2314,12 @@ class CricketMatchController extends Controller
                 if ($match->tournament) {
                     $playerTournamentStat = TournamentPlayerStat::firstOrCreate([
                         'tournament_id' => $match->tournament_id,
-                        'player_id'     => $nonStrikerId
+                        'player_id' => $nonStrikerId
                     ]);
 
                     if (!$playerTournamentStat->matches_played || $playerTournamentStat->last_match_id != $match->id) {
                         $playerTournamentStat->matches_played += 1;
-                        $playerTournamentStat->last_match_id  = $match->id;
+                        $playerTournamentStat->last_match_id = $match->id;
                     }
 
                     if ($legalBall && $runs >= 0) {
@@ -2318,10 +2329,10 @@ class CricketMatchController extends Controller
                         }
                     }
 
-                    $playerTournamentStat->total_runs   += $runs;
-                    $playerTournamentStat->balls_faced  += $legalBall ? 1 : 0;
-                    $playerTournamentStat->fours        += ($runs == 4) ? 1 : 0;
-                    $playerTournamentStat->sixes        += ($runs == 6) ? 1 : 0;
+                    $playerTournamentStat->total_runs = ($playerTournamentStat->total_runs ?? 0) + $runs;
+                    $playerTournamentStat->balls_faced = ($playerTournamentStat->balls_faced ?? 0) + ($legalBall ? 1 : 0);
+                    $playerTournamentStat->fours = ($playerTournamentStat->fours ?? 0) + (($runs == 4) ? 1 : 0);
+                    $playerTournamentStat->sixes = ($playerTournamentStat->sixes ?? 0) + (($runs == 6) ? 1 : 0);
 
                     if ($playerTournamentStat->balls_faced > 0) {
                         $playerTournamentStat->strike_rate = round(($playerTournamentStat->total_runs / $playerTournamentStat->balls_faced) * 100, 2);
@@ -2343,14 +2354,14 @@ class CricketMatchController extends Controller
 
             if ($bowlerId) {
                 $bowlerStat = PlayerStat::firstOrCreate(['player_id' => $bowlerId]);
-                if ($legalBall && $bowlerStat->overs_bowled == 0) {
-                    $bowlerStat->innings_bowled += 1;
+                if ($legalBall && ($bowlerStat->overs_bowled ?? 0) == 0) {
+                    $bowlerStat->innings_bowled = ($bowlerStat->innings_bowled ?? 0) + 1;
                 }
 
-                $bowlerStat->overs_bowled += $legalBall ? 1 : 0;
-                $bowlerStat->runs_conceded += $totalRunsValid;
+                $bowlerStat->overs_bowled = ($bowlerStat->overs_bowled ?? 0) + ($legalBall ? 1 : 0);
+                $bowlerStat->runs_conceded = ($bowlerStat->runs_conceded ?? 0) + $totalRunsValid;
                 if ($isWicket && $wicketType != 'run_out') {
-                    $bowlerStat->wickets += 1;
+                    $bowlerStat->wickets = ($bowlerStat->wickets ?? 0) + 1;
                 }
 
                 // derived bowling metrics
@@ -2368,27 +2379,27 @@ class CricketMatchController extends Controller
                 if ($match->tournament) {
                     $playerTournamentStat = TournamentPlayerStat::firstOrCreate([
                         'tournament_id' => $match->tournament_id,
-                        'player_id'     => $bowlerId
+                        'player_id' => $bowlerId
                     ]);
 
                     if (!$playerTournamentStat->matches_played || $playerTournamentStat->last_match_id != $match->id) {
                         $playerTournamentStat->matches_played += 1;
-                        $playerTournamentStat->last_match_id  = $match->id;
+                        $playerTournamentStat->last_match_id = $match->id;
                     }
 
                     if ($legalBall && (!$playerTournamentStat->last_bowling_match_id || $playerTournamentStat->last_bowling_match_id != $match->id)) {
-                        $playerTournamentStat->innings_bowled += 1;
+                        $playerTournamentStat->innings_bowled = ($playerTournamentStat->innings_bowled ?? 0) + 1;
                         $playerTournamentStat->last_bowling_match_id = $match->id;
                     }
 
                     if (!in_array($deliveryType, ['no-ball', 'wide'])) {
-                        $playerTournamentStat->overs_bowled += 1; // count only legal balls
+                        $playerTournamentStat->overs_bowled = ($playerTournamentStat->overs_bowled ?? 0) + 1; // count only legal balls
                     }
 
-                    $playerTournamentStat->runs_conceded += $runs + (in_array($deliveryType, ['no-ball', 'wide']) ? 1 : 0);
+                    $playerTournamentStat->runs_conceded = ($playerTournamentStat->runs_conceded ?? 0) + $runs + (in_array($deliveryType, ['no-ball', 'wide']) ? 1 : 0);
 
                     if ($isWicket && $wicketType != 'run_out') {
-                        $playerTournamentStat->wickets += 1;
+                        $playerTournamentStat->wickets = ($playerTournamentStat->wickets ?? 0) + 1;
                     }
 
                     if ($playerTournamentStat->overs_bowled > 0) {
@@ -2416,30 +2427,30 @@ class CricketMatchController extends Controller
 
             // ---------- Prepare response ----------
             return response()->json([
-                'success'           => true,
-                'message'           => 'Delivery recorded successfully',
-                'isInningsEnded'    => (bool) $isInningsEnded,
-                'isOverEnded'       => (bool) $isOverCompleted,
-                'updated_state'     => [
-                    'striker'       => in_array($striker->status, ['batting', 'on-strike']) ? [
-                        'id'        => $striker->player_id,
-                        'name'      => $striker->player?->user?->full_name ?? '---',
-                        'runs'      => $striker->runs_scored,
-                        'balls'     => $striker->balls_faced,
-                        'status'    => $striker->status,
+                'success' => true,
+                'message' => 'Delivery recorded successfully',
+                'isInningsEnded' => (bool) $isInningsEnded,
+                'isOverEnded' => (bool) $isOverCompleted,
+                'updated_state' => [
+                    'striker' => in_array($striker->status, ['batting', 'on-strike']) ? [
+                        'id' => $striker->player_id,
+                        'name' => $striker->player?->user?->full_name ?? '---',
+                        'runs' => $striker->runs_scored,
+                        'balls' => $striker->balls_faced,
+                        'status' => $striker->status,
                     ] : null,
-                    'nonStriker'    => in_array($nonStriker->status, ['batting', 'on-strike']) ? [
-                        'id'        => $nonStriker->player_id,
-                        'name'      => $nonStriker->player?->user?->full_name ?? '---',
-                        'runs'      => $nonStriker->runs_scored,
-                        'balls'     => $nonStriker->balls_faced,
-                        'status'    => $nonStriker->status,
+                    'nonStriker' => in_array($nonStriker->status, ['batting', 'on-strike']) ? [
+                        'id' => $nonStriker->player_id,
+                        'name' => $nonStriker->player?->user?->full_name ?? '---',
+                        'runs' => $nonStriker->runs_scored,
+                        'balls' => $nonStriker->balls_faced,
+                        'status' => $nonStriker->status,
                     ] : null,
-                    'team'          => [
-                        'score'     => $scoreboard->runs,
-                        'overs'     => $scoreboard->overs,
-                        'wickets'   => $scoreboard->wickets,
-                        'status'    => $scoreboard->status,
+                    'team' => [
+                        'score' => $scoreboard->runs,
+                        'overs' => $scoreboard->overs,
+                        'wickets' => $scoreboard->wickets,
+                        'status' => $scoreboard->status,
                     ]
                 ]
             ]);
@@ -2468,7 +2479,7 @@ class CricketMatchController extends Controller
                 return response()->json([
                     'success' => false,
                     'message' => 'Invalid data',
-                    'errors'  => $validator->errors()
+                    'errors' => $validator->errors()
                 ], 422);
             }
 
@@ -2538,7 +2549,7 @@ class CricketMatchController extends Controller
 
             if (in_array($lastDelivery->delivery_type, ['normal', 'bye', 'leg-bye'])) {
                 [$overs, $balls] = array_pad(
-                    explode('.', number_format((float)$scoreboard->overs, 1, '.', '')),
+                    explode('.', number_format((float) $scoreboard->overs, 1, '.', '')),
                     2,
                     0
                 );
@@ -2792,7 +2803,7 @@ class CricketMatchController extends Controller
             DB::rollBack();
             Log::error('Error undoing last delivery', [
                 'message' => $e->getMessage(),
-                'line'    => $e->getLine()
+                'line' => $e->getLine()
             ]);
 
             return response()->json([
@@ -2838,8 +2849,8 @@ class CricketMatchController extends Controller
 
             Log::error('Error deleting match: ', [
                 'message' => $e->getMessage(),
-                'file'    => $e->getFile(),
-                'line'    => $e->getLine(),
+                'file' => $e->getFile(),
+                'line' => $e->getLine(),
             ]);
 
             return redirect()->back()->with('error', 'Something went wrong while deleting the match.');
@@ -2891,49 +2902,49 @@ class CricketMatchController extends Controller
         }
 
         return [
-            'battingTeam'   => ['id' => $battingTeamId],
-            'bowlingTeam'   => ['id' => $bowlingTeamId],
-            'scoreboard'    => $scoreboard ? [
-                'team_id'  => $scoreboard->team_id,
-                'innings'  => $scoreboard->innings,
-                'runs'     => $scoreboard->runs,
-                'wickets'  => $scoreboard->wickets,
-                'overs'    => $scoreboard->overs,
-                'status'   => $scoreboard->status,
+            'battingTeam' => ['id' => $battingTeamId],
+            'bowlingTeam' => ['id' => $bowlingTeamId],
+            'scoreboard' => $scoreboard ? [
+                'team_id' => $scoreboard->team_id,
+                'innings' => $scoreboard->innings,
+                'runs' => $scoreboard->runs,
+                'wickets' => $scoreboard->wickets,
+                'overs' => $scoreboard->overs,
+                'status' => $scoreboard->status,
                 'projected_score' => $this->calculateProjected($scoreboard, $match->max_overs)
             ] : null,
-            'striker'       => $striker ? [
-                'id'     => $striker->player_id,
-                'name'   => $striker->player?->user?->full_name ?? '---',
-                'runs'   => $striker->runs_scored,
-                'balls'  => $striker->balls_faced,
+            'striker' => $striker ? [
+                'id' => $striker->player_id,
+                'name' => $striker->player?->user?->full_name ?? '---',
+                'runs' => $striker->runs_scored,
+                'balls' => $striker->balls_faced,
                 'status' => $striker->status,
-                'image'  => $striker->player?->image,
+                'image' => $striker->player?->image,
             ] : null,
-            'nonStriker'    => $nonStriker ? [
-                'id'     => $nonStriker->player_id,
-                'name'   => $nonStriker->player?->user?->full_name ?? '---',
-                'runs'   => $nonStriker->runs_scored,
-                'balls'  => $nonStriker->balls_faced,
+            'nonStriker' => $nonStriker ? [
+                'id' => $nonStriker->player_id,
+                'name' => $nonStriker->player?->user?->full_name ?? '---',
+                'runs' => $nonStriker->runs_scored,
+                'balls' => $nonStriker->balls_faced,
                 'status' => $nonStriker->status,
-                'image'  => $nonStriker->player?->image,
+                'image' => $nonStriker->player?->image,
             ] : null,
             'currentBowler' => $currentBowler ? [
-                'id'      => $currentBowler->player_id,
-                'name'    => $currentBowler->player?->user?->full_name ?? '---',
-                'overs'   => $currentBowler->overs_bowled,
-                'runs'    => $currentBowler->runs_conceded,
+                'id' => $currentBowler->player_id,
+                'name' => $currentBowler->player?->user?->full_name ?? '---',
+                'overs' => $currentBowler->overs_bowled,
+                'runs' => $currentBowler->runs_conceded,
                 'wickets' => $currentBowler->wickets_taken,
-                'image'   => $currentBowler->player?->image,
+                'image' => $currentBowler->player?->image,
             ] : null,
-            'currentOver'   => [
+            'currentOver' => [
                 'over_number' => $scoreboard ? floor(floatval($scoreboard->overs)) + 1 : 1,
-                'balls'       => $overData
+                'balls' => $overData
             ],
             'inningsStatus' => $scoreboard ? $scoreboard->status : $match->status,
-            'matchResult'   => $match->result_summary,
+            'matchResult' => $match->result_summary,
             'is_tournament' => (bool) $match->tournament_id,
-            'yetToBatList'  => $battingTeamId ? $this->yetToBatPlayers($battingTeamId, $matchId) : [],
+            'yetToBatList' => $battingTeamId ? $this->yetToBatPlayers($battingTeamId, $matchId) : [],
         ];
     }
 
@@ -2963,18 +2974,20 @@ class CricketMatchController extends Controller
 
     private function calculateProjected($scoreboard, $maxOvers)
     {
-        if (!$scoreboard || !$scoreboard->overs || $maxOvers <= 0) return 0;
+        if (!$scoreboard || !$scoreboard->overs || $maxOvers <= 0)
+            return 0;
 
-        $oversParts = explode('.', (string)$scoreboard->overs);
-        $overs = (int)$oversParts[0];
-        $balls = (int)($oversParts[1] ?? 0);
+        $oversParts = explode('.', (string) $scoreboard->overs);
+        $overs = (int) $oversParts[0];
+        $balls = (int) ($oversParts[1] ?? 0);
         $totalBalls = ($overs * 6) + $balls;
 
-        if ($totalBalls === 0) return 0;
+        if ($totalBalls === 0)
+            return 0;
 
         $runs = $scoreboard->runs;
         $runRate = ($runs / $totalBalls) * 6;
 
-        return (int)round($runRate * $maxOvers);
+        return (int) round($runRate * $maxOvers);
     }
 }

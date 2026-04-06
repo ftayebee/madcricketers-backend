@@ -1,339 +1,54 @@
-[2026-04-06 11:30:11] local.INFO: Match ID: 1  
-[2026-04-06 11:30:11] local.ERROR: Error fetching match details {"line":712,"file":"D:\\02 MAD-CRICKETERS\\00-CODEBASE\\CricTracker\\vendor\\laravel\\framework\\src\\Illuminate\\Database\\Connection.php","message":"SQLSTATE[42S22]: Column not found: 1054 Unknown column 'name' in 'field list' (SQL: select `id`, `name`, `role`, `team_id` from `players` where `players`.`id` in (7))"} 
-[2026-04-06 11:31:27] local.INFO: Match ID: 1  
-[2026-04-06 11:31:27] local.ERROR: Error fetching match details {"line":35,"file":"D:\\02 MAD-CRICKETERS\\00-CODEBASE\\CricTracker\\vendor\\laravel\\framework\\src\\Illuminate\\Database\\Eloquent\\RelationNotFoundException.php","message":"Call to undefined relationship [battingStats] on model [App\\Models\\MatchPlayer]."} 
-[2026-04-06 11:32:11] local.INFO: Match ID: 1  
-[2026-04-06 11:35:50] local.INFO: Match ID: 1  
-[2026-04-06 11:52:03] local.INFO: Match ID: 1  
-[2026-04-06 11:52:21] local.INFO: Match ID: 1  
-[2026-04-06 12:06:14] local.INFO: Match ID: 1  
-[2026-04-06 12:09:17] local.INFO: Match ID: 1  
-[2026-04-06 12:09:57] local.INFO: Match ID: 1  
-[2026-04-06 12:12:41] local.INFO: Match ID: 1  
-[2026-04-06 12:14:36] local.INFO: Match ID: 1  
-[2026-04-06 12:14:56] local.INFO: Match ID: 1  
-[2026-04-06 12:16:04] local.INFO: Match ID: 1  
-[2026-04-06 12:17:55] local.INFO: Match ID: 1  
-[2026-04-06 12:20:14] local.ERROR: syntax error, unexpected token "if" {"exception":"[object] (ParseError(code: 0): syntax error, unexpected token \"if\" at D:\\02 MAD-CRICKETERS\\00-CODEBASE\\CricTracker\\app\\Http\\Controllers\\Admin\\CricketMatchController.php:2876)
-[stacktrace]
-#0 D:\\02 MAD-CRICKETERS\\00-CODEBASE\\CricTracker\\vendor\\composer\\ClassLoader.php(427): Composer\\Autoload\\{closure}('D:\\\\02 MAD-CRICK...')
-#1 [internal function]: Composer\\Autoload\\ClassLoader->loadClass('App\\\\Http\\\\Contro...')
-#2 D:\\02 MAD-CRICKETERS\\00-CODEBASE\\CricTracker\\vendor\\laravel\\framework\\src\\Illuminate\\Container\\Container.php(877): ReflectionClass->__construct('App\\\\Http\\\\Contro...')
-#3 D:\\02 MAD-CRICKETERS\\00-CODEBASE\\CricTracker\\vendor\\laravel\\framework\\src\\Illuminate\\Container\\Container.php(758): Illuminate\\Container\\Container->build('App\\\\Http\\\\Contro...')
-#4 D:\\02 MAD-CRICKETERS\\00-CODEBASE\\CricTracker\\vendor\\laravel\\framework\\src\\Illuminate\\Foundation\\Application.php(853): Illuminate\\Container\\Container->resolve('App\\\\Http\\\\Contro...', Array, true)
-#5 D:\\02 MAD-CRICKETERS\\00-CODEBASE\\CricTracker\\vendor\\laravel\\framework\\src\\Illuminate\\Container\\Container.php(694): Illuminate\\Foundation\\Application->resolve('App\\\\Http\\\\Contro...', Array)
-#6 D:\\02 MAD-CRICKETERS\\00-CODEBASE\\CricTracker\\vendor\\laravel\\framework\\src\\Illuminate\\Foundation\\Application.php(838): Illuminate\\Container\\Container->make('App\\\\Http\\\\Contro...', Array)
-#7 D:\\02 MAD-CRICKETERS\\00-CODEBASE\\CricTracker\\vendor\\laravel\\framework\\src\\Illuminate\\Routing\\Route.php(276): Illuminate\\Foundation\\Application->make('App\\\\Http\\\\Contro...')
-#8 D:\\02 MAD-CRICKETERS\\00-CODEBASE\\CricTracker\\vendor\\laravel\\framework\\src\\Illuminate\\Routing\\Route.php(1080): Illuminate\\Routing\\Route->getController()
-#9 D:\\02 MAD-CRICKETERS\\00-CODEBASE\\CricTracker\\vendor\\laravel\\framework\\src\\Illuminate\\Routing\\Route.php(1023): Illuminate\\Routing\\Route->controllerMiddleware()
-#10 D:\\02 MAD-CRICKETERS\\00-CODEBASE\\CricTracker\\vendor\\laravel\\framework\\src\\Illuminate\\Routing\\Router.php(734): Illuminate\\Routing\\Route->gatherMiddleware()
-#11 D:\\02 MAD-CRICKETERS\\00-CODEBASE\\CricTracker\\vendor\\laravel\\framework\\src\\Illuminate\\Routing\\Router.php(714): Illuminate\\Routing\\Router->gatherRouteMiddleware(Object(Illuminate\\Routing\\Route))
-#12 D:\\02 MAD-CRICKETERS\\00-CODEBASE\\CricTracker\\vendor\\laravel\\framework\\src\\Illuminate\\Routing\\Router.php(698): Illuminate\\Routing\\Router->runRouteWithinStack(Object(Illuminate\\Routing\\Route), Object(Illuminate\\Http\\Request))
-#13 D:\\02 MAD-CRICKETERS\\00-CODEBASE\\CricTracker\\vendor\\laravel\\framework\\src\\Illuminate\\Routing\\Router.php(662): Illuminate\\Routing\\Router->runRoute(Object(Illuminate\\Http\\Request), Object(Illuminate\\Routing\\Route))
-#14 D:\\02 MAD-CRICKETERS\\00-CODEBASE\\CricTracker\\vendor\\laravel\\framework\\src\\Illuminate\\Routing\\Router.php(651): Illuminate\\Routing\\Router->dispatchToRoute(Object(Illuminate\\Http\\Request))
-#15 D:\\02 MAD-CRICKETERS\\00-CODEBASE\\CricTracker\\vendor\\laravel\\framework\\src\\Illuminate\\Foundation\\Http\\Kernel.php(167): Illuminate\\Routing\\Router->dispatch(Object(Illuminate\\Http\\Request))
-#16 D:\\02 MAD-CRICKETERS\\00-CODEBASE\\CricTracker\\vendor\\laravel\\framework\\src\\Illuminate\\Pipeline\\Pipeline.php(128): Illuminate\\Foundation\\Http\\Kernel->Illuminate\\Foundation\\Http\\{closure}(Object(Illuminate\\Http\\Request))
-#17 D:\\02 MAD-CRICKETERS\\00-CODEBASE\\CricTracker\\vendor\\laravel\\framework\\src\\Illuminate\\Foundation\\Http\\Middleware\\TransformsRequest.php(21): Illuminate\\Pipeline\\Pipeline->Illuminate\\Pipeline\\{closure}(Object(Illuminate\\Http\\Request))
-#18 D:\\02 MAD-CRICKETERS\\00-CODEBASE\\CricTracker\\vendor\\laravel\\framework\\src\\Illuminate\\Foundation\\Http\\Middleware\\ConvertEmptyStringsToNull.php(31): Illuminate\\Foundation\\Http\\Middleware\\TransformsRequest->handle(Object(Illuminate\\Http\\Request), Object(Closure))
-#19 D:\\02 MAD-CRICKETERS\\00-CODEBASE\\CricTracker\\vendor\\laravel\\framework\\src\\Illuminate\\Pipeline\\Pipeline.php(167): Illuminate\\Foundation\\Http\\Middleware\\ConvertEmptyStringsToNull->handle(Object(Illuminate\\Http\\Request), Object(Closure))
-#20 D:\\02 MAD-CRICKETERS\\00-CODEBASE\\CricTracker\\vendor\\laravel\\framework\\src\\Illuminate\\Foundation\\Http\\Middleware\\TransformsRequest.php(21): Illuminate\\Pipeline\\Pipeline->Illuminate\\Pipeline\\{closure}(Object(Illuminate\\Http\\Request))
-#21 D:\\02 MAD-CRICKETERS\\00-CODEBASE\\CricTracker\\vendor\\laravel\\framework\\src\\Illuminate\\Foundation\\Http\\Middleware\\TrimStrings.php(40): Illuminate\\Foundation\\Http\\Middleware\\TransformsRequest->handle(Object(Illuminate\\Http\\Request), Object(Closure))
-#22 D:\\02 MAD-CRICKETERS\\00-CODEBASE\\CricTracker\\vendor\\laravel\\framework\\src\\Illuminate\\Pipeline\\Pipeline.php(167): Illuminate\\Foundation\\Http\\Middleware\\TrimStrings->handle(Object(Illuminate\\Http\\Request), Object(Closure))
-#23 D:\\02 MAD-CRICKETERS\\00-CODEBASE\\CricTracker\\vendor\\laravel\\framework\\src\\Illuminate\\Foundation\\Http\\Middleware\\ValidatePostSize.php(27): Illuminate\\Pipeline\\Pipeline->Illuminate\\Pipeline\\{closure}(Object(Illuminate\\Http\\Request))
-#24 D:\\02 MAD-CRICKETERS\\00-CODEBASE\\CricTracker\\vendor\\laravel\\framework\\src\\Illuminate\\Pipeline\\Pipeline.php(167): Illuminate\\Foundation\\Http\\Middleware\\ValidatePostSize->handle(Object(Illuminate\\Http\\Request), Object(Closure))
-#25 D:\\02 MAD-CRICKETERS\\00-CODEBASE\\CricTracker\\vendor\\laravel\\framework\\src\\Illuminate\\Foundation\\Http\\Middleware\\PreventRequestsDuringMaintenance.php(86): Illuminate\\Pipeline\\Pipeline->Illuminate\\Pipeline\\{closure}(Object(Illuminate\\Http\\Request))
-#26 D:\\02 MAD-CRICKETERS\\00-CODEBASE\\CricTracker\\vendor\\laravel\\framework\\src\\Illuminate\\Pipeline\\Pipeline.php(167): Illuminate\\Foundation\\Http\\Middleware\\PreventRequestsDuringMaintenance->handle(Object(Illuminate\\Http\\Request), Object(Closure))
-#27 D:\\02 MAD-CRICKETERS\\00-CODEBASE\\CricTracker\\vendor\\fruitcake\\laravel-cors\\src\\HandleCors.php(38): Illuminate\\Pipeline\\Pipeline->Illuminate\\Pipeline\\{closure}(Object(Illuminate\\Http\\Request))
-#28 D:\\02 MAD-CRICKETERS\\00-CODEBASE\\CricTracker\\vendor\\laravel\\framework\\src\\Illuminate\\Pipeline\\Pipeline.php(167): Fruitcake\\Cors\\HandleCors->handle(Object(Illuminate\\Http\\Request), Object(Closure))
-#29 D:\\02 MAD-CRICKETERS\\00-CODEBASE\\CricTracker\\vendor\\laravel\\framework\\src\\Illuminate\\Http\\Middleware\\TrustProxies.php(39): Illuminate\\Pipeline\\Pipeline->Illuminate\\Pipeline\\{closure}(Object(Illuminate\\Http\\Request))
-#30 D:\\02 MAD-CRICKETERS\\00-CODEBASE\\CricTracker\\vendor\\laravel\\framework\\src\\Illuminate\\Pipeline\\Pipeline.php(167): Illuminate\\Http\\Middleware\\TrustProxies->handle(Object(Illuminate\\Http\\Request), Object(Closure))
-#31 D:\\02 MAD-CRICKETERS\\00-CODEBASE\\CricTracker\\vendor\\laravel\\framework\\src\\Illuminate\\Pipeline\\Pipeline.php(103): Illuminate\\Pipeline\\Pipeline->Illuminate\\Pipeline\\{closure}(Object(Illuminate\\Http\\Request))
-#32 D:\\02 MAD-CRICKETERS\\00-CODEBASE\\CricTracker\\vendor\\laravel\\framework\\src\\Illuminate\\Foundation\\Http\\Kernel.php(142): Illuminate\\Pipeline\\Pipeline->then(Object(Closure))
-#33 D:\\02 MAD-CRICKETERS\\00-CODEBASE\\CricTracker\\vendor\\laravel\\framework\\src\\Illuminate\\Foundation\\Http\\Kernel.php(111): Illuminate\\Foundation\\Http\\Kernel->sendRequestThroughRouter(Object(Illuminate\\Http\\Request))
-#34 D:\\02 MAD-CRICKETERS\\00-CODEBASE\\CricTracker\\public\\index.php(51): Illuminate\\Foundation\\Http\\Kernel->handle(Object(Illuminate\\Http\\Request))
-#35 D:\\02 MAD-CRICKETERS\\00-CODEBASE\\CricTracker\\server.php(21): require_once('D:\\\\02 MAD-CRICK...')
-#36 {main}
-"} 
-[2026-04-06 12:20:15] local.ERROR: syntax error, unexpected token "if" {"exception":"[object] (ParseError(code: 0): syntax error, unexpected token \"if\" at D:\\02 MAD-CRICKETERS\\00-CODEBASE\\CricTracker\\app\\Http\\Controllers\\Admin\\CricketMatchController.php:2876)
-[stacktrace]
-#0 D:\\02 MAD-CRICKETERS\\00-CODEBASE\\CricTracker\\vendor\\composer\\ClassLoader.php(427): Composer\\Autoload\\{closure}('D:\\\\02 MAD-CRICK...')
-#1 [internal function]: Composer\\Autoload\\ClassLoader->loadClass('App\\\\Http\\\\Contro...')
-#2 D:\\02 MAD-CRICKETERS\\00-CODEBASE\\CricTracker\\vendor\\laravel\\framework\\src\\Illuminate\\Container\\Container.php(877): ReflectionClass->__construct('App\\\\Http\\\\Contro...')
-#3 D:\\02 MAD-CRICKETERS\\00-CODEBASE\\CricTracker\\vendor\\laravel\\framework\\src\\Illuminate\\Container\\Container.php(758): Illuminate\\Container\\Container->build('App\\\\Http\\\\Contro...')
-#4 D:\\02 MAD-CRICKETERS\\00-CODEBASE\\CricTracker\\vendor\\laravel\\framework\\src\\Illuminate\\Foundation\\Application.php(853): Illuminate\\Container\\Container->resolve('App\\\\Http\\\\Contro...', Array, true)
-#5 D:\\02 MAD-CRICKETERS\\00-CODEBASE\\CricTracker\\vendor\\laravel\\framework\\src\\Illuminate\\Container\\Container.php(694): Illuminate\\Foundation\\Application->resolve('App\\\\Http\\\\Contro...', Array)
-#6 D:\\02 MAD-CRICKETERS\\00-CODEBASE\\CricTracker\\vendor\\laravel\\framework\\src\\Illuminate\\Foundation\\Application.php(838): Illuminate\\Container\\Container->make('App\\\\Http\\\\Contro...', Array)
-#7 D:\\02 MAD-CRICKETERS\\00-CODEBASE\\CricTracker\\vendor\\laravel\\framework\\src\\Illuminate\\Routing\\Route.php(276): Illuminate\\Foundation\\Application->make('App\\\\Http\\\\Contro...')
-#8 D:\\02 MAD-CRICKETERS\\00-CODEBASE\\CricTracker\\vendor\\laravel\\framework\\src\\Illuminate\\Routing\\Route.php(1080): Illuminate\\Routing\\Route->getController()
-#9 D:\\02 MAD-CRICKETERS\\00-CODEBASE\\CricTracker\\vendor\\laravel\\framework\\src\\Illuminate\\Routing\\Route.php(1023): Illuminate\\Routing\\Route->controllerMiddleware()
-#10 D:\\02 MAD-CRICKETERS\\00-CODEBASE\\CricTracker\\vendor\\laravel\\framework\\src\\Illuminate\\Routing\\Router.php(734): Illuminate\\Routing\\Route->gatherMiddleware()
-#11 D:\\02 MAD-CRICKETERS\\00-CODEBASE\\CricTracker\\vendor\\laravel\\framework\\src\\Illuminate\\Routing\\Router.php(714): Illuminate\\Routing\\Router->gatherRouteMiddleware(Object(Illuminate\\Routing\\Route))
-#12 D:\\02 MAD-CRICKETERS\\00-CODEBASE\\CricTracker\\vendor\\laravel\\framework\\src\\Illuminate\\Routing\\Router.php(698): Illuminate\\Routing\\Router->runRouteWithinStack(Object(Illuminate\\Routing\\Route), Object(Illuminate\\Http\\Request))
-#13 D:\\02 MAD-CRICKETERS\\00-CODEBASE\\CricTracker\\vendor\\laravel\\framework\\src\\Illuminate\\Routing\\Router.php(662): Illuminate\\Routing\\Router->runRoute(Object(Illuminate\\Http\\Request), Object(Illuminate\\Routing\\Route))
-#14 D:\\02 MAD-CRICKETERS\\00-CODEBASE\\CricTracker\\vendor\\laravel\\framework\\src\\Illuminate\\Routing\\Router.php(651): Illuminate\\Routing\\Router->dispatchToRoute(Object(Illuminate\\Http\\Request))
-#15 D:\\02 MAD-CRICKETERS\\00-CODEBASE\\CricTracker\\vendor\\laravel\\framework\\src\\Illuminate\\Foundation\\Http\\Kernel.php(167): Illuminate\\Routing\\Router->dispatch(Object(Illuminate\\Http\\Request))
-#16 D:\\02 MAD-CRICKETERS\\00-CODEBASE\\CricTracker\\vendor\\laravel\\framework\\src\\Illuminate\\Pipeline\\Pipeline.php(128): Illuminate\\Foundation\\Http\\Kernel->Illuminate\\Foundation\\Http\\{closure}(Object(Illuminate\\Http\\Request))
-#17 D:\\02 MAD-CRICKETERS\\00-CODEBASE\\CricTracker\\vendor\\laravel\\framework\\src\\Illuminate\\Foundation\\Http\\Middleware\\TransformsRequest.php(21): Illuminate\\Pipeline\\Pipeline->Illuminate\\Pipeline\\{closure}(Object(Illuminate\\Http\\Request))
-#18 D:\\02 MAD-CRICKETERS\\00-CODEBASE\\CricTracker\\vendor\\laravel\\framework\\src\\Illuminate\\Foundation\\Http\\Middleware\\ConvertEmptyStringsToNull.php(31): Illuminate\\Foundation\\Http\\Middleware\\TransformsRequest->handle(Object(Illuminate\\Http\\Request), Object(Closure))
-#19 D:\\02 MAD-CRICKETERS\\00-CODEBASE\\CricTracker\\vendor\\laravel\\framework\\src\\Illuminate\\Pipeline\\Pipeline.php(167): Illuminate\\Foundation\\Http\\Middleware\\ConvertEmptyStringsToNull->handle(Object(Illuminate\\Http\\Request), Object(Closure))
-#20 D:\\02 MAD-CRICKETERS\\00-CODEBASE\\CricTracker\\vendor\\laravel\\framework\\src\\Illuminate\\Foundation\\Http\\Middleware\\TransformsRequest.php(21): Illuminate\\Pipeline\\Pipeline->Illuminate\\Pipeline\\{closure}(Object(Illuminate\\Http\\Request))
-#21 D:\\02 MAD-CRICKETERS\\00-CODEBASE\\CricTracker\\vendor\\laravel\\framework\\src\\Illuminate\\Foundation\\Http\\Middleware\\TrimStrings.php(40): Illuminate\\Foundation\\Http\\Middleware\\TransformsRequest->handle(Object(Illuminate\\Http\\Request), Object(Closure))
-#22 D:\\02 MAD-CRICKETERS\\00-CODEBASE\\CricTracker\\vendor\\laravel\\framework\\src\\Illuminate\\Pipeline\\Pipeline.php(167): Illuminate\\Foundation\\Http\\Middleware\\TrimStrings->handle(Object(Illuminate\\Http\\Request), Object(Closure))
-#23 D:\\02 MAD-CRICKETERS\\00-CODEBASE\\CricTracker\\vendor\\laravel\\framework\\src\\Illuminate\\Foundation\\Http\\Middleware\\ValidatePostSize.php(27): Illuminate\\Pipeline\\Pipeline->Illuminate\\Pipeline\\{closure}(Object(Illuminate\\Http\\Request))
-#24 D:\\02 MAD-CRICKETERS\\00-CODEBASE\\CricTracker\\vendor\\laravel\\framework\\src\\Illuminate\\Pipeline\\Pipeline.php(167): Illuminate\\Foundation\\Http\\Middleware\\ValidatePostSize->handle(Object(Illuminate\\Http\\Request), Object(Closure))
-#25 D:\\02 MAD-CRICKETERS\\00-CODEBASE\\CricTracker\\vendor\\laravel\\framework\\src\\Illuminate\\Foundation\\Http\\Middleware\\PreventRequestsDuringMaintenance.php(86): Illuminate\\Pipeline\\Pipeline->Illuminate\\Pipeline\\{closure}(Object(Illuminate\\Http\\Request))
-#26 D:\\02 MAD-CRICKETERS\\00-CODEBASE\\CricTracker\\vendor\\laravel\\framework\\src\\Illuminate\\Pipeline\\Pipeline.php(167): Illuminate\\Foundation\\Http\\Middleware\\PreventRequestsDuringMaintenance->handle(Object(Illuminate\\Http\\Request), Object(Closure))
-#27 D:\\02 MAD-CRICKETERS\\00-CODEBASE\\CricTracker\\vendor\\fruitcake\\laravel-cors\\src\\HandleCors.php(38): Illuminate\\Pipeline\\Pipeline->Illuminate\\Pipeline\\{closure}(Object(Illuminate\\Http\\Request))
-#28 D:\\02 MAD-CRICKETERS\\00-CODEBASE\\CricTracker\\vendor\\laravel\\framework\\src\\Illuminate\\Pipeline\\Pipeline.php(167): Fruitcake\\Cors\\HandleCors->handle(Object(Illuminate\\Http\\Request), Object(Closure))
-#29 D:\\02 MAD-CRICKETERS\\00-CODEBASE\\CricTracker\\vendor\\laravel\\framework\\src\\Illuminate\\Http\\Middleware\\TrustProxies.php(39): Illuminate\\Pipeline\\Pipeline->Illuminate\\Pipeline\\{closure}(Object(Illuminate\\Http\\Request))
-#30 D:\\02 MAD-CRICKETERS\\00-CODEBASE\\CricTracker\\vendor\\laravel\\framework\\src\\Illuminate\\Pipeline\\Pipeline.php(167): Illuminate\\Http\\Middleware\\TrustProxies->handle(Object(Illuminate\\Http\\Request), Object(Closure))
-#31 D:\\02 MAD-CRICKETERS\\00-CODEBASE\\CricTracker\\vendor\\laravel\\framework\\src\\Illuminate\\Pipeline\\Pipeline.php(103): Illuminate\\Pipeline\\Pipeline->Illuminate\\Pipeline\\{closure}(Object(Illuminate\\Http\\Request))
-#32 D:\\02 MAD-CRICKETERS\\00-CODEBASE\\CricTracker\\vendor\\laravel\\framework\\src\\Illuminate\\Foundation\\Http\\Kernel.php(142): Illuminate\\Pipeline\\Pipeline->then(Object(Closure))
-#33 D:\\02 MAD-CRICKETERS\\00-CODEBASE\\CricTracker\\vendor\\laravel\\framework\\src\\Illuminate\\Foundation\\Http\\Kernel.php(111): Illuminate\\Foundation\\Http\\Kernel->sendRequestThroughRouter(Object(Illuminate\\Http\\Request))
-#34 D:\\02 MAD-CRICKETERS\\00-CODEBASE\\CricTracker\\public\\index.php(51): Illuminate\\Foundation\\Http\\Kernel->handle(Object(Illuminate\\Http\\Request))
-#35 D:\\02 MAD-CRICKETERS\\00-CODEBASE\\CricTracker\\server.php(21): require_once('D:\\\\02 MAD-CRICK...')
-#36 {main}
-"} 
-[2026-04-06 12:21:03] local.INFO: Match ID: 1  
-[2026-04-06 12:21:14] local.ERROR: syntax error, unexpected token "if" {"exception":"[object] (ParseError(code: 0): syntax error, unexpected token \"if\" at D:\\02 MAD-CRICKETERS\\00-CODEBASE\\CricTracker\\app\\Http\\Controllers\\Admin\\CricketMatchController.php:2876)
-[stacktrace]
-#0 D:\\02 MAD-CRICKETERS\\00-CODEBASE\\CricTracker\\vendor\\composer\\ClassLoader.php(427): Composer\\Autoload\\{closure}('D:\\\\02 MAD-CRICK...')
-#1 [internal function]: Composer\\Autoload\\ClassLoader->loadClass('App\\\\Http\\\\Contro...')
-#2 D:\\02 MAD-CRICKETERS\\00-CODEBASE\\CricTracker\\vendor\\laravel\\framework\\src\\Illuminate\\Container\\Container.php(877): ReflectionClass->__construct('App\\\\Http\\\\Contro...')
-#3 D:\\02 MAD-CRICKETERS\\00-CODEBASE\\CricTracker\\vendor\\laravel\\framework\\src\\Illuminate\\Container\\Container.php(758): Illuminate\\Container\\Container->build('App\\\\Http\\\\Contro...')
-#4 D:\\02 MAD-CRICKETERS\\00-CODEBASE\\CricTracker\\vendor\\laravel\\framework\\src\\Illuminate\\Foundation\\Application.php(853): Illuminate\\Container\\Container->resolve('App\\\\Http\\\\Contro...', Array, true)
-#5 D:\\02 MAD-CRICKETERS\\00-CODEBASE\\CricTracker\\vendor\\laravel\\framework\\src\\Illuminate\\Container\\Container.php(694): Illuminate\\Foundation\\Application->resolve('App\\\\Http\\\\Contro...', Array)
-#6 D:\\02 MAD-CRICKETERS\\00-CODEBASE\\CricTracker\\vendor\\laravel\\framework\\src\\Illuminate\\Foundation\\Application.php(838): Illuminate\\Container\\Container->make('App\\\\Http\\\\Contro...', Array)
-#7 D:\\02 MAD-CRICKETERS\\00-CODEBASE\\CricTracker\\vendor\\laravel\\framework\\src\\Illuminate\\Routing\\Route.php(276): Illuminate\\Foundation\\Application->make('App\\\\Http\\\\Contro...')
-#8 D:\\02 MAD-CRICKETERS\\00-CODEBASE\\CricTracker\\vendor\\laravel\\framework\\src\\Illuminate\\Routing\\Route.php(1080): Illuminate\\Routing\\Route->getController()
-#9 D:\\02 MAD-CRICKETERS\\00-CODEBASE\\CricTracker\\vendor\\laravel\\framework\\src\\Illuminate\\Routing\\Route.php(1023): Illuminate\\Routing\\Route->controllerMiddleware()
-#10 D:\\02 MAD-CRICKETERS\\00-CODEBASE\\CricTracker\\vendor\\laravel\\framework\\src\\Illuminate\\Routing\\Router.php(734): Illuminate\\Routing\\Route->gatherMiddleware()
-#11 D:\\02 MAD-CRICKETERS\\00-CODEBASE\\CricTracker\\vendor\\laravel\\framework\\src\\Illuminate\\Routing\\Router.php(714): Illuminate\\Routing\\Router->gatherRouteMiddleware(Object(Illuminate\\Routing\\Route))
-#12 D:\\02 MAD-CRICKETERS\\00-CODEBASE\\CricTracker\\vendor\\laravel\\framework\\src\\Illuminate\\Routing\\Router.php(698): Illuminate\\Routing\\Router->runRouteWithinStack(Object(Illuminate\\Routing\\Route), Object(Illuminate\\Http\\Request))
-#13 D:\\02 MAD-CRICKETERS\\00-CODEBASE\\CricTracker\\vendor\\laravel\\framework\\src\\Illuminate\\Routing\\Router.php(662): Illuminate\\Routing\\Router->runRoute(Object(Illuminate\\Http\\Request), Object(Illuminate\\Routing\\Route))
-#14 D:\\02 MAD-CRICKETERS\\00-CODEBASE\\CricTracker\\vendor\\laravel\\framework\\src\\Illuminate\\Routing\\Router.php(651): Illuminate\\Routing\\Router->dispatchToRoute(Object(Illuminate\\Http\\Request))
-#15 D:\\02 MAD-CRICKETERS\\00-CODEBASE\\CricTracker\\vendor\\laravel\\framework\\src\\Illuminate\\Foundation\\Http\\Kernel.php(167): Illuminate\\Routing\\Router->dispatch(Object(Illuminate\\Http\\Request))
-#16 D:\\02 MAD-CRICKETERS\\00-CODEBASE\\CricTracker\\vendor\\laravel\\framework\\src\\Illuminate\\Pipeline\\Pipeline.php(128): Illuminate\\Foundation\\Http\\Kernel->Illuminate\\Foundation\\Http\\{closure}(Object(Illuminate\\Http\\Request))
-#17 D:\\02 MAD-CRICKETERS\\00-CODEBASE\\CricTracker\\vendor\\laravel\\framework\\src\\Illuminate\\Foundation\\Http\\Middleware\\TransformsRequest.php(21): Illuminate\\Pipeline\\Pipeline->Illuminate\\Pipeline\\{closure}(Object(Illuminate\\Http\\Request))
-#18 D:\\02 MAD-CRICKETERS\\00-CODEBASE\\CricTracker\\vendor\\laravel\\framework\\src\\Illuminate\\Foundation\\Http\\Middleware\\ConvertEmptyStringsToNull.php(31): Illuminate\\Foundation\\Http\\Middleware\\TransformsRequest->handle(Object(Illuminate\\Http\\Request), Object(Closure))
-#19 D:\\02 MAD-CRICKETERS\\00-CODEBASE\\CricTracker\\vendor\\laravel\\framework\\src\\Illuminate\\Pipeline\\Pipeline.php(167): Illuminate\\Foundation\\Http\\Middleware\\ConvertEmptyStringsToNull->handle(Object(Illuminate\\Http\\Request), Object(Closure))
-#20 D:\\02 MAD-CRICKETERS\\00-CODEBASE\\CricTracker\\vendor\\laravel\\framework\\src\\Illuminate\\Foundation\\Http\\Middleware\\TransformsRequest.php(21): Illuminate\\Pipeline\\Pipeline->Illuminate\\Pipeline\\{closure}(Object(Illuminate\\Http\\Request))
-#21 D:\\02 MAD-CRICKETERS\\00-CODEBASE\\CricTracker\\vendor\\laravel\\framework\\src\\Illuminate\\Foundation\\Http\\Middleware\\TrimStrings.php(40): Illuminate\\Foundation\\Http\\Middleware\\TransformsRequest->handle(Object(Illuminate\\Http\\Request), Object(Closure))
-#22 D:\\02 MAD-CRICKETERS\\00-CODEBASE\\CricTracker\\vendor\\laravel\\framework\\src\\Illuminate\\Pipeline\\Pipeline.php(167): Illuminate\\Foundation\\Http\\Middleware\\TrimStrings->handle(Object(Illuminate\\Http\\Request), Object(Closure))
-#23 D:\\02 MAD-CRICKETERS\\00-CODEBASE\\CricTracker\\vendor\\laravel\\framework\\src\\Illuminate\\Foundation\\Http\\Middleware\\ValidatePostSize.php(27): Illuminate\\Pipeline\\Pipeline->Illuminate\\Pipeline\\{closure}(Object(Illuminate\\Http\\Request))
-#24 D:\\02 MAD-CRICKETERS\\00-CODEBASE\\CricTracker\\vendor\\laravel\\framework\\src\\Illuminate\\Pipeline\\Pipeline.php(167): Illuminate\\Foundation\\Http\\Middleware\\ValidatePostSize->handle(Object(Illuminate\\Http\\Request), Object(Closure))
-#25 D:\\02 MAD-CRICKETERS\\00-CODEBASE\\CricTracker\\vendor\\laravel\\framework\\src\\Illuminate\\Foundation\\Http\\Middleware\\PreventRequestsDuringMaintenance.php(86): Illuminate\\Pipeline\\Pipeline->Illuminate\\Pipeline\\{closure}(Object(Illuminate\\Http\\Request))
-#26 D:\\02 MAD-CRICKETERS\\00-CODEBASE\\CricTracker\\vendor\\laravel\\framework\\src\\Illuminate\\Pipeline\\Pipeline.php(167): Illuminate\\Foundation\\Http\\Middleware\\PreventRequestsDuringMaintenance->handle(Object(Illuminate\\Http\\Request), Object(Closure))
-#27 D:\\02 MAD-CRICKETERS\\00-CODEBASE\\CricTracker\\vendor\\fruitcake\\laravel-cors\\src\\HandleCors.php(38): Illuminate\\Pipeline\\Pipeline->Illuminate\\Pipeline\\{closure}(Object(Illuminate\\Http\\Request))
-#28 D:\\02 MAD-CRICKETERS\\00-CODEBASE\\CricTracker\\vendor\\laravel\\framework\\src\\Illuminate\\Pipeline\\Pipeline.php(167): Fruitcake\\Cors\\HandleCors->handle(Object(Illuminate\\Http\\Request), Object(Closure))
-#29 D:\\02 MAD-CRICKETERS\\00-CODEBASE\\CricTracker\\vendor\\laravel\\framework\\src\\Illuminate\\Http\\Middleware\\TrustProxies.php(39): Illuminate\\Pipeline\\Pipeline->Illuminate\\Pipeline\\{closure}(Object(Illuminate\\Http\\Request))
-#30 D:\\02 MAD-CRICKETERS\\00-CODEBASE\\CricTracker\\vendor\\laravel\\framework\\src\\Illuminate\\Pipeline\\Pipeline.php(167): Illuminate\\Http\\Middleware\\TrustProxies->handle(Object(Illuminate\\Http\\Request), Object(Closure))
-#31 D:\\02 MAD-CRICKETERS\\00-CODEBASE\\CricTracker\\vendor\\laravel\\framework\\src\\Illuminate\\Pipeline\\Pipeline.php(103): Illuminate\\Pipeline\\Pipeline->Illuminate\\Pipeline\\{closure}(Object(Illuminate\\Http\\Request))
-#32 D:\\02 MAD-CRICKETERS\\00-CODEBASE\\CricTracker\\vendor\\laravel\\framework\\src\\Illuminate\\Foundation\\Http\\Kernel.php(142): Illuminate\\Pipeline\\Pipeline->then(Object(Closure))
-#33 D:\\02 MAD-CRICKETERS\\00-CODEBASE\\CricTracker\\vendor\\laravel\\framework\\src\\Illuminate\\Foundation\\Http\\Kernel.php(111): Illuminate\\Foundation\\Http\\Kernel->sendRequestThroughRouter(Object(Illuminate\\Http\\Request))
-#34 D:\\02 MAD-CRICKETERS\\00-CODEBASE\\CricTracker\\public\\index.php(51): Illuminate\\Foundation\\Http\\Kernel->handle(Object(Illuminate\\Http\\Request))
-#35 D:\\02 MAD-CRICKETERS\\00-CODEBASE\\CricTracker\\server.php(21): require_once('D:\\\\02 MAD-CRICK...')
-#36 {main}
-"} 
-[2026-04-06 12:21:14] local.ERROR: syntax error, unexpected token "if" {"exception":"[object] (ParseError(code: 0): syntax error, unexpected token \"if\" at D:\\02 MAD-CRICKETERS\\00-CODEBASE\\CricTracker\\app\\Http\\Controllers\\Admin\\CricketMatchController.php:2876)
-[stacktrace]
-#0 D:\\02 MAD-CRICKETERS\\00-CODEBASE\\CricTracker\\vendor\\composer\\ClassLoader.php(427): Composer\\Autoload\\{closure}('D:\\\\02 MAD-CRICK...')
-#1 [internal function]: Composer\\Autoload\\ClassLoader->loadClass('App\\\\Http\\\\Contro...')
-#2 D:\\02 MAD-CRICKETERS\\00-CODEBASE\\CricTracker\\vendor\\laravel\\framework\\src\\Illuminate\\Container\\Container.php(877): ReflectionClass->__construct('App\\\\Http\\\\Contro...')
-#3 D:\\02 MAD-CRICKETERS\\00-CODEBASE\\CricTracker\\vendor\\laravel\\framework\\src\\Illuminate\\Container\\Container.php(758): Illuminate\\Container\\Container->build('App\\\\Http\\\\Contro...')
-#4 D:\\02 MAD-CRICKETERS\\00-CODEBASE\\CricTracker\\vendor\\laravel\\framework\\src\\Illuminate\\Foundation\\Application.php(853): Illuminate\\Container\\Container->resolve('App\\\\Http\\\\Contro...', Array, true)
-#5 D:\\02 MAD-CRICKETERS\\00-CODEBASE\\CricTracker\\vendor\\laravel\\framework\\src\\Illuminate\\Container\\Container.php(694): Illuminate\\Foundation\\Application->resolve('App\\\\Http\\\\Contro...', Array)
-#6 D:\\02 MAD-CRICKETERS\\00-CODEBASE\\CricTracker\\vendor\\laravel\\framework\\src\\Illuminate\\Foundation\\Application.php(838): Illuminate\\Container\\Container->make('App\\\\Http\\\\Contro...', Array)
-#7 D:\\02 MAD-CRICKETERS\\00-CODEBASE\\CricTracker\\vendor\\laravel\\framework\\src\\Illuminate\\Routing\\Route.php(276): Illuminate\\Foundation\\Application->make('App\\\\Http\\\\Contro...')
-#8 D:\\02 MAD-CRICKETERS\\00-CODEBASE\\CricTracker\\vendor\\laravel\\framework\\src\\Illuminate\\Routing\\Route.php(1080): Illuminate\\Routing\\Route->getController()
-#9 D:\\02 MAD-CRICKETERS\\00-CODEBASE\\CricTracker\\vendor\\laravel\\framework\\src\\Illuminate\\Routing\\Route.php(1023): Illuminate\\Routing\\Route->controllerMiddleware()
-#10 D:\\02 MAD-CRICKETERS\\00-CODEBASE\\CricTracker\\vendor\\laravel\\framework\\src\\Illuminate\\Routing\\Router.php(734): Illuminate\\Routing\\Route->gatherMiddleware()
-#11 D:\\02 MAD-CRICKETERS\\00-CODEBASE\\CricTracker\\vendor\\laravel\\framework\\src\\Illuminate\\Routing\\Router.php(714): Illuminate\\Routing\\Router->gatherRouteMiddleware(Object(Illuminate\\Routing\\Route))
-#12 D:\\02 MAD-CRICKETERS\\00-CODEBASE\\CricTracker\\vendor\\laravel\\framework\\src\\Illuminate\\Routing\\Router.php(698): Illuminate\\Routing\\Router->runRouteWithinStack(Object(Illuminate\\Routing\\Route), Object(Illuminate\\Http\\Request))
-#13 D:\\02 MAD-CRICKETERS\\00-CODEBASE\\CricTracker\\vendor\\laravel\\framework\\src\\Illuminate\\Routing\\Router.php(662): Illuminate\\Routing\\Router->runRoute(Object(Illuminate\\Http\\Request), Object(Illuminate\\Routing\\Route))
-#14 D:\\02 MAD-CRICKETERS\\00-CODEBASE\\CricTracker\\vendor\\laravel\\framework\\src\\Illuminate\\Routing\\Router.php(651): Illuminate\\Routing\\Router->dispatchToRoute(Object(Illuminate\\Http\\Request))
-#15 D:\\02 MAD-CRICKETERS\\00-CODEBASE\\CricTracker\\vendor\\laravel\\framework\\src\\Illuminate\\Foundation\\Http\\Kernel.php(167): Illuminate\\Routing\\Router->dispatch(Object(Illuminate\\Http\\Request))
-#16 D:\\02 MAD-CRICKETERS\\00-CODEBASE\\CricTracker\\vendor\\laravel\\framework\\src\\Illuminate\\Pipeline\\Pipeline.php(128): Illuminate\\Foundation\\Http\\Kernel->Illuminate\\Foundation\\Http\\{closure}(Object(Illuminate\\Http\\Request))
-#17 D:\\02 MAD-CRICKETERS\\00-CODEBASE\\CricTracker\\vendor\\laravel\\framework\\src\\Illuminate\\Foundation\\Http\\Middleware\\TransformsRequest.php(21): Illuminate\\Pipeline\\Pipeline->Illuminate\\Pipeline\\{closure}(Object(Illuminate\\Http\\Request))
-#18 D:\\02 MAD-CRICKETERS\\00-CODEBASE\\CricTracker\\vendor\\laravel\\framework\\src\\Illuminate\\Foundation\\Http\\Middleware\\ConvertEmptyStringsToNull.php(31): Illuminate\\Foundation\\Http\\Middleware\\TransformsRequest->handle(Object(Illuminate\\Http\\Request), Object(Closure))
-#19 D:\\02 MAD-CRICKETERS\\00-CODEBASE\\CricTracker\\vendor\\laravel\\framework\\src\\Illuminate\\Pipeline\\Pipeline.php(167): Illuminate\\Foundation\\Http\\Middleware\\ConvertEmptyStringsToNull->handle(Object(Illuminate\\Http\\Request), Object(Closure))
-#20 D:\\02 MAD-CRICKETERS\\00-CODEBASE\\CricTracker\\vendor\\laravel\\framework\\src\\Illuminate\\Foundation\\Http\\Middleware\\TransformsRequest.php(21): Illuminate\\Pipeline\\Pipeline->Illuminate\\Pipeline\\{closure}(Object(Illuminate\\Http\\Request))
-#21 D:\\02 MAD-CRICKETERS\\00-CODEBASE\\CricTracker\\vendor\\laravel\\framework\\src\\Illuminate\\Foundation\\Http\\Middleware\\TrimStrings.php(40): Illuminate\\Foundation\\Http\\Middleware\\TransformsRequest->handle(Object(Illuminate\\Http\\Request), Object(Closure))
-#22 D:\\02 MAD-CRICKETERS\\00-CODEBASE\\CricTracker\\vendor\\laravel\\framework\\src\\Illuminate\\Pipeline\\Pipeline.php(167): Illuminate\\Foundation\\Http\\Middleware\\TrimStrings->handle(Object(Illuminate\\Http\\Request), Object(Closure))
-#23 D:\\02 MAD-CRICKETERS\\00-CODEBASE\\CricTracker\\vendor\\laravel\\framework\\src\\Illuminate\\Foundation\\Http\\Middleware\\ValidatePostSize.php(27): Illuminate\\Pipeline\\Pipeline->Illuminate\\Pipeline\\{closure}(Object(Illuminate\\Http\\Request))
-#24 D:\\02 MAD-CRICKETERS\\00-CODEBASE\\CricTracker\\vendor\\laravel\\framework\\src\\Illuminate\\Pipeline\\Pipeline.php(167): Illuminate\\Foundation\\Http\\Middleware\\ValidatePostSize->handle(Object(Illuminate\\Http\\Request), Object(Closure))
-#25 D:\\02 MAD-CRICKETERS\\00-CODEBASE\\CricTracker\\vendor\\laravel\\framework\\src\\Illuminate\\Foundation\\Http\\Middleware\\PreventRequestsDuringMaintenance.php(86): Illuminate\\Pipeline\\Pipeline->Illuminate\\Pipeline\\{closure}(Object(Illuminate\\Http\\Request))
-#26 D:\\02 MAD-CRICKETERS\\00-CODEBASE\\CricTracker\\vendor\\laravel\\framework\\src\\Illuminate\\Pipeline\\Pipeline.php(167): Illuminate\\Foundation\\Http\\Middleware\\PreventRequestsDuringMaintenance->handle(Object(Illuminate\\Http\\Request), Object(Closure))
-#27 D:\\02 MAD-CRICKETERS\\00-CODEBASE\\CricTracker\\vendor\\fruitcake\\laravel-cors\\src\\HandleCors.php(38): Illuminate\\Pipeline\\Pipeline->Illuminate\\Pipeline\\{closure}(Object(Illuminate\\Http\\Request))
-#28 D:\\02 MAD-CRICKETERS\\00-CODEBASE\\CricTracker\\vendor\\laravel\\framework\\src\\Illuminate\\Pipeline\\Pipeline.php(167): Fruitcake\\Cors\\HandleCors->handle(Object(Illuminate\\Http\\Request), Object(Closure))
-#29 D:\\02 MAD-CRICKETERS\\00-CODEBASE\\CricTracker\\vendor\\laravel\\framework\\src\\Illuminate\\Http\\Middleware\\TrustProxies.php(39): Illuminate\\Pipeline\\Pipeline->Illuminate\\Pipeline\\{closure}(Object(Illuminate\\Http\\Request))
-#30 D:\\02 MAD-CRICKETERS\\00-CODEBASE\\CricTracker\\vendor\\laravel\\framework\\src\\Illuminate\\Pipeline\\Pipeline.php(167): Illuminate\\Http\\Middleware\\TrustProxies->handle(Object(Illuminate\\Http\\Request), Object(Closure))
-#31 D:\\02 MAD-CRICKETERS\\00-CODEBASE\\CricTracker\\vendor\\laravel\\framework\\src\\Illuminate\\Pipeline\\Pipeline.php(103): Illuminate\\Pipeline\\Pipeline->Illuminate\\Pipeline\\{closure}(Object(Illuminate\\Http\\Request))
-#32 D:\\02 MAD-CRICKETERS\\00-CODEBASE\\CricTracker\\vendor\\laravel\\framework\\src\\Illuminate\\Foundation\\Http\\Kernel.php(142): Illuminate\\Pipeline\\Pipeline->then(Object(Closure))
-#33 D:\\02 MAD-CRICKETERS\\00-CODEBASE\\CricTracker\\vendor\\laravel\\framework\\src\\Illuminate\\Foundation\\Http\\Kernel.php(111): Illuminate\\Foundation\\Http\\Kernel->sendRequestThroughRouter(Object(Illuminate\\Http\\Request))
-#34 D:\\02 MAD-CRICKETERS\\00-CODEBASE\\CricTracker\\public\\index.php(51): Illuminate\\Foundation\\Http\\Kernel->handle(Object(Illuminate\\Http\\Request))
-#35 D:\\02 MAD-CRICKETERS\\00-CODEBASE\\CricTracker\\server.php(21): require_once('D:\\\\02 MAD-CRICK...')
-#36 {main}
-"} 
-[2026-04-06 12:22:14] local.ERROR: syntax error, unexpected token "if" {"exception":"[object] (ParseError(code: 0): syntax error, unexpected token \"if\" at D:\\02 MAD-CRICKETERS\\00-CODEBASE\\CricTracker\\app\\Http\\Controllers\\Admin\\CricketMatchController.php:2876)
-[stacktrace]
-#0 D:\\02 MAD-CRICKETERS\\00-CODEBASE\\CricTracker\\vendor\\composer\\ClassLoader.php(427): Composer\\Autoload\\{closure}('D:\\\\02 MAD-CRICK...')
-#1 [internal function]: Composer\\Autoload\\ClassLoader->loadClass('App\\\\Http\\\\Contro...')
-#2 D:\\02 MAD-CRICKETERS\\00-CODEBASE\\CricTracker\\vendor\\laravel\\framework\\src\\Illuminate\\Container\\Container.php(877): ReflectionClass->__construct('App\\\\Http\\\\Contro...')
-#3 D:\\02 MAD-CRICKETERS\\00-CODEBASE\\CricTracker\\vendor\\laravel\\framework\\src\\Illuminate\\Container\\Container.php(758): Illuminate\\Container\\Container->build('App\\\\Http\\\\Contro...')
-#4 D:\\02 MAD-CRICKETERS\\00-CODEBASE\\CricTracker\\vendor\\laravel\\framework\\src\\Illuminate\\Foundation\\Application.php(853): Illuminate\\Container\\Container->resolve('App\\\\Http\\\\Contro...', Array, true)
-#5 D:\\02 MAD-CRICKETERS\\00-CODEBASE\\CricTracker\\vendor\\laravel\\framework\\src\\Illuminate\\Container\\Container.php(694): Illuminate\\Foundation\\Application->resolve('App\\\\Http\\\\Contro...', Array)
-#6 D:\\02 MAD-CRICKETERS\\00-CODEBASE\\CricTracker\\vendor\\laravel\\framework\\src\\Illuminate\\Foundation\\Application.php(838): Illuminate\\Container\\Container->make('App\\\\Http\\\\Contro...', Array)
-#7 D:\\02 MAD-CRICKETERS\\00-CODEBASE\\CricTracker\\vendor\\laravel\\framework\\src\\Illuminate\\Routing\\Route.php(276): Illuminate\\Foundation\\Application->make('App\\\\Http\\\\Contro...')
-#8 D:\\02 MAD-CRICKETERS\\00-CODEBASE\\CricTracker\\vendor\\laravel\\framework\\src\\Illuminate\\Routing\\Route.php(1080): Illuminate\\Routing\\Route->getController()
-#9 D:\\02 MAD-CRICKETERS\\00-CODEBASE\\CricTracker\\vendor\\laravel\\framework\\src\\Illuminate\\Routing\\Route.php(1023): Illuminate\\Routing\\Route->controllerMiddleware()
-#10 D:\\02 MAD-CRICKETERS\\00-CODEBASE\\CricTracker\\vendor\\laravel\\framework\\src\\Illuminate\\Routing\\Router.php(734): Illuminate\\Routing\\Route->gatherMiddleware()
-#11 D:\\02 MAD-CRICKETERS\\00-CODEBASE\\CricTracker\\vendor\\laravel\\framework\\src\\Illuminate\\Routing\\Router.php(714): Illuminate\\Routing\\Router->gatherRouteMiddleware(Object(Illuminate\\Routing\\Route))
-#12 D:\\02 MAD-CRICKETERS\\00-CODEBASE\\CricTracker\\vendor\\laravel\\framework\\src\\Illuminate\\Routing\\Router.php(698): Illuminate\\Routing\\Router->runRouteWithinStack(Object(Illuminate\\Routing\\Route), Object(Illuminate\\Http\\Request))
-#13 D:\\02 MAD-CRICKETERS\\00-CODEBASE\\CricTracker\\vendor\\laravel\\framework\\src\\Illuminate\\Routing\\Router.php(662): Illuminate\\Routing\\Router->runRoute(Object(Illuminate\\Http\\Request), Object(Illuminate\\Routing\\Route))
-#14 D:\\02 MAD-CRICKETERS\\00-CODEBASE\\CricTracker\\vendor\\laravel\\framework\\src\\Illuminate\\Routing\\Router.php(651): Illuminate\\Routing\\Router->dispatchToRoute(Object(Illuminate\\Http\\Request))
-#15 D:\\02 MAD-CRICKETERS\\00-CODEBASE\\CricTracker\\vendor\\laravel\\framework\\src\\Illuminate\\Foundation\\Http\\Kernel.php(167): Illuminate\\Routing\\Router->dispatch(Object(Illuminate\\Http\\Request))
-#16 D:\\02 MAD-CRICKETERS\\00-CODEBASE\\CricTracker\\vendor\\laravel\\framework\\src\\Illuminate\\Pipeline\\Pipeline.php(128): Illuminate\\Foundation\\Http\\Kernel->Illuminate\\Foundation\\Http\\{closure}(Object(Illuminate\\Http\\Request))
-#17 D:\\02 MAD-CRICKETERS\\00-CODEBASE\\CricTracker\\vendor\\laravel\\framework\\src\\Illuminate\\Foundation\\Http\\Middleware\\TransformsRequest.php(21): Illuminate\\Pipeline\\Pipeline->Illuminate\\Pipeline\\{closure}(Object(Illuminate\\Http\\Request))
-#18 D:\\02 MAD-CRICKETERS\\00-CODEBASE\\CricTracker\\vendor\\laravel\\framework\\src\\Illuminate\\Foundation\\Http\\Middleware\\ConvertEmptyStringsToNull.php(31): Illuminate\\Foundation\\Http\\Middleware\\TransformsRequest->handle(Object(Illuminate\\Http\\Request), Object(Closure))
-#19 D:\\02 MAD-CRICKETERS\\00-CODEBASE\\CricTracker\\vendor\\laravel\\framework\\src\\Illuminate\\Pipeline\\Pipeline.php(167): Illuminate\\Foundation\\Http\\Middleware\\ConvertEmptyStringsToNull->handle(Object(Illuminate\\Http\\Request), Object(Closure))
-#20 D:\\02 MAD-CRICKETERS\\00-CODEBASE\\CricTracker\\vendor\\laravel\\framework\\src\\Illuminate\\Foundation\\Http\\Middleware\\TransformsRequest.php(21): Illuminate\\Pipeline\\Pipeline->Illuminate\\Pipeline\\{closure}(Object(Illuminate\\Http\\Request))
-#21 D:\\02 MAD-CRICKETERS\\00-CODEBASE\\CricTracker\\vendor\\laravel\\framework\\src\\Illuminate\\Foundation\\Http\\Middleware\\TrimStrings.php(40): Illuminate\\Foundation\\Http\\Middleware\\TransformsRequest->handle(Object(Illuminate\\Http\\Request), Object(Closure))
-#22 D:\\02 MAD-CRICKETERS\\00-CODEBASE\\CricTracker\\vendor\\laravel\\framework\\src\\Illuminate\\Pipeline\\Pipeline.php(167): Illuminate\\Foundation\\Http\\Middleware\\TrimStrings->handle(Object(Illuminate\\Http\\Request), Object(Closure))
-#23 D:\\02 MAD-CRICKETERS\\00-CODEBASE\\CricTracker\\vendor\\laravel\\framework\\src\\Illuminate\\Foundation\\Http\\Middleware\\ValidatePostSize.php(27): Illuminate\\Pipeline\\Pipeline->Illuminate\\Pipeline\\{closure}(Object(Illuminate\\Http\\Request))
-#24 D:\\02 MAD-CRICKETERS\\00-CODEBASE\\CricTracker\\vendor\\laravel\\framework\\src\\Illuminate\\Pipeline\\Pipeline.php(167): Illuminate\\Foundation\\Http\\Middleware\\ValidatePostSize->handle(Object(Illuminate\\Http\\Request), Object(Closure))
-#25 D:\\02 MAD-CRICKETERS\\00-CODEBASE\\CricTracker\\vendor\\laravel\\framework\\src\\Illuminate\\Foundation\\Http\\Middleware\\PreventRequestsDuringMaintenance.php(86): Illuminate\\Pipeline\\Pipeline->Illuminate\\Pipeline\\{closure}(Object(Illuminate\\Http\\Request))
-#26 D:\\02 MAD-CRICKETERS\\00-CODEBASE\\CricTracker\\vendor\\laravel\\framework\\src\\Illuminate\\Pipeline\\Pipeline.php(167): Illuminate\\Foundation\\Http\\Middleware\\PreventRequestsDuringMaintenance->handle(Object(Illuminate\\Http\\Request), Object(Closure))
-#27 D:\\02 MAD-CRICKETERS\\00-CODEBASE\\CricTracker\\vendor\\fruitcake\\laravel-cors\\src\\HandleCors.php(38): Illuminate\\Pipeline\\Pipeline->Illuminate\\Pipeline\\{closure}(Object(Illuminate\\Http\\Request))
-#28 D:\\02 MAD-CRICKETERS\\00-CODEBASE\\CricTracker\\vendor\\laravel\\framework\\src\\Illuminate\\Pipeline\\Pipeline.php(167): Fruitcake\\Cors\\HandleCors->handle(Object(Illuminate\\Http\\Request), Object(Closure))
-#29 D:\\02 MAD-CRICKETERS\\00-CODEBASE\\CricTracker\\vendor\\laravel\\framework\\src\\Illuminate\\Http\\Middleware\\TrustProxies.php(39): Illuminate\\Pipeline\\Pipeline->Illuminate\\Pipeline\\{closure}(Object(Illuminate\\Http\\Request))
-#30 D:\\02 MAD-CRICKETERS\\00-CODEBASE\\CricTracker\\vendor\\laravel\\framework\\src\\Illuminate\\Pipeline\\Pipeline.php(167): Illuminate\\Http\\Middleware\\TrustProxies->handle(Object(Illuminate\\Http\\Request), Object(Closure))
-#31 D:\\02 MAD-CRICKETERS\\00-CODEBASE\\CricTracker\\vendor\\laravel\\framework\\src\\Illuminate\\Pipeline\\Pipeline.php(103): Illuminate\\Pipeline\\Pipeline->Illuminate\\Pipeline\\{closure}(Object(Illuminate\\Http\\Request))
-#32 D:\\02 MAD-CRICKETERS\\00-CODEBASE\\CricTracker\\vendor\\laravel\\framework\\src\\Illuminate\\Foundation\\Http\\Kernel.php(142): Illuminate\\Pipeline\\Pipeline->then(Object(Closure))
-#33 D:\\02 MAD-CRICKETERS\\00-CODEBASE\\CricTracker\\vendor\\laravel\\framework\\src\\Illuminate\\Foundation\\Http\\Kernel.php(111): Illuminate\\Foundation\\Http\\Kernel->sendRequestThroughRouter(Object(Illuminate\\Http\\Request))
-#34 D:\\02 MAD-CRICKETERS\\00-CODEBASE\\CricTracker\\public\\index.php(51): Illuminate\\Foundation\\Http\\Kernel->handle(Object(Illuminate\\Http\\Request))
-#35 D:\\02 MAD-CRICKETERS\\00-CODEBASE\\CricTracker\\server.php(21): require_once('D:\\\\02 MAD-CRICK...')
-#36 {main}
-"} 
-[2026-04-06 12:22:14] local.ERROR: syntax error, unexpected token "if" {"exception":"[object] (ParseError(code: 0): syntax error, unexpected token \"if\" at D:\\02 MAD-CRICKETERS\\00-CODEBASE\\CricTracker\\app\\Http\\Controllers\\Admin\\CricketMatchController.php:2876)
-[stacktrace]
-#0 D:\\02 MAD-CRICKETERS\\00-CODEBASE\\CricTracker\\vendor\\composer\\ClassLoader.php(427): Composer\\Autoload\\{closure}('D:\\\\02 MAD-CRICK...')
-#1 [internal function]: Composer\\Autoload\\ClassLoader->loadClass('App\\\\Http\\\\Contro...')
-#2 D:\\02 MAD-CRICKETERS\\00-CODEBASE\\CricTracker\\vendor\\laravel\\framework\\src\\Illuminate\\Container\\Container.php(877): ReflectionClass->__construct('App\\\\Http\\\\Contro...')
-#3 D:\\02 MAD-CRICKETERS\\00-CODEBASE\\CricTracker\\vendor\\laravel\\framework\\src\\Illuminate\\Container\\Container.php(758): Illuminate\\Container\\Container->build('App\\\\Http\\\\Contro...')
-#4 D:\\02 MAD-CRICKETERS\\00-CODEBASE\\CricTracker\\vendor\\laravel\\framework\\src\\Illuminate\\Foundation\\Application.php(853): Illuminate\\Container\\Container->resolve('App\\\\Http\\\\Contro...', Array, true)
-#5 D:\\02 MAD-CRICKETERS\\00-CODEBASE\\CricTracker\\vendor\\laravel\\framework\\src\\Illuminate\\Container\\Container.php(694): Illuminate\\Foundation\\Application->resolve('App\\\\Http\\\\Contro...', Array)
-#6 D:\\02 MAD-CRICKETERS\\00-CODEBASE\\CricTracker\\vendor\\laravel\\framework\\src\\Illuminate\\Foundation\\Application.php(838): Illuminate\\Container\\Container->make('App\\\\Http\\\\Contro...', Array)
-#7 D:\\02 MAD-CRICKETERS\\00-CODEBASE\\CricTracker\\vendor\\laravel\\framework\\src\\Illuminate\\Routing\\Route.php(276): Illuminate\\Foundation\\Application->make('App\\\\Http\\\\Contro...')
-#8 D:\\02 MAD-CRICKETERS\\00-CODEBASE\\CricTracker\\vendor\\laravel\\framework\\src\\Illuminate\\Routing\\Route.php(1080): Illuminate\\Routing\\Route->getController()
-#9 D:\\02 MAD-CRICKETERS\\00-CODEBASE\\CricTracker\\vendor\\laravel\\framework\\src\\Illuminate\\Routing\\Route.php(1023): Illuminate\\Routing\\Route->controllerMiddleware()
-#10 D:\\02 MAD-CRICKETERS\\00-CODEBASE\\CricTracker\\vendor\\laravel\\framework\\src\\Illuminate\\Routing\\Router.php(734): Illuminate\\Routing\\Route->gatherMiddleware()
-#11 D:\\02 MAD-CRICKETERS\\00-CODEBASE\\CricTracker\\vendor\\laravel\\framework\\src\\Illuminate\\Routing\\Router.php(714): Illuminate\\Routing\\Router->gatherRouteMiddleware(Object(Illuminate\\Routing\\Route))
-#12 D:\\02 MAD-CRICKETERS\\00-CODEBASE\\CricTracker\\vendor\\laravel\\framework\\src\\Illuminate\\Routing\\Router.php(698): Illuminate\\Routing\\Router->runRouteWithinStack(Object(Illuminate\\Routing\\Route), Object(Illuminate\\Http\\Request))
-#13 D:\\02 MAD-CRICKETERS\\00-CODEBASE\\CricTracker\\vendor\\laravel\\framework\\src\\Illuminate\\Routing\\Router.php(662): Illuminate\\Routing\\Router->runRoute(Object(Illuminate\\Http\\Request), Object(Illuminate\\Routing\\Route))
-#14 D:\\02 MAD-CRICKETERS\\00-CODEBASE\\CricTracker\\vendor\\laravel\\framework\\src\\Illuminate\\Routing\\Router.php(651): Illuminate\\Routing\\Router->dispatchToRoute(Object(Illuminate\\Http\\Request))
-#15 D:\\02 MAD-CRICKETERS\\00-CODEBASE\\CricTracker\\vendor\\laravel\\framework\\src\\Illuminate\\Foundation\\Http\\Kernel.php(167): Illuminate\\Routing\\Router->dispatch(Object(Illuminate\\Http\\Request))
-#16 D:\\02 MAD-CRICKETERS\\00-CODEBASE\\CricTracker\\vendor\\laravel\\framework\\src\\Illuminate\\Pipeline\\Pipeline.php(128): Illuminate\\Foundation\\Http\\Kernel->Illuminate\\Foundation\\Http\\{closure}(Object(Illuminate\\Http\\Request))
-#17 D:\\02 MAD-CRICKETERS\\00-CODEBASE\\CricTracker\\vendor\\laravel\\framework\\src\\Illuminate\\Foundation\\Http\\Middleware\\TransformsRequest.php(21): Illuminate\\Pipeline\\Pipeline->Illuminate\\Pipeline\\{closure}(Object(Illuminate\\Http\\Request))
-#18 D:\\02 MAD-CRICKETERS\\00-CODEBASE\\CricTracker\\vendor\\laravel\\framework\\src\\Illuminate\\Foundation\\Http\\Middleware\\ConvertEmptyStringsToNull.php(31): Illuminate\\Foundation\\Http\\Middleware\\TransformsRequest->handle(Object(Illuminate\\Http\\Request), Object(Closure))
-#19 D:\\02 MAD-CRICKETERS\\00-CODEBASE\\CricTracker\\vendor\\laravel\\framework\\src\\Illuminate\\Pipeline\\Pipeline.php(167): Illuminate\\Foundation\\Http\\Middleware\\ConvertEmptyStringsToNull->handle(Object(Illuminate\\Http\\Request), Object(Closure))
-#20 D:\\02 MAD-CRICKETERS\\00-CODEBASE\\CricTracker\\vendor\\laravel\\framework\\src\\Illuminate\\Foundation\\Http\\Middleware\\TransformsRequest.php(21): Illuminate\\Pipeline\\Pipeline->Illuminate\\Pipeline\\{closure}(Object(Illuminate\\Http\\Request))
-#21 D:\\02 MAD-CRICKETERS\\00-CODEBASE\\CricTracker\\vendor\\laravel\\framework\\src\\Illuminate\\Foundation\\Http\\Middleware\\TrimStrings.php(40): Illuminate\\Foundation\\Http\\Middleware\\TransformsRequest->handle(Object(Illuminate\\Http\\Request), Object(Closure))
-#22 D:\\02 MAD-CRICKETERS\\00-CODEBASE\\CricTracker\\vendor\\laravel\\framework\\src\\Illuminate\\Pipeline\\Pipeline.php(167): Illuminate\\Foundation\\Http\\Middleware\\TrimStrings->handle(Object(Illuminate\\Http\\Request), Object(Closure))
-#23 D:\\02 MAD-CRICKETERS\\00-CODEBASE\\CricTracker\\vendor\\laravel\\framework\\src\\Illuminate\\Foundation\\Http\\Middleware\\ValidatePostSize.php(27): Illuminate\\Pipeline\\Pipeline->Illuminate\\Pipeline\\{closure}(Object(Illuminate\\Http\\Request))
-#24 D:\\02 MAD-CRICKETERS\\00-CODEBASE\\CricTracker\\vendor\\laravel\\framework\\src\\Illuminate\\Pipeline\\Pipeline.php(167): Illuminate\\Foundation\\Http\\Middleware\\ValidatePostSize->handle(Object(Illuminate\\Http\\Request), Object(Closure))
-#25 D:\\02 MAD-CRICKETERS\\00-CODEBASE\\CricTracker\\vendor\\laravel\\framework\\src\\Illuminate\\Foundation\\Http\\Middleware\\PreventRequestsDuringMaintenance.php(86): Illuminate\\Pipeline\\Pipeline->Illuminate\\Pipeline\\{closure}(Object(Illuminate\\Http\\Request))
-#26 D:\\02 MAD-CRICKETERS\\00-CODEBASE\\CricTracker\\vendor\\laravel\\framework\\src\\Illuminate\\Pipeline\\Pipeline.php(167): Illuminate\\Foundation\\Http\\Middleware\\PreventRequestsDuringMaintenance->handle(Object(Illuminate\\Http\\Request), Object(Closure))
-#27 D:\\02 MAD-CRICKETERS\\00-CODEBASE\\CricTracker\\vendor\\fruitcake\\laravel-cors\\src\\HandleCors.php(38): Illuminate\\Pipeline\\Pipeline->Illuminate\\Pipeline\\{closure}(Object(Illuminate\\Http\\Request))
-#28 D:\\02 MAD-CRICKETERS\\00-CODEBASE\\CricTracker\\vendor\\laravel\\framework\\src\\Illuminate\\Pipeline\\Pipeline.php(167): Fruitcake\\Cors\\HandleCors->handle(Object(Illuminate\\Http\\Request), Object(Closure))
-#29 D:\\02 MAD-CRICKETERS\\00-CODEBASE\\CricTracker\\vendor\\laravel\\framework\\src\\Illuminate\\Http\\Middleware\\TrustProxies.php(39): Illuminate\\Pipeline\\Pipeline->Illuminate\\Pipeline\\{closure}(Object(Illuminate\\Http\\Request))
-#30 D:\\02 MAD-CRICKETERS\\00-CODEBASE\\CricTracker\\vendor\\laravel\\framework\\src\\Illuminate\\Pipeline\\Pipeline.php(167): Illuminate\\Http\\Middleware\\TrustProxies->handle(Object(Illuminate\\Http\\Request), Object(Closure))
-#31 D:\\02 MAD-CRICKETERS\\00-CODEBASE\\CricTracker\\vendor\\laravel\\framework\\src\\Illuminate\\Pipeline\\Pipeline.php(103): Illuminate\\Pipeline\\Pipeline->Illuminate\\Pipeline\\{closure}(Object(Illuminate\\Http\\Request))
-#32 D:\\02 MAD-CRICKETERS\\00-CODEBASE\\CricTracker\\vendor\\laravel\\framework\\src\\Illuminate\\Foundation\\Http\\Kernel.php(142): Illuminate\\Pipeline\\Pipeline->then(Object(Closure))
-#33 D:\\02 MAD-CRICKETERS\\00-CODEBASE\\CricTracker\\vendor\\laravel\\framework\\src\\Illuminate\\Foundation\\Http\\Kernel.php(111): Illuminate\\Foundation\\Http\\Kernel->sendRequestThroughRouter(Object(Illuminate\\Http\\Request))
-#34 D:\\02 MAD-CRICKETERS\\00-CODEBASE\\CricTracker\\public\\index.php(51): Illuminate\\Foundation\\Http\\Kernel->handle(Object(Illuminate\\Http\\Request))
-#35 D:\\02 MAD-CRICKETERS\\00-CODEBASE\\CricTracker\\server.php(21): require_once('D:\\\\02 MAD-CRICK...')
-#36 {main}
-"} 
-[2026-04-06 12:23:14] local.ERROR: syntax error, unexpected token "catch", expecting "function" or "const" {"exception":"[object] (ParseError(code: 0): syntax error, unexpected token \"catch\", expecting \"function\" or \"const\" at D:\\02 MAD-CRICKETERS\\00-CODEBASE\\CricTracker\\app\\Http\\Controllers\\Admin\\CricketMatchController.php:2987)
-[stacktrace]
-#0 D:\\02 MAD-CRICKETERS\\00-CODEBASE\\CricTracker\\vendor\\composer\\ClassLoader.php(427): Composer\\Autoload\\{closure}('D:\\\\02 MAD-CRICK...')
-#1 [internal function]: Composer\\Autoload\\ClassLoader->loadClass('App\\\\Http\\\\Contro...')
-#2 D:\\02 MAD-CRICKETERS\\00-CODEBASE\\CricTracker\\vendor\\laravel\\framework\\src\\Illuminate\\Container\\Container.php(877): ReflectionClass->__construct('App\\\\Http\\\\Contro...')
-#3 D:\\02 MAD-CRICKETERS\\00-CODEBASE\\CricTracker\\vendor\\laravel\\framework\\src\\Illuminate\\Container\\Container.php(758): Illuminate\\Container\\Container->build('App\\\\Http\\\\Contro...')
-#4 D:\\02 MAD-CRICKETERS\\00-CODEBASE\\CricTracker\\vendor\\laravel\\framework\\src\\Illuminate\\Foundation\\Application.php(853): Illuminate\\Container\\Container->resolve('App\\\\Http\\\\Contro...', Array, true)
-#5 D:\\02 MAD-CRICKETERS\\00-CODEBASE\\CricTracker\\vendor\\laravel\\framework\\src\\Illuminate\\Container\\Container.php(694): Illuminate\\Foundation\\Application->resolve('App\\\\Http\\\\Contro...', Array)
-#6 D:\\02 MAD-CRICKETERS\\00-CODEBASE\\CricTracker\\vendor\\laravel\\framework\\src\\Illuminate\\Foundation\\Application.php(838): Illuminate\\Container\\Container->make('App\\\\Http\\\\Contro...', Array)
-#7 D:\\02 MAD-CRICKETERS\\00-CODEBASE\\CricTracker\\vendor\\laravel\\framework\\src\\Illuminate\\Routing\\Route.php(276): Illuminate\\Foundation\\Application->make('App\\\\Http\\\\Contro...')
-#8 D:\\02 MAD-CRICKETERS\\00-CODEBASE\\CricTracker\\vendor\\laravel\\framework\\src\\Illuminate\\Routing\\Route.php(1080): Illuminate\\Routing\\Route->getController()
-#9 D:\\02 MAD-CRICKETERS\\00-CODEBASE\\CricTracker\\vendor\\laravel\\framework\\src\\Illuminate\\Routing\\Route.php(1023): Illuminate\\Routing\\Route->controllerMiddleware()
-#10 D:\\02 MAD-CRICKETERS\\00-CODEBASE\\CricTracker\\vendor\\laravel\\framework\\src\\Illuminate\\Routing\\Router.php(734): Illuminate\\Routing\\Route->gatherMiddleware()
-#11 D:\\02 MAD-CRICKETERS\\00-CODEBASE\\CricTracker\\vendor\\laravel\\framework\\src\\Illuminate\\Routing\\Router.php(714): Illuminate\\Routing\\Router->gatherRouteMiddleware(Object(Illuminate\\Routing\\Route))
-#12 D:\\02 MAD-CRICKETERS\\00-CODEBASE\\CricTracker\\vendor\\laravel\\framework\\src\\Illuminate\\Routing\\Router.php(698): Illuminate\\Routing\\Router->runRouteWithinStack(Object(Illuminate\\Routing\\Route), Object(Illuminate\\Http\\Request))
-#13 D:\\02 MAD-CRICKETERS\\00-CODEBASE\\CricTracker\\vendor\\laravel\\framework\\src\\Illuminate\\Routing\\Router.php(662): Illuminate\\Routing\\Router->runRoute(Object(Illuminate\\Http\\Request), Object(Illuminate\\Routing\\Route))
-#14 D:\\02 MAD-CRICKETERS\\00-CODEBASE\\CricTracker\\vendor\\laravel\\framework\\src\\Illuminate\\Routing\\Router.php(651): Illuminate\\Routing\\Router->dispatchToRoute(Object(Illuminate\\Http\\Request))
-#15 D:\\02 MAD-CRICKETERS\\00-CODEBASE\\CricTracker\\vendor\\laravel\\framework\\src\\Illuminate\\Foundation\\Http\\Kernel.php(167): Illuminate\\Routing\\Router->dispatch(Object(Illuminate\\Http\\Request))
-#16 D:\\02 MAD-CRICKETERS\\00-CODEBASE\\CricTracker\\vendor\\laravel\\framework\\src\\Illuminate\\Pipeline\\Pipeline.php(128): Illuminate\\Foundation\\Http\\Kernel->Illuminate\\Foundation\\Http\\{closure}(Object(Illuminate\\Http\\Request))
-#17 D:\\02 MAD-CRICKETERS\\00-CODEBASE\\CricTracker\\vendor\\laravel\\framework\\src\\Illuminate\\Foundation\\Http\\Middleware\\TransformsRequest.php(21): Illuminate\\Pipeline\\Pipeline->Illuminate\\Pipeline\\{closure}(Object(Illuminate\\Http\\Request))
-#18 D:\\02 MAD-CRICKETERS\\00-CODEBASE\\CricTracker\\vendor\\laravel\\framework\\src\\Illuminate\\Foundation\\Http\\Middleware\\ConvertEmptyStringsToNull.php(31): Illuminate\\Foundation\\Http\\Middleware\\TransformsRequest->handle(Object(Illuminate\\Http\\Request), Object(Closure))
-#19 D:\\02 MAD-CRICKETERS\\00-CODEBASE\\CricTracker\\vendor\\laravel\\framework\\src\\Illuminate\\Pipeline\\Pipeline.php(167): Illuminate\\Foundation\\Http\\Middleware\\ConvertEmptyStringsToNull->handle(Object(Illuminate\\Http\\Request), Object(Closure))
-#20 D:\\02 MAD-CRICKETERS\\00-CODEBASE\\CricTracker\\vendor\\laravel\\framework\\src\\Illuminate\\Foundation\\Http\\Middleware\\TransformsRequest.php(21): Illuminate\\Pipeline\\Pipeline->Illuminate\\Pipeline\\{closure}(Object(Illuminate\\Http\\Request))
-#21 D:\\02 MAD-CRICKETERS\\00-CODEBASE\\CricTracker\\vendor\\laravel\\framework\\src\\Illuminate\\Foundation\\Http\\Middleware\\TrimStrings.php(40): Illuminate\\Foundation\\Http\\Middleware\\TransformsRequest->handle(Object(Illuminate\\Http\\Request), Object(Closure))
-#22 D:\\02 MAD-CRICKETERS\\00-CODEBASE\\CricTracker\\vendor\\laravel\\framework\\src\\Illuminate\\Pipeline\\Pipeline.php(167): Illuminate\\Foundation\\Http\\Middleware\\TrimStrings->handle(Object(Illuminate\\Http\\Request), Object(Closure))
-#23 D:\\02 MAD-CRICKETERS\\00-CODEBASE\\CricTracker\\vendor\\laravel\\framework\\src\\Illuminate\\Foundation\\Http\\Middleware\\ValidatePostSize.php(27): Illuminate\\Pipeline\\Pipeline->Illuminate\\Pipeline\\{closure}(Object(Illuminate\\Http\\Request))
-#24 D:\\02 MAD-CRICKETERS\\00-CODEBASE\\CricTracker\\vendor\\laravel\\framework\\src\\Illuminate\\Pipeline\\Pipeline.php(167): Illuminate\\Foundation\\Http\\Middleware\\ValidatePostSize->handle(Object(Illuminate\\Http\\Request), Object(Closure))
-#25 D:\\02 MAD-CRICKETERS\\00-CODEBASE\\CricTracker\\vendor\\laravel\\framework\\src\\Illuminate\\Foundation\\Http\\Middleware\\PreventRequestsDuringMaintenance.php(86): Illuminate\\Pipeline\\Pipeline->Illuminate\\Pipeline\\{closure}(Object(Illuminate\\Http\\Request))
-#26 D:\\02 MAD-CRICKETERS\\00-CODEBASE\\CricTracker\\vendor\\laravel\\framework\\src\\Illuminate\\Pipeline\\Pipeline.php(167): Illuminate\\Foundation\\Http\\Middleware\\PreventRequestsDuringMaintenance->handle(Object(Illuminate\\Http\\Request), Object(Closure))
-#27 D:\\02 MAD-CRICKETERS\\00-CODEBASE\\CricTracker\\vendor\\fruitcake\\laravel-cors\\src\\HandleCors.php(38): Illuminate\\Pipeline\\Pipeline->Illuminate\\Pipeline\\{closure}(Object(Illuminate\\Http\\Request))
-#28 D:\\02 MAD-CRICKETERS\\00-CODEBASE\\CricTracker\\vendor\\laravel\\framework\\src\\Illuminate\\Pipeline\\Pipeline.php(167): Fruitcake\\Cors\\HandleCors->handle(Object(Illuminate\\Http\\Request), Object(Closure))
-#29 D:\\02 MAD-CRICKETERS\\00-CODEBASE\\CricTracker\\vendor\\laravel\\framework\\src\\Illuminate\\Http\\Middleware\\TrustProxies.php(39): Illuminate\\Pipeline\\Pipeline->Illuminate\\Pipeline\\{closure}(Object(Illuminate\\Http\\Request))
-#30 D:\\02 MAD-CRICKETERS\\00-CODEBASE\\CricTracker\\vendor\\laravel\\framework\\src\\Illuminate\\Pipeline\\Pipeline.php(167): Illuminate\\Http\\Middleware\\TrustProxies->handle(Object(Illuminate\\Http\\Request), Object(Closure))
-#31 D:\\02 MAD-CRICKETERS\\00-CODEBASE\\CricTracker\\vendor\\laravel\\framework\\src\\Illuminate\\Pipeline\\Pipeline.php(103): Illuminate\\Pipeline\\Pipeline->Illuminate\\Pipeline\\{closure}(Object(Illuminate\\Http\\Request))
-#32 D:\\02 MAD-CRICKETERS\\00-CODEBASE\\CricTracker\\vendor\\laravel\\framework\\src\\Illuminate\\Foundation\\Http\\Kernel.php(142): Illuminate\\Pipeline\\Pipeline->then(Object(Closure))
-#33 D:\\02 MAD-CRICKETERS\\00-CODEBASE\\CricTracker\\vendor\\laravel\\framework\\src\\Illuminate\\Foundation\\Http\\Kernel.php(111): Illuminate\\Foundation\\Http\\Kernel->sendRequestThroughRouter(Object(Illuminate\\Http\\Request))
-#34 D:\\02 MAD-CRICKETERS\\00-CODEBASE\\CricTracker\\public\\index.php(51): Illuminate\\Foundation\\Http\\Kernel->handle(Object(Illuminate\\Http\\Request))
-#35 D:\\02 MAD-CRICKETERS\\00-CODEBASE\\CricTracker\\server.php(21): require_once('D:\\\\02 MAD-CRICK...')
-#36 {main}
-"} 
-[2026-04-06 12:23:14] local.ERROR: syntax error, unexpected token "catch", expecting "function" or "const" {"exception":"[object] (ParseError(code: 0): syntax error, unexpected token \"catch\", expecting \"function\" or \"const\" at D:\\02 MAD-CRICKETERS\\00-CODEBASE\\CricTracker\\app\\Http\\Controllers\\Admin\\CricketMatchController.php:2987)
-[stacktrace]
-#0 D:\\02 MAD-CRICKETERS\\00-CODEBASE\\CricTracker\\vendor\\composer\\ClassLoader.php(427): Composer\\Autoload\\{closure}('D:\\\\02 MAD-CRICK...')
-#1 [internal function]: Composer\\Autoload\\ClassLoader->loadClass('App\\\\Http\\\\Contro...')
-#2 D:\\02 MAD-CRICKETERS\\00-CODEBASE\\CricTracker\\vendor\\laravel\\framework\\src\\Illuminate\\Container\\Container.php(877): ReflectionClass->__construct('App\\\\Http\\\\Contro...')
-#3 D:\\02 MAD-CRICKETERS\\00-CODEBASE\\CricTracker\\vendor\\laravel\\framework\\src\\Illuminate\\Container\\Container.php(758): Illuminate\\Container\\Container->build('App\\\\Http\\\\Contro...')
-#4 D:\\02 MAD-CRICKETERS\\00-CODEBASE\\CricTracker\\vendor\\laravel\\framework\\src\\Illuminate\\Foundation\\Application.php(853): Illuminate\\Container\\Container->resolve('App\\\\Http\\\\Contro...', Array, true)
-#5 D:\\02 MAD-CRICKETERS\\00-CODEBASE\\CricTracker\\vendor\\laravel\\framework\\src\\Illuminate\\Container\\Container.php(694): Illuminate\\Foundation\\Application->resolve('App\\\\Http\\\\Contro...', Array)
-#6 D:\\02 MAD-CRICKETERS\\00-CODEBASE\\CricTracker\\vendor\\laravel\\framework\\src\\Illuminate\\Foundation\\Application.php(838): Illuminate\\Container\\Container->make('App\\\\Http\\\\Contro...', Array)
-#7 D:\\02 MAD-CRICKETERS\\00-CODEBASE\\CricTracker\\vendor\\laravel\\framework\\src\\Illuminate\\Routing\\Route.php(276): Illuminate\\Foundation\\Application->make('App\\\\Http\\\\Contro...')
-#8 D:\\02 MAD-CRICKETERS\\00-CODEBASE\\CricTracker\\vendor\\laravel\\framework\\src\\Illuminate\\Routing\\Route.php(1080): Illuminate\\Routing\\Route->getController()
-#9 D:\\02 MAD-CRICKETERS\\00-CODEBASE\\CricTracker\\vendor\\laravel\\framework\\src\\Illuminate\\Routing\\Route.php(1023): Illuminate\\Routing\\Route->controllerMiddleware()
-#10 D:\\02 MAD-CRICKETERS\\00-CODEBASE\\CricTracker\\vendor\\laravel\\framework\\src\\Illuminate\\Routing\\Router.php(734): Illuminate\\Routing\\Route->gatherMiddleware()
-#11 D:\\02 MAD-CRICKETERS\\00-CODEBASE\\CricTracker\\vendor\\laravel\\framework\\src\\Illuminate\\Routing\\Router.php(714): Illuminate\\Routing\\Router->gatherRouteMiddleware(Object(Illuminate\\Routing\\Route))
-#12 D:\\02 MAD-CRICKETERS\\00-CODEBASE\\CricTracker\\vendor\\laravel\\framework\\src\\Illuminate\\Routing\\Router.php(698): Illuminate\\Routing\\Router->runRouteWithinStack(Object(Illuminate\\Routing\\Route), Object(Illuminate\\Http\\Request))
-#13 D:\\02 MAD-CRICKETERS\\00-CODEBASE\\CricTracker\\vendor\\laravel\\framework\\src\\Illuminate\\Routing\\Router.php(662): Illuminate\\Routing\\Router->runRoute(Object(Illuminate\\Http\\Request), Object(Illuminate\\Routing\\Route))
-#14 D:\\02 MAD-CRICKETERS\\00-CODEBASE\\CricTracker\\vendor\\laravel\\framework\\src\\Illuminate\\Routing\\Router.php(651): Illuminate\\Routing\\Router->dispatchToRoute(Object(Illuminate\\Http\\Request))
-#15 D:\\02 MAD-CRICKETERS\\00-CODEBASE\\CricTracker\\vendor\\laravel\\framework\\src\\Illuminate\\Foundation\\Http\\Kernel.php(167): Illuminate\\Routing\\Router->dispatch(Object(Illuminate\\Http\\Request))
-#16 D:\\02 MAD-CRICKETERS\\00-CODEBASE\\CricTracker\\vendor\\laravel\\framework\\src\\Illuminate\\Pipeline\\Pipeline.php(128): Illuminate\\Foundation\\Http\\Kernel->Illuminate\\Foundation\\Http\\{closure}(Object(Illuminate\\Http\\Request))
-#17 D:\\02 MAD-CRICKETERS\\00-CODEBASE\\CricTracker\\vendor\\laravel\\framework\\src\\Illuminate\\Foundation\\Http\\Middleware\\TransformsRequest.php(21): Illuminate\\Pipeline\\Pipeline->Illuminate\\Pipeline\\{closure}(Object(Illuminate\\Http\\Request))
-#18 D:\\02 MAD-CRICKETERS\\00-CODEBASE\\CricTracker\\vendor\\laravel\\framework\\src\\Illuminate\\Foundation\\Http\\Middleware\\ConvertEmptyStringsToNull.php(31): Illuminate\\Foundation\\Http\\Middleware\\TransformsRequest->handle(Object(Illuminate\\Http\\Request), Object(Closure))
-#19 D:\\02 MAD-CRICKETERS\\00-CODEBASE\\CricTracker\\vendor\\laravel\\framework\\src\\Illuminate\\Pipeline\\Pipeline.php(167): Illuminate\\Foundation\\Http\\Middleware\\ConvertEmptyStringsToNull->handle(Object(Illuminate\\Http\\Request), Object(Closure))
-#20 D:\\02 MAD-CRICKETERS\\00-CODEBASE\\CricTracker\\vendor\\laravel\\framework\\src\\Illuminate\\Foundation\\Http\\Middleware\\TransformsRequest.php(21): Illuminate\\Pipeline\\Pipeline->Illuminate\\Pipeline\\{closure}(Object(Illuminate\\Http\\Request))
-#21 D:\\02 MAD-CRICKETERS\\00-CODEBASE\\CricTracker\\vendor\\laravel\\framework\\src\\Illuminate\\Foundation\\Http\\Middleware\\TrimStrings.php(40): Illuminate\\Foundation\\Http\\Middleware\\TransformsRequest->handle(Object(Illuminate\\Http\\Request), Object(Closure))
-#22 D:\\02 MAD-CRICKETERS\\00-CODEBASE\\CricTracker\\vendor\\laravel\\framework\\src\\Illuminate\\Pipeline\\Pipeline.php(167): Illuminate\\Foundation\\Http\\Middleware\\TrimStrings->handle(Object(Illuminate\\Http\\Request), Object(Closure))
-#23 D:\\02 MAD-CRICKETERS\\00-CODEBASE\\CricTracker\\vendor\\laravel\\framework\\src\\Illuminate\\Foundation\\Http\\Middleware\\ValidatePostSize.php(27): Illuminate\\Pipeline\\Pipeline->Illuminate\\Pipeline\\{closure}(Object(Illuminate\\Http\\Request))
-#24 D:\\02 MAD-CRICKETERS\\00-CODEBASE\\CricTracker\\vendor\\laravel\\framework\\src\\Illuminate\\Pipeline\\Pipeline.php(167): Illuminate\\Foundation\\Http\\Middleware\\ValidatePostSize->handle(Object(Illuminate\\Http\\Request), Object(Closure))
-#25 D:\\02 MAD-CRICKETERS\\00-CODEBASE\\CricTracker\\vendor\\laravel\\framework\\src\\Illuminate\\Foundation\\Http\\Middleware\\PreventRequestsDuringMaintenance.php(86): Illuminate\\Pipeline\\Pipeline->Illuminate\\Pipeline\\{closure}(Object(Illuminate\\Http\\Request))
-#26 D:\\02 MAD-CRICKETERS\\00-CODEBASE\\CricTracker\\vendor\\laravel\\framework\\src\\Illuminate\\Pipeline\\Pipeline.php(167): Illuminate\\Foundation\\Http\\Middleware\\PreventRequestsDuringMaintenance->handle(Object(Illuminate\\Http\\Request), Object(Closure))
-#27 D:\\02 MAD-CRICKETERS\\00-CODEBASE\\CricTracker\\vendor\\fruitcake\\laravel-cors\\src\\HandleCors.php(38): Illuminate\\Pipeline\\Pipeline->Illuminate\\Pipeline\\{closure}(Object(Illuminate\\Http\\Request))
-#28 D:\\02 MAD-CRICKETERS\\00-CODEBASE\\CricTracker\\vendor\\laravel\\framework\\src\\Illuminate\\Pipeline\\Pipeline.php(167): Fruitcake\\Cors\\HandleCors->handle(Object(Illuminate\\Http\\Request), Object(Closure))
-#29 D:\\02 MAD-CRICKETERS\\00-CODEBASE\\CricTracker\\vendor\\laravel\\framework\\src\\Illuminate\\Http\\Middleware\\TrustProxies.php(39): Illuminate\\Pipeline\\Pipeline->Illuminate\\Pipeline\\{closure}(Object(Illuminate\\Http\\Request))
-#30 D:\\02 MAD-CRICKETERS\\00-CODEBASE\\CricTracker\\vendor\\laravel\\framework\\src\\Illuminate\\Pipeline\\Pipeline.php(167): Illuminate\\Http\\Middleware\\TrustProxies->handle(Object(Illuminate\\Http\\Request), Object(Closure))
-#31 D:\\02 MAD-CRICKETERS\\00-CODEBASE\\CricTracker\\vendor\\laravel\\framework\\src\\Illuminate\\Pipeline\\Pipeline.php(103): Illuminate\\Pipeline\\Pipeline->Illuminate\\Pipeline\\{closure}(Object(Illuminate\\Http\\Request))
-#32 D:\\02 MAD-CRICKETERS\\00-CODEBASE\\CricTracker\\vendor\\laravel\\framework\\src\\Illuminate\\Foundation\\Http\\Kernel.php(142): Illuminate\\Pipeline\\Pipeline->then(Object(Closure))
-#33 D:\\02 MAD-CRICKETERS\\00-CODEBASE\\CricTracker\\vendor\\laravel\\framework\\src\\Illuminate\\Foundation\\Http\\Kernel.php(111): Illuminate\\Foundation\\Http\\Kernel->sendRequestThroughRouter(Object(Illuminate\\Http\\Request))
-#34 D:\\02 MAD-CRICKETERS\\00-CODEBASE\\CricTracker\\public\\index.php(51): Illuminate\\Foundation\\Http\\Kernel->handle(Object(Illuminate\\Http\\Request))
-#35 D:\\02 MAD-CRICKETERS\\00-CODEBASE\\CricTracker\\server.php(21): require_once('D:\\\\02 MAD-CRICK...')
-#36 {main}
-"} 
-[2026-04-06 12:24:08] local.INFO: Match ID: 1  
-[2026-04-06 12:29:44] local.INFO: Match ID: 1  
+[2026-04-06 18:42:29] local.INFO: Match ID: 1  
+[2026-04-06 19:02:48] local.INFO: Match ID: 1  
+[2026-04-06 19:03:08] local.INFO: Match ID: 1  
+[2026-04-06 19:03:26] local.INFO: Match ID: 1  
+[2026-04-06 19:04:47] local.INFO: Match ID: 1  
+[2026-04-06 19:05:33] local.INFO: Match ID: 1  
+[2026-04-06 19:05:33] local.INFO: Match ID: 1  
+[2026-04-06 19:05:34] local.INFO: Match ID: 1  
+[2026-04-06 19:09:26] local.INFO: array (
+  'team_id' => '1',
+  'player_ids' => 
+  array (
+    0 => '1',
+    1 => '2',
+    2 => '3',
+    3 => '4',
+  ),
+)  
+[2026-04-06 19:09:38] local.INFO: array (
+  'team_id' => '2',
+  'player_ids' => 
+  array (
+    0 => '8',
+    1 => '9',
+    2 => '10',
+    3 => '11',
+  ),
+)  
+[2026-04-06 19:19:30] local.INFO: Match ID: 1  
+[2026-04-06 19:21:26] local.INFO: Match ID: 1  
+[2026-04-06 19:22:11] local.INFO: Current Over Data:  {"success":true,"current_over":1,"balls":[{"ball":"0","class":"ball dot-ball","type":"normal","title":""}],"legalBalls":1} 
+[2026-04-06 19:23:20] local.INFO: Before switch - Striker: 4 (on-strike), Non-striker: 1 (batting)  
+[2026-04-06 19:23:20] local.INFO: After switch - Striker: 1, Non-striker: 4  
+[2026-04-06 19:23:20] local.INFO: Current Over Data:  {"success":true,"current_over":1,"balls":[{"ball":"0","class":"ball dot-ball","type":"normal","title":""},{"ball":"1","class":"ball run-ball","type":"normal","title":""}],"legalBalls":2} 
+[2026-04-06 19:23:30] local.INFO: Current Over Data:  {"success":true,"current_over":1,"balls":[{"ball":"0","class":"ball dot-ball","type":"normal","title":""},{"ball":"1","class":"ball run-ball","type":"normal","title":""},{"ball":"2","class":"ball run-ball","type":"normal","title":""}],"legalBalls":3} 
+[2026-04-06 19:23:34] local.INFO: Current Over Data:  {"success":true,"current_over":1,"balls":[{"ball":"0","class":"ball dot-ball","type":"normal","title":""},{"ball":"1","class":"ball run-ball","type":"normal","title":""},{"ball":"2","class":"ball run-ball","type":"normal","title":""},{"ball":"4","class":"ball four-ball","type":"normal","title":""}],"legalBalls":4} 
+[2026-04-06 19:24:22] local.INFO: Current Over Data:  {"success":true,"current_over":1,"balls":[{"ball":"0","class":"ball dot-ball","type":"normal","title":""},{"ball":"1","class":"ball run-ball","type":"normal","title":""},{"ball":"2","class":"ball run-ball","type":"normal","title":""},{"ball":"4","class":"ball four-ball","type":"normal","title":""},{"ball":"0","class":"ball dot-ball","type":"normal","title":""}],"legalBalls":5} 
+[2026-04-06 19:24:27] local.INFO: Before switch - Striker: 1 (on-strike), Non-striker: 4 (batting)  
+[2026-04-06 19:24:27] local.INFO: After switch - Striker: 4, Non-striker: 1  
+[2026-04-06 19:24:27] local.INFO: Current Over Data:  {"success":true,"current_over":1,"balls":[{"ball":"0","class":"ball dot-ball","type":"normal","title":""},{"ball":"1","class":"ball run-ball","type":"normal","title":""},{"ball":"2","class":"ball run-ball","type":"normal","title":""},{"ball":"4","class":"ball four-ball","type":"normal","title":""},{"ball":"0","class":"ball dot-ball","type":"normal","title":""},{"ball":"0","class":"ball dot-ball","type":"normal","title":""}],"legalBalls":6} 
+[2026-04-06 19:25:18] local.INFO: Match ID: 1  
+[2026-04-06 19:29:04] local.INFO: Current Over Data:  {"success":true,"current_over":2,"balls":[{"ball":"2","class":"ball run-ball","type":"normal","title":""}],"legalBalls":1} 
+[2026-04-06 19:29:09] local.INFO: Current Over Data:  {"success":true,"current_over":2,"balls":[{"ball":"2","class":"ball run-ball","type":"normal","title":""},{"ball":"6","class":"ball six-ball","type":"normal","title":""}],"legalBalls":2} 
+[2026-04-06 19:29:16] local.INFO: Current Over Data:  {"success":true,"current_over":2,"balls":[{"ball":"2","class":"ball run-ball","type":"normal","title":""},{"ball":"6","class":"ball six-ball","type":"normal","title":""},{"ball":"1","class":"ball extra-ball","type":"no-ball","title":"NB"}],"legalBalls":2} 
+[2026-04-06 19:29:23] local.INFO: Before switch - Striker: 4 (on-strike), Non-striker: 1 (batting)  
+[2026-04-06 19:29:23] local.INFO: After switch - Striker: 1, Non-striker: 4  
+[2026-04-06 19:29:23] local.INFO: Current Over Data:  {"success":true,"current_over":2,"balls":[{"ball":"2","class":"ball run-ball","type":"normal","title":""},{"ball":"6","class":"ball six-ball","type":"normal","title":""},{"ball":"1","class":"ball extra-ball","type":"no-ball","title":"NB"},{"ball":"WD2","class":"ball run-ball","type":"wide","title":"WD"}],"legalBalls":2} 
+[2026-04-06 19:29:30] local.INFO: Current Over Data:  {"success":true,"current_over":2,"balls":[{"ball":"2","class":"ball run-ball","type":"normal","title":""},{"ball":"6","class":"ball six-ball","type":"normal","title":""},{"ball":"1","class":"ball extra-ball","type":"no-ball","title":"NB"},{"ball":"WD2","class":"ball run-ball","type":"wide","title":"WD"},{"ball":"W","class":"ball dot-ball","type":"normal","title":""}],"legalBalls":3} 
+[2026-04-06 19:30:22] local.INFO: Current Over Data:  {"success":true,"current_over":2,"balls":[{"ball":"2","class":"ball run-ball","type":"normal","title":""},{"ball":"6","class":"ball six-ball","type":"normal","title":""},{"ball":"1","class":"ball extra-ball","type":"no-ball","title":"NB"},{"ball":"WD2","class":"ball run-ball","type":"wide","title":"WD"},{"ball":"W","class":"ball dot-ball","type":"normal","title":""},{"ball":"0","class":"ball dot-ball","type":"normal","title":""}],"legalBalls":4} 
+[2026-04-06 19:30:37] local.INFO: Match ID: 1  
+[2026-04-06 19:50:52] local.INFO: Before switch - Striker: 2 (on-strike), Non-striker: 4 (batting)  
+[2026-04-06 19:50:52] local.INFO: After switch - Striker: 4, Non-striker: 2  
+[2026-04-06 19:50:53] local.INFO: Current Over Data:  {"success":true,"current_over":2,"balls":[{"ball":"2","class":"ball run-ball","type":"normal","title":""},{"ball":"6","class":"ball six-ball","type":"normal","title":""},{"ball":"1","class":"ball extra-ball","type":"no-ball","title":"NB"},{"ball":"WD2","class":"ball run-ball","type":"wide","title":"WD"},{"ball":"W","class":"ball dot-ball","type":"normal","title":""},{"ball":"0","class":"ball dot-ball","type":"normal","title":""},{"ball":"1","class":"ball run-ball","type":"normal","title":""}],"legalBalls":5} 
+[2026-04-06 19:51:22] local.INFO: Match ID: 1  
