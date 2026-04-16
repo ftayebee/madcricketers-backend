@@ -12,34 +12,37 @@ class TeamSeeder extends Seeder
     public function run()
     {
         $teamNames = [
-            'Mumbai Indians',
-            'Chennai Super Kings', 
-            'Royal Challengers Bangalore',
-            'Kolkata Knight Riders',
-            'Delhi Capitals',
             'Rajasthan Royals',
-            'Sunrisers Hyderabad',
             'Punjab Kings',
+            'Royal Challengers Bangalore',
+            'Delhi Capitals',
+            'Gujrat Titans',
+            'Lucknow Super Giants',
+            'Kolkata Knight Riders',
+            'Sunrisers Hyderabad',
+            'Mumbai Indians',
+            'Chennai Super Kings',
         ];
 
-        // Get all 90 player IDs
+        // Get all player IDs
         $playerIds = Player::pluck('id')->toArray();
 
         shuffle($playerIds);
 
-        for ($i = 0; $i < 8; $i++) {
-            $teamName = $teamNames[$i];
+        foreach ($teamNames as $index => $teamName) {
             $slug = Str::slug($teamName);
 
             $team = Team::create([
                 'name' => $teamName,
                 'slug' => $slug,
-                'coach_name' => "Coach $i",
-                'manager_name' => "Manager $i",
+                'coach_name' => "Coach $index",
+                'manager_name' => "Manager $index",
                 'description' => "This is team $teamName",
             ]);
 
-            $assignedPlayers = array_slice($playerIds, $i * 5, 5);
+            // Take 5 unique players per team
+            $assignedPlayers = array_slice($playerIds, $index * 5, 5);
+
             $team->players()->attach($assignedPlayers);
         }
     }

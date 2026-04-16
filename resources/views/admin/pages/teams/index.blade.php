@@ -121,17 +121,23 @@
                 console.error("Select2 Init Error Modal 1: ", e);
             }
 
-            try {
-                window.$playerSelector2 = $('#player_selector2').select2({
-                    placeholder: 'Search and select players...',
-                    dropdownParent: $('#add-team'),
-                    width: '100%',
-                    templateResult: formatPlayer,
-                    templateSelection: formatPlayerSelection,
-                    escapeMarkup: function(markup) { return markup; }
-                });
-            } catch (e) {
-                console.error("Select2 Init Error Modal 2: ", e);
+            // The #player_selector2 control was replaced with a filter-based
+            // player grid inside _create-team-modal.blade.php. This block is
+            // intentionally left as a no-op for backwards compatibility with
+            // any template that still references $playerSelector2.
+            if ($('#player_selector2').length) {
+                try {
+                    window.$playerSelector2 = $('#player_selector2').select2({
+                        placeholder: 'Search and select players...',
+                        dropdownParent: $('#add-team'),
+                        width: '100%',
+                        templateResult: formatPlayer,
+                        templateSelection: formatPlayerSelection,
+                        escapeMarkup: function(markup) { return markup; }
+                    });
+                } catch (e) {
+                    console.error("Select2 Init Error Modal 2: ", e);
+                }
             }
         });
 

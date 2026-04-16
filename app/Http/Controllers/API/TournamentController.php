@@ -53,15 +53,17 @@ class TournamentController extends Controller
     {
         try {
             $tournament = Tournament::with([
-                'matches.teamA:id,name,logo',
-                'matches.teamB:id,name,logo',
-                'matches.winningTeam:id,name',
                 'matches' => function ($q) {
                     $q->orderBy('match_date', 'asc');
                 },
+                'matches.teamA:id,name,logo',
+                'matches.teamB:id,name,logo',
+                'matches.winningTeam:id,name',
+                'matches.scoreboard:id,match_id,team_id,innings,runs,wickets,overs',
                 'groups.teams:id,name',
                 'standings.team:id,name',
-                'playerStats.player.user:id,full_name',
+                'playerStats.player.user:id,full_name,image',
+                'playerStats.team:id,name',
                 'teams.players.user',
             ])->where('slug', $slug)->firstOrFail();
 
@@ -89,18 +91,35 @@ class TournamentController extends Controller
             }
 
             // Key Stats (top performers from playerStats relation)
-            $topRunScorer = $tournament->playerStats->sortByDesc('total_runs')->first();
-            Log::info($tournament->playerStats->sortByDesc('total_runs')->first());
-            $topWicketTaker = $tournament->playerStats->sortByDesc('wickets')->first();
-            $mostSixes = $tournament->playerStats->sortByDesc('sixes')->first();
-            $bestStrikeRate = $tournament->playerStats
-                ->filter(fn($s) => $s->balls_faced > 30)
-                ->sortByDesc('strike_rate')
-                ->first();
-            $sortedMatches = $tournament->matches->sortBy(function ($match) {
-                return Carbon::parse($match->match_date);
-            });
-            
+            $stats = $tournament->playerStats;
+
+            $topRunScorer    = $stats->sortByDesc('total_runs')->first();
+            $topWicketTaker  = $stats->sortByDesc('wickets')->first();
+            $mostSixes       = $stats->sortByDesc('sixes')->first();
+            $bestStrikeRate  = $stats->filter(fn($s) => ($s->balls_faced ?? 0) > 30)
+                                     ->sortByDesc('strike_rate')->first();
+
+            $buildStat = function ($statModel, string $label, string $valueStr): array {
+                return [
+                    'label' => $label,
+                    'player' => [
+                        'name'  => optional(optional($statModel->player)->user)->full_name ?? 'Unknown',
+                        'image' => optional(optional($statModel->player)->user)->image ?? null,
+                        'team'  => optional($statModel->team)->name ?? '',
+                    ],
+                    'value' => $valueStr,
+                ];
+            };
+
+            $keyStats = array_values(array_filter([
+                $topRunScorer   ? $buildStat($topRunScorer,   'Most Runs',          $topRunScorer->total_runs   . ' Runs') : null,
+                $topWicketTaker ? $buildStat($topWicketTaker, 'Most Wickets',       $topWicketTaker->wickets    . ' Wkts') : null,
+                $mostSixes      ? $buildStat($mostSixes,      'Most Sixes',         $mostSixes->sixes           . ' Sixes') : null,
+                $bestStrikeRate ? $buildStat($bestStrikeRate, 'Best Strike Rate',   number_format((float)$bestStrikeRate->strike_rate, 2)) : null,
+            ]));
+
+            $sortedMatches = $tournament->matches->sortBy(fn($m) => Carbon::parse($m->match_date));
+
             return response()->json([
                 'success' => true,
                 'message' => 'Tournament fetched successfully.',
@@ -115,65 +134,37 @@ class TournamentController extends Controller
                     'matches_count' => $tournament->matches->count(),
                     'stage' => implode(", ", array_filter(array_unique($tournament->matches->pluck('stage')->toArray()))),
                     'matches' => $sortedMatches->map(function ($match) {
+                        $sbA = $match->scoreboard->where('team_id', $match->teamA->id)->sortByDesc('innings')->first();
+                        $sbB = $match->scoreboard->where('team_id', $match->teamB->id)->sortByDesc('innings')->first();
+
                         return [
-                            'id' => $match->id,
-                            'title' => $match->title,
+                            'id'     => $match->id,
+                            'title'  => $match->title,
                             'team_a' => [
-                                'id' => $match->teamA->id,
-                                'name' => $match->teamA->name,
-                                'logo' => $match->teamA->logo,
-                                'score' => $match->scoreboard->where('team_id', $match->teamA->id)->first()->runs . " / " . $match->scoreboard->where('team_id', $match->teamA->id)->first()->wickets,
-                                'overs' => $match->scoreboard->where('team_id', $match->teamA->id)->first()->overs
+                                'id'    => $match->teamA->id,
+                                'name'  => $match->teamA->name,
+                                'logo'  => $match->teamA->logo,
+                                'score' => $sbA ? "{$sbA->runs}/{$sbA->wickets}" : null,
+                                'overs' => $sbA ? $sbA->overs : null,
                             ],
                             'team_b' => [
-                                'id' => $match->teamB->id,
-                                'name' => $match->teamB->name,
-                                'logo' => $match->teamB->logo,
-                                'score' => $match->scoreboard->where('team_id', $match->teamB->id)->first()->runs . " / " . $match->scoreboard->where('team_id', $match->teamB->id)->first()->wickets,
-                                'overs' => $match->scoreboard->where('team_id', $match->teamB->id)->first()->overs
+                                'id'    => $match->teamB->id,
+                                'name'  => $match->teamB->name,
+                                'logo'  => $match->teamB->logo,
+                                'score' => $sbB ? "{$sbB->runs}/{$sbB->wickets}" : null,
+                                'overs' => $sbB ? $sbB->overs : null,
                             ],
-                            'venue' => $match->venue,
-                            'match_date' => Carbon::parse($match->match_date)->format('d M, Y h:i A'),
-                            'status' => $match->status,
+                            'venue'          => $match->venue,
+                            'match_date'     => Carbon::parse($match->match_date)->format('d M, Y'),
+                            'match_time'     => Carbon::parse($match->match_date)->format('h:i A'),
+                            'status'         => $match->status,
                             'result_summary' => $match->result_summary,
-                            'stage' => $match->stage,
-                            'winning_team' => isset($match->winningTeam) ? $match->winningTeam->name : 'N/A',
+                            'stage'          => $match->stage,
+                            'winning_team'   => optional($match->winningTeam)->name,
                         ];
-                    }),
+                    })->values(),
                     'points_table' => $pointsTable,
-                    'key_stats' => [
-                        'most_runs' => $topRunScorer ? [
-                            'label' => 'Most Runs',
-                            'player' => $topRunScorer->player->name,
-                            'image' => $topRunScorer->player->image,
-                            'team' => $topRunScorer->team->name,
-                            'value' => $topRunScorer->total_runs,
-                        ] : null,
-
-                        'most_wickets' => $topWicketTaker ? [
-                            'label' => 'Most Wickets',
-                            'player' => $topWicketTaker->player->name,
-                            'image' => $topWicketTaker->player->image,
-                            'team' => $topWicketTaker->team->name,
-                            'value' => $topWicketTaker->wickets . " X",
-                        ] : null,
-
-                        'most_sixes' => $mostSixes ? [
-                            'label' => 'Most Sixes',
-                            'player' => $mostSixes->player->name,
-                            'image' => $mostSixes->player->image,
-                            'team' => $mostSixes->team->name,
-                            'value' => $mostSixes->sixes,
-                        ] : null,
-
-                        'best_strike_rate' => $bestStrikeRate ? [
-                            'label' => 'Best Strike Rate',
-                            'player' => $bestStrikeRate->player->name,
-                            'image' => $bestStrikeRate->player ->image,
-                            'team' => $bestStrikeRate->team->name,
-                            'value' => $bestStrikeRate->strike_rate,
-                        ] : null,
-                    ],
+                    'key_stats'    => $keyStats,
                     'teams' => $tournament->teams->map(function ($team) {
                         return [
                             'id' => $team->id,

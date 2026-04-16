@@ -32,19 +32,22 @@ class MatchScoreBoard extends Model
 
     public function battingPlayers()
     {
-        return MatchPlayer::where('match_id', $this->match_id)
+        return MatchPlayer::with('player.user')
+            ->where('match_id', $this->match_id)
             ->where('team_id', $this->team_id)
             ->whereIn('status', ['batting', 'on-strike', 'bowled', 'caught', 'bowling', 'run_out', 'lbw', 'retired-hurt', 'fielding', 'hit-wicket', 'closed', 'stumped', 'ready'])
             ->get()
-            ->map(function ($player) {
+            ->map(function ($mp) {
                 return [
-                    'id' => $player->player_id,
-                    'runs' => $player->runs_scored,
-                    'balls' => $player->balls_faced,
-                    'status' => $player->status,
-                    'strikeRate' => $player->balls_faced > 0 ? round(($player->runs_scored / $player->balls_faced) * 100, 2) : 0,
-                    'fours' => $player->fours,
-                    'sixes' => $player->sixes
+                    'id'          => $mp->player_id,
+                    'name'        => optional(optional($mp->player)->user)->full_name ?? '—',
+                    'image'       => $mp->player?->image,
+                    'runs'        => $mp->runs_scored,
+                    'balls'       => $mp->balls_faced,
+                    'status'      => $mp->status,
+                    'strike_rate' => $mp->balls_faced > 0 ? round(($mp->runs_scored / $mp->balls_faced) * 100, 2) : 0,
+                    'fours'       => $mp->fours,
+                    'sixes'       => $mp->sixes,
                 ];
             });
     }
@@ -57,12 +60,12 @@ class MatchScoreBoard extends Model
             ->get()
             ->map(function ($player) {
                 return [
-                    'id' => $player->player_id,
-                    'overs' => $player->overs,
-                    'maidens' => $player->maidens,
-                    'runs' => $player->runs,
-                    'wickets' => $player->wickets,
-                    'economy' => $player->overs > 0 ? round($player->runs / $player->overs, 2) : 0
+                    'id'      => $player->player_id,
+                    'overs'   => $player->overs_bowled,
+                    'maidens' => $player->maidens ?? 0,
+                    'runs'    => $player->runs_conceded,
+                    'wickets' => $player->wickets_taken,
+                    'economy' => $player->overs_bowled > 0 ? round($player->runs_conceded / $player->overs_bowled, 2) : 0,
                 ];
             });
     }

@@ -109,6 +109,25 @@
                                 data-bs-target="#create-fixture">
                                 <i class="ri-calendar-line me-1"></i> Create Fixture
                             </button>
+
+                            {{-- Make Schedule: only shown when all group matches are done and next stage not yet generated --}}
+                            @if ($stageStatus['can_generate_next_stage'] && Auth::user()->can('tournaments-generate-fixtures'))
+                                @if ($tournament->next_stage_selection)
+                                    <span class="badge bg-success w-100 py-2 mb-1" style="font-size:0.75rem; display:block;">
+                                        <i class="ri-checkbox-circle-line me-1"></i>
+                                        {{ strtoupper($tournament->next_stage_selection) }} confirmed
+                                    </span>
+                                @endif
+                                <button type="button"
+                                    class="btn btn-sm btn-success w-100"
+                                    data-bs-toggle="modal"
+                                    data-bs-target="#next-stage-modal"
+                                    data-tournament-id="{{ $tournament->id }}"
+                                    data-current-selection="{{ $tournament->next_stage_selection ?? '' }}">
+                                    <i class="ri-calendar-check-line me-1"></i>
+                                    {{ $tournament->next_stage_selection ? 'Change Selection' : 'Make Schedule' }}
+                                </button>
+                            @endif
                         </div>
                     </div>
                 </div>
@@ -395,7 +414,21 @@
                                 {{-- Group Stage --}}
                                 @if (isset($matchesByStage['group']))
                                     <div class="mb-4">
-                                        <h5 class="fw-bold mb-3 stage-title">Group Stage Matches</h5>
+                                        <div class="d-flex align-items-center justify-content-between mb-3">
+                                            <h5 class="fw-bold mb-0 stage-title flex-grow-1 me-2">Group Stage Matches</h5>
+                                            @if ($stageStatus['group_fixtures_exist'])
+                                                @if ($stageStatus['group_stage_complete'])
+                                                    <span class="badge bg-success text-nowrap">
+                                                        <i class="ri-checkbox-circle-line me-1"></i>
+                                                        All {{ $stageStatus['group_total_count'] }} completed
+                                                    </span>
+                                                @else
+                                                    <span class="badge bg-warning text-dark text-nowrap">
+                                                        {{ $stageStatus['group_complete_count'] }}&nbsp;/&nbsp;{{ $stageStatus['group_total_count'] }} completed
+                                                    </span>
+                                                @endif
+                                            @endif
+                                        </div>
                                         <div class="list-group">
                                             @foreach (collect($matchesByStage['group'])->sortBy('match_date') as $match)
                                                 @php
@@ -633,6 +666,7 @@
                                 <select name="match_stage" class="form-select form-control">
                                     <option value="group">Group</option>
                                     <option value="playoffs">Playoffs</option>
+                                    <option value="semi-final">Semi-Final</option>
                                     <option value="final">Final</option>
                                 </select>
                                 <input type="hidden" name="tournament_id" value="{{ $tournament->id }}">
@@ -648,6 +682,77 @@
             </div>
         </div>
     </div>
+    {{-- ─── Next Stage Selection Modal ─────────────────────────────────────── --}}
+    <div class="modal fade" id="next-stage-modal" tabindex="-1" aria-labelledby="next-stage-modal-title" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+
+                <div class="modal-header">
+                    <div>
+                        <h5 class="modal-title mb-0" id="next-stage-modal-title">
+                            <i class="ri-trophy-line me-2 text-warning"></i>Select Next Stage
+                        </h5>
+                        <p class="text-muted small mb-0 mt-1">Group stage is complete. Choose the next round format.</p>
+                    </div>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+
+                <div class="modal-body">
+
+                    {{-- Stage option cards --}}
+                    <div class="row g-3 mb-3" id="next-stage-options">
+
+                        <div class="col-6">
+                            <label class="next-stage-card w-100 h-100 d-block p-3 border rounded-3 cursor-pointer"
+                                   style="cursor:pointer;" for="stage-super8">
+                                <input type="radio" name="next_stage_type" id="stage-super8" value="super8"
+                                       class="form-check-input d-none next-stage-radio">
+                                <div class="text-center">
+                                    <div class="fs-2 mb-1">🏏</div>
+                                    <h6 class="fw-bold mb-1">Super 8</h6>
+                                    <p class="text-muted small mb-0">8 qualified teams<br>2 groups of 4</p>
+                                </div>
+                            </label>
+                        </div>
+
+                        <div class="col-6">
+                            <label class="next-stage-card w-100 h-100 d-block p-3 border rounded-3 cursor-pointer"
+                                   style="cursor:pointer;" for="stage-super4">
+                                <input type="radio" name="next_stage_type" id="stage-super4" value="super4"
+                                       class="form-check-input d-none next-stage-radio">
+                                <div class="text-center">
+                                    <div class="fs-2 mb-1">⚡</div>
+                                    <h6 class="fw-bold mb-1">Super 4</h6>
+                                    <p class="text-muted small mb-0">4 qualified teams<br>Round robin pool</p>
+                                </div>
+                            </label>
+                        </div>
+
+                    </div>
+
+                    {{-- Validation feedback --}}
+                    <div id="next-stage-feedback" class="d-none">
+                        <div id="next-stage-alert" class="alert mb-0 py-2 small"></div>
+                    </div>
+
+                </div>
+
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-light" data-bs-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn btn-success" id="btn-confirm-next-stage" disabled>
+                        <span id="btn-confirm-text">
+                            <i class="ri-check-line me-1"></i> Confirm Selection
+                        </span>
+                        <span id="btn-confirm-spinner" class="d-none">
+                            <span class="spinner-border spinner-border-sm me-1" role="status"></span> Validating...
+                        </span>
+                    </button>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
 @endsection
 
 @push('scripts')
@@ -688,6 +793,101 @@
                     }
                 });
             });
+
+            // ─── Next Stage Selection Modal ───────────────────────────────────────
+
+            // Pre-select the current saved selection when modal opens
+            $('#next-stage-modal').on('show.bs.modal', function (e) {
+                const currentSelection = $(e.relatedTarget).data('current-selection');
+
+                // Reset state
+                $('.next-stage-card').removeClass('border-success bg-success bg-opacity-10');
+                $('.next-stage-radio').prop('checked', false);
+                $('#next-stage-feedback').addClass('d-none');
+                $('#btn-confirm-next-stage').prop('disabled', true);
+
+                if (currentSelection) {
+                    const $radio = $('#stage-' + currentSelection);
+                    $radio.prop('checked', true);
+                    $radio.closest('.next-stage-card').addClass('border-success bg-success bg-opacity-10');
+                    $('#btn-confirm-next-stage').prop('disabled', false);
+                    showFeedback('info',
+                        '<i class="ri-information-line me-1"></i>' +
+                        currentSelection.toUpperCase() + ' is already confirmed. Re-confirm or choose another format.'
+                    );
+                }
+            });
+
+            // Highlight card on radio change, enable confirm button
+            $(document).on('change', '.next-stage-radio', function () {
+                $('.next-stage-card').removeClass('border-success bg-success bg-opacity-10');
+                $(this).closest('.next-stage-card').addClass('border-success bg-success bg-opacity-10');
+                $('#next-stage-feedback').addClass('d-none');
+                $('#btn-confirm-next-stage').prop('disabled', false);
+            });
+
+            // Confirm button — AJAX validate + save
+            $('#btn-confirm-next-stage').on('click', function () {
+                const nextStage = $('input[name="next_stage_type"]:checked').val();
+
+                if (!nextStage) {
+                    showFeedback('warning', '<i class="ri-alert-line me-1"></i>Please select a stage format first.');
+                    return;
+                }
+
+                const $btn = $(this);
+                $btn.prop('disabled', true);
+                $('#btn-confirm-text').addClass('d-none');
+                $('#btn-confirm-spinner').removeClass('d-none');
+
+                $.ajax({
+                    url: '{{ route('admin.tournaments.select-next-stage') }}',
+                    type: 'POST',
+                    data: {
+                        _token: '{{ csrf_token() }}',
+                        tournament_id: {{ $tournament->id }},
+                        next_stage: nextStage,
+                    },
+                    success: function (response) {
+                        resetConfirmBtn($btn);
+
+                        if (response.success) {
+                            showFeedback('success',
+                                '<i class="ri-checkbox-circle-line me-1"></i>' + response.message
+                            );
+                            // Reload after short delay so the page reflects the saved selection
+                            setTimeout(function () {
+                                window.location.reload();
+                            }, 1200);
+                        } else {
+                            showFeedback('danger',
+                                '<i class="ri-error-warning-line me-1"></i>' + response.message
+                            );
+                            $btn.prop('disabled', false);
+                        }
+                    },
+                    error: function (xhr) {
+                        resetConfirmBtn($btn);
+                        const msg = xhr.responseJSON?.message ?? 'An unexpected error occurred. Please try again.';
+                        showFeedback('danger', '<i class="ri-error-warning-line me-1"></i>' + msg);
+                        $btn.prop('disabled', false);
+                    }
+                });
+            });
+
+            function showFeedback(type, html) {
+                const $alert = $('#next-stage-alert');
+                $alert.removeClass('alert-success alert-danger alert-warning alert-info')
+                      .addClass('alert-' + type)
+                      .html(html);
+                $('#next-stage-feedback').removeClass('d-none');
+            }
+
+            function resetConfirmBtn($btn) {
+                $btn.prop('disabled', false);
+                $('#btn-confirm-text').removeClass('d-none');
+                $('#btn-confirm-spinner').addClass('d-none');
+            }
         });
     </script>
 @endpush

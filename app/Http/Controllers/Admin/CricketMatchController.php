@@ -880,6 +880,9 @@ class CricketMatchController extends Controller
             $teamId = $request->team_id;
             $type = $request->type;
             $players = collect();
+            Log::info("Match ID: " . $matchId);
+            Log::info("Team ID: " . $teamId);
+            Log::info("Type: " . $type);
 
             if (!in_array($type, ['batting', 'bowling'])) {
                 return response()->json([
@@ -928,13 +931,13 @@ class CricketMatchController extends Controller
                     $oversBowled = $matchPlayer ? $matchPlayer->overs_bowled : 0;
 
                     // Only include players who haven't exceeded max overs
-                    if ($oversBowled < $maxOversPerBowler) {
+                    if (empty($maxOversPerBowler) || $oversBowled < $maxOversPerBowler) {
                         // Attach overs_bowled so mapPlayer can use it
                         $player->overs_bowled = $oversBowled;
                         return $player;
                     }
                 })->filter()->values(); // Remove null values
-
+                Log::info("Players: " . json_encode($players));
                 $players = $players->map(fn($player) => $this->mapPlayer($player));
             }
 
@@ -1282,7 +1285,6 @@ class CricketMatchController extends Controller
                             'overs_bowled' => 0,
                             'runs_conceded' => 0,
                             'wickets_taken' => 0,
-                            'maidens' => 0,
                         ]
                     )
                 );
@@ -1717,7 +1719,9 @@ class CricketMatchController extends Controller
                 ->count();
 
             // Convert overs string like "4.3" to balls
-            list($overs, $balls) = explode('.', $scoreboard->overs);
+            $overParts = explode('.', (string)$scoreboard->overs);
+            $overs = (int)($overParts[0] ?? 0);
+            $balls = (int)($overParts[1] ?? 0);
             $ballsBowled = ($overs * 6) + $balls;
             $maxBalls = $match->max_overs * 6;
 
@@ -1946,28 +1950,31 @@ class CricketMatchController extends Controller
                 $extraInputRuns = (int) ($extras['runs'] ?? 0);
 
                 switch ($type) {
-                    case 'NB': // No Ball
+                    case 'NB': // No Ball — not a legal delivery, bowler concedes 1 penalty + runs off bat
                         $deliveryType = 'no-ball';
                         $legalBall = false;
                         $batsmanRuns = $extraInputRuns;
                         $extraRuns = 1;
                         break;
 
-                    case 'WD': // Wide
+                    case 'WD': // Wide — not a legal delivery, 1 penalty + any runs while running
                         $deliveryType = 'wide';
                         $legalBall = false;
                         $batsmanRuns = 0;
                         $extraRuns = 1 + $extraInputRuns;
                         break;
 
-                    case 'LB': // Leg Bye
+                    case 'LB': // Leg Bye — legal delivery, runs go to team as extras
                         $deliveryType = 'leg-bye';
+                        $legalBall = true;
                         $batsmanRuns = 0;
                         $extraRuns = $extraInputRuns;
                         break;
 
-                    case 'B': // Bye
+                    case 'B':  // Bye — legal delivery, runs go to team as extras
+                    case 'BY':
                         $deliveryType = 'bye';
+                        $legalBall = true;
                         $batsmanRuns = 0;
                         $extraRuns = $extraInputRuns;
                         break;
@@ -1975,20 +1982,55 @@ class CricketMatchController extends Controller
             }
 
             // ---------- Wicket detection ----------
-            $wicketType = 'none';
+            // The two DB columns that store wicket info use DIFFERENT enums:
+            //
+            //   match_deliveries.wicket_type → 'bowled','caught','lbw','run out',
+            //                                  'stumped','hit wicket','retired hurt','none'
+            //   match_players.status         → 'bowled','caught','lbw','run_out',
+            //                                  'stumped','hit-wicket','retired-hurt', ...
+            //
+            // We normalize whatever the frontend sends into a canonical key and
+            // then map it to both representations to avoid truncated-value errors.
+            $wicketDeliveryType = 'none';  // for match_deliveries
+            $wicketStatus = null;    // for match_players.status
             $wicketPlayerId = null;
             $caughtBy = $extras['caught_by'] ?? null;
             $stumpedBy = $extras['stumped_by'] ?? null;
 
-            if (!empty($request->wicket) && strtolower($request->wicket) !== 'none') {
-                $wicketType = strtolower($request->wicket);
-                $wicketPlayerId = $request->batsman_out ?? $strikerId;
-            } elseif (!empty($extras['run_out']) && $extras['run_out']) {
-                $wicketType = 'run_out';
-                $wicketPlayerId = $request->batsman_out ?? ($extras['batsman_out'] ?? null);
+            $rawWicket = trim((string) ($request->wicket ?? ''));
+
+            // run_out can arrive via either the top-level wicket field OR as
+            // an extras.run_out boolean (from NB extras).
+            if (!empty($extras['run_out']) && $extras['run_out']) {
+                $rawWicket = 'run_out';
             }
 
-            $isWicket = $wicketType !== 'none';
+            if ($rawWicket !== '' && strtolower($rawWicket) !== 'none') {
+                $canonical = strtolower(preg_replace('/[\s\-_]+/', '_', $rawWicket));
+                // canonical keys: bowled, caught, lbw, run_out, stumped,
+                // hit_wicket, retired_hurt
+                $wicketMap = [
+                    'bowled' => ['delivery' => 'bowled', 'status' => 'bowled'],
+                    'caught' => ['delivery' => 'caught', 'status' => 'caught'],
+                    'lbw' => ['delivery' => 'lbw', 'status' => 'lbw'],
+                    'run_out' => ['delivery' => 'run out', 'status' => 'run_out'],
+                    'stumped' => ['delivery' => 'stumped', 'status' => 'stumped'],
+                    'hit_wicket' => ['delivery' => 'hit wicket', 'status' => 'hit-wicket'],
+                    'retired_hurt' => ['delivery' => 'retired hurt', 'status' => 'retired-hurt'],
+                ];
+
+                if (isset($wicketMap[$canonical])) {
+                    $wicketDeliveryType = $wicketMap[$canonical]['delivery'];
+                    $wicketStatus = $wicketMap[$canonical]['status'];
+                    $wicketPlayerId = $request->batsman_out ?? ($extras['batsman_out'] ?? $strikerId);
+                } else {
+                    Log::warning('Unknown wicket type received', ['raw' => $rawWicket]);
+                }
+            }
+
+            $isWicket = $wicketDeliveryType !== 'none';
+            // Back-compat alias used by the rest of this method.
+            $wicketType = $wicketDeliveryType;
 
             // ---------- Determine next over/ball (for this innings) ----------
             $lastDelivery = MatchDelivery::where('match_id', $matchId)
@@ -2067,23 +2109,34 @@ class CricketMatchController extends Controller
 
             $striker->save();
 
-            $oversBowled = $bowlerInfo->overs_bowled ?? 0;
-            $overPart = floor($oversBowled);
-            $ballPart = round(($oversBowled - $overPart) * 10);
+            // Derive bowler overs from the authoritative source: legal balls
+            // already recorded in match_deliveries for this bowler + innings.
+            // The current delivery row was just inserted above, so it is
+            // included in the count automatically.
+            $bowlerLegalBalls = MatchDelivery::where('match_id', $matchId)
+                ->where('innings', $innings)
+                ->where('bowler_id', $bowlerId)
+                ->whereNotIn('delivery_type', ['no-ball', 'wide'])
+                ->count();
 
-            if (!in_array($deliveryType, ['no-ball', 'wide'])) {
-                $ballPart++;
-                if ($ballPart >= 6) {
-                    $overPart++;
-                    $ballPart = 0;
-                }
-            }
+            $bowlerRunsConceded = (int) MatchDelivery::where('match_id', $matchId)
+                ->where('innings', $innings)
+                ->where('bowler_id', $bowlerId)
+                ->sum(DB::raw('runs_batsman + runs_extras'));
 
-            $bowlerInfo->overs_bowled = $overPart + ($ballPart / 10);
-            $bowlerInfo->runs_conceded = ($bowlerInfo->runs_conceded ?? 0) + ($batsmanRuns + $extraRuns);
-            if ($isWicket && $wicketType != 'run_out') {
-                $bowlerInfo->wickets_taken = ($bowlerInfo->wickets_taken ?? 0) + 1;
-            }
+            // Exclude dismissals not credited to the bowler: run out and
+            // retired hurt. Note: match_deliveries.wicket_type uses the
+            // space-separated enum values ('run out', 'retired hurt').
+            $bowlerWickets = MatchDelivery::where('match_id', $matchId)
+                ->where('innings', $innings)
+                ->where('bowler_id', $bowlerId)
+                ->where('is_wicket', 1)
+                ->whereNotIn('wicket_type', ['run out', 'retired hurt'])
+                ->count();
+
+            $bowlerInfo->overs_bowled = intdiv($bowlerLegalBalls, 6) + (($bowlerLegalBalls % 6) / 10);
+            $bowlerInfo->runs_conceded = $bowlerRunsConceded;
+            $bowlerInfo->wickets_taken = $bowlerWickets;
             $bowlerInfo->save();
 
             // ---------- Update scoreboard totals ----------
@@ -2150,13 +2203,15 @@ class CricketMatchController extends Controller
                     'stumped_by' => $stumpedBy,
                 ]);
 
-                // update dismissed player status
-                if ($wicketPlayerId == $strikerId) {
-                    $striker->status = $wicketType;
-                    $striker->save();
-                } elseif ($wicketPlayerId == $nonStrikerId) {
-                    $nonStriker->status = $wicketType;
-                    $nonStriker->save();
+                // update dismissed player status (use the match_players enum form)
+                if ($wicketStatus) {
+                    if ($wicketPlayerId == $strikerId) {
+                        $striker->status = $wicketStatus;
+                        $striker->save();
+                    } elseif ($wicketPlayerId == $nonStrikerId) {
+                        $nonStriker->status = $wicketStatus;
+                        $nonStriker->save();
+                    }
                 }
 
                 if ($partnership) {
@@ -2166,14 +2221,30 @@ class CricketMatchController extends Controller
             }
 
             // ---------- Strike rotation ----------
+            // Rules per ICC:
+            //  - Odd runs run between the wickets rotate strike.
+            //  - End of over rotates strike regardless.
+            //  - For bye / leg-bye, batsmen still physically run, so odd
+            //    extraRuns must rotate strike even though batsmanRuns is 0.
+            //  - For wide, any additional runs beyond the 1-run penalty come
+            //    from batsmen running; odd extraInputRuns rotates strike.
+            //  - For no-ball, runs off the bat go to batsmanRuns, so odd
+            //    batsmanRuns rotates strike. Byes/leg-byes on a no-ball are
+            //    not modelled here (simplification).
+            $oddRotated = false;
             if ($legalBall) {
-                // End of over
-                if ($ball == 6) {
+                if (in_array($deliveryType, ['bye', 'leg-bye'], true)) {
+                    if ($extraRuns % 2 !== 0) {
+                        $this->doSwitchStrike($matchId);
+                        $oddRotated = true;
+                    }
+                } elseif ($batsmanRuns % 2 !== 0) {
                     $this->doSwitchStrike($matchId);
+                    $oddRotated = true;
                 }
 
-                // Odd runs: switch strike immediately via DB
-                if ($batsmanRuns % 2 !== 0) {
+                // End of over: rotate once more (odd rotations can cancel out).
+                if ($ball == 6) {
                     $this->doSwitchStrike($matchId);
                 }
             } elseif ($deliveryType === 'no-ball' || $deliveryType === 'wide') {
@@ -2451,7 +2522,14 @@ class CricketMatchController extends Controller
                         'overs' => $scoreboard->overs,
                         'wickets' => $scoreboard->wickets,
                         'status' => $scoreboard->status,
-                    ]
+                    ],
+                    'bowler' => [
+                        'id' => $bowlerInfo->player_id,
+                        'name' => $bowlerInfo->player?->user?->full_name ?? '---',
+                        'overs' => $bowlerInfo->overs_bowled ?? 0,
+                        'runs_conceded' => $bowlerInfo->runs_conceded ?? 0,
+                        'wickets' => $bowlerInfo->wickets_taken ?? 0,
+                    ],
                 ]
             ]);
         } catch (\Exception $e) {

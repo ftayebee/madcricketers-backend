@@ -91,7 +91,7 @@ $(document).ready(function () {
     // ------------------------
     // 🔹 Update UI Functions
     // ------------------------
-    if(document.querySelector('.match-scoreboard') && !tossCompleted){
+    if (document.querySelector('.match-scoreboard') && !tossCompleted) {
         document.querySelectorAll('.match-scoreboard').forEach(element => {
             element.style.display = 'none';
         });
@@ -112,7 +112,7 @@ $(document).ready(function () {
         $elements[`${type}Runs`].text(player.runs ?? 0);
         $elements[`${type}Balls`].text(player.balls ?? 0);
         $elements[`${type}StrikeRate`].text(
-            player.balls > 0 
+            player.balls > 0
                 ? ((Number(player.runs || 0) / Number(player.balls)) * 100).toFixed(2)
                 : '0.00'
         );
@@ -198,7 +198,7 @@ $(document).ready(function () {
                 },
                 success: function (res) {
                     if (res.success && Array.isArray(res.data)) {
-                        resolve(res.data); 
+                        resolve(res.data);
                     } else {
                         reject('Invalid players list response');
                     }
@@ -233,7 +233,7 @@ $(document).ready(function () {
             .then(data => {
                 const legalBalls = parseInt(data.legalBalls) || 0;
                 const overNum = parseInt(data.overNumber) || 0;
-                
+
                 // Check if this is the first over of the innings
                 if (overNum === 1 && legalBalls === 0 && !isFirstOverOfInnings) {
                     isFirstOverOfInnings = true;
@@ -241,7 +241,7 @@ $(document).ready(function () {
                     openBowlerModal();
                     return;
                 }
-                
+
                 // Check if over has ended (6 legal balls)
                 if (legalBalls >= 6 && !isSelectingBowler) {
                     isSelectingBowler = true;
@@ -249,7 +249,7 @@ $(document).ready(function () {
                     saveOverState();
                     openBowlerModal();
                 }
-                
+
                 // Update current over number
                 if (overNum !== currentOverNumber) {
                     currentOverNumber = overNum;
@@ -279,12 +279,12 @@ $(document).ready(function () {
         const savedIsSelectingBowler = localStorage.getItem('isSelectingBowler');
         const savedCurrentOver = parseInt(localStorage.getItem('currentOverNumber')) || 0;
         const savedIsFirstOver = localStorage.getItem('isFirstOverOfInnings');
-                
+
         // Set initial states
         isSelectingBowler = savedIsSelectingBowler === 'true';
         currentOverNumber = savedCurrentOver;
         isFirstOverOfInnings = savedIsFirstOver === 'true';
-        
+
         // Check if we need to show modal on page load
         if (isSelectingBowler) {
             // Only show modal if we're actually in an over selection state
@@ -293,7 +293,7 @@ $(document).ready(function () {
             // Show modal for first over of innings
             openBowlerModal();
         }
-        
+
         startCheckingOver();
     }
 
@@ -309,6 +309,7 @@ $(document).ready(function () {
             loadFullMatchState(matchId);
             const matchState = getMatchState();
             const bowlers = await getPlayersList(matchState.bowlingTeamId, 'bowling');
+            console.log(bowlers);
             populateBowlerModal(bowlers);
 
             $('#bowlerModal').modal('show');
@@ -339,10 +340,10 @@ $(document).ready(function () {
         }
         currentOverNumber = (parseFloat($('#currentOvers').text().split(' / ')[0]) || 1) + 1;
         // Add header showing which over this is for
-        const modalTitle = isFirstOverOfInnings 
-            ? "Select Bowler for First Over of Innings" 
+        const modalTitle = isFirstOverOfInnings
+            ? "Select Bowler for First Over of Innings"
             : `Select Bowler for Over ${currentOverNumber}`;
-        
+
         $('.modal-title').text(modalTitle);
 
         bowlingPlayers.forEach(player => {
@@ -405,7 +406,7 @@ $(document).ready(function () {
     // ------------------------
     // 🔹 Toss Selection
     // ------------------------
-    $('#btn-save-toss').on('click', function(){
+    $('#btn-save-toss').on('click', function () {
         let selectedTeam = $('input[name="toss-team"]:checked').val();
         let selectedDecision = $('input[name="toss-decision"]:checked').val();
         submitTossIfReady(selectedTeam, selectedDecision);
@@ -626,7 +627,7 @@ $(document).ready(function () {
         const state = getMatchState();
         const bowlerId = $('.dt-current-bowler-info').data('bowler-id');
         if (!bowlerId) return showToast('Select a bowler first', 'error');
-        if(!state.striker && !state.nonStriker){
+        if (!state.striker && !state.nonStriker) {
             showToast('Please Select Striker And Non-Striker Batsman', 'error');
             return;
         }
@@ -661,18 +662,18 @@ $(document).ready(function () {
             loadFullMatchState(matchId);
             loadCurrentOver();
 
-            if(data.isOverEnded && !data.isInningsEnded){
+            if (data.isOverEnded && !data.isInningsEnded) {
                 isSelectingBowler = true;
                 saveOverState();
                 openBowlerModal();
             }
-            
+
             const inningsEnded = (data.isInningsEnded == true || data.isInningsEnded === "true" || data.isInningsEnded == 1);
-            if(inningsEnded){
+            if (inningsEnded) {
                 loadYetToBatPlayers();
             }
 
-            if(payload.wicket != null){
+            if (payload.wicket != null) {
                 window.location.reload();
             }
         }).catch(err => {
@@ -749,7 +750,7 @@ $(document).ready(function () {
                             `;
 
                     winnerWrap.onclick = () => winnerWrap.style.display = 'none';
-                    
+
 
                     $('#team-a-name').text(data.match_result.scoreboards.teamA.team.name);
                     $('#team-a-runs').text(data.match_result.scoreboards.teamA.runs + ' / ' + data.match_result.scoreboards.teamA.wickets);
@@ -764,7 +765,7 @@ $(document).ready(function () {
                         element.style.display = 'block';
                     });
                     $('#match-result').addClass('d-none');
-                    
+
                     setMatchState(data.match_state);
                     $elements.battingTeamName.text(`${data.match_state.team.name}`);
 
@@ -837,7 +838,7 @@ $(document).ready(function () {
                     }
 
                     wrapper.appendChild(span);
-                    
+
                     if (ball.type && ball.type !== 'normal') {
                         const label = document.createElement('small');
                         label.classList.add('ball-type-label');
@@ -885,15 +886,15 @@ $(document).ready(function () {
         lbSection.classList.add('d-none');
         bySection.classList.add('d-none');
         modalTitle.textContent = "Extra";
-        
+
         // Reset radio buttons
         document.querySelectorAll('#extraForm input[type="radio"]').forEach(radio => {
             radio.checked = false;
         });
-        
+
         // Reset checkboxes
         if (nbRunOutCheckbox) nbRunOutCheckbox.checked = false;
-        
+
         // Reset player cards
         document.querySelectorAll('.player-card').forEach(card => {
             card.classList.remove('selected');
@@ -901,7 +902,7 @@ $(document).ready(function () {
         document.querySelectorAll('.player-check').forEach(check => {
             check.classList.add('d-none');
         });
-        
+
         // Reset player error
         const playerError = document.getElementById('playerError');
         if (playerError) playerError.textContent = '';
@@ -915,10 +916,10 @@ $(document).ready(function () {
             $('#mdl-strikerName').text(matchState.striker ? matchState.striker.name : 'Choose Player');
             $('#mdl-nonStrikerName').text(matchState.nonStriker ? matchState.nonStriker.name : 'Choose Player');
             console.log("Resetting player selection");
-            
+
             newCheckbox.addEventListener('change', function () {
                 nbBatsmanOut.classList.toggle('d-none', !this.checked);
-                
+
                 if (!this.checked) {
                     document.querySelectorAll('.player-radio').forEach(radio => {
                         radio.checked = false;
@@ -938,7 +939,7 @@ $(document).ready(function () {
                 const card = label.querySelector('.player-card');
                 const check = label.querySelector('.player-check');
 
-                label.addEventListener('click', function(e) {
+                label.addEventListener('click', function (e) {
                     // Only select if run out is checked
                     if (!nbRunOutCheckbox.checked) {
                         e.preventDefault();
@@ -957,7 +958,7 @@ $(document).ready(function () {
                     radio.checked = true;
                     card.classList.add('selected');
                     check.classList.remove('d-none');
-                    
+
                     // Clear error
                     const playerError = document.getElementById('playerError');
                     if (playerError) playerError.textContent = '';
@@ -971,15 +972,15 @@ $(document).ready(function () {
         } else if (type === "WD") {
             modalTitle.textContent = "Wide Ball";
             wdSection.classList.remove('d-none');
-            
+
             // Set default radio button for runs (1 run)
             const defaultWdRun = document.getElementById('wdRun1');
             if (defaultWdRun) defaultWdRun.checked = true;
-            
+
         } else if (type === "LB") {
             modalTitle.textContent = "Leg Bye";
             lbSection.classList.remove('d-none');
-            
+
             // Set default radio button for runs
             const defaultLbRun = document.getElementById('lbRun0');
             if (defaultLbRun) defaultLbRun.checked = true;
@@ -1002,13 +1003,13 @@ $(document).ready(function () {
         if (!nbSection.classList.contains("d-none")) {
             const nbRun = document.querySelector('input[name="nbRuns"]:checked');
             const runOutChecked = document.getElementById("nbRunOut").checked;
-            
+
             if (!nbRun) {
                 alert("Please select runs for No Ball");
                 valid = false;
                 return;
             }
-            
+
             extra = {
                 type: "NB",
                 runs: nbRun ? Number(nbRun.value) : 0,
@@ -1033,13 +1034,13 @@ $(document).ready(function () {
         const wdSection = document.getElementById("wdSection");
         if (!wdSection.classList.contains("d-none")) {
             const wdRun = document.querySelector('input[name="wdExtraRuns"]:checked');
-            
+
             if (!wdRun) {
                 alert("Please select extra runs for Wide Ball");
                 valid = false;
                 return;
             }
-            
+
             extra = {
                 type: "WD",
                 runs: wdRun ? Number(wdRun.value) : 1,
@@ -1052,13 +1053,13 @@ $(document).ready(function () {
         const lbSection = document.getElementById("lbSection");
         if (!lbSection.classList.contains("d-none")) {
             const lbRun = document.querySelector('input[name="lbRuns"]:checked');
-            
+
             if (!lbRun) {
                 alert("Please select runs for Leg Bye");
                 valid = false;
                 return;
             }
-            
+
             extra = {
                 type: "LB",
                 runs: lbRun ? Number(lbRun.value) : 0,
@@ -1176,7 +1177,7 @@ $(document).ready(function () {
                     list.innerHTML = '<li class="list-group-item text-muted">No batting order available</li>';
                     return;
                 }
-                
+
                 data.players.forEach(player => {
                     const card = document.createElement('div');
                     card.className = 'card mb-2 player-card';
@@ -1277,7 +1278,7 @@ $(document).ready(function () {
             });
     }
 
-    if(document.getElementById('yetToBatList')){
+    if (document.getElementById('yetToBatList')) {
         document.getElementById('yetToBatList').addEventListener('click', function (e) {
             if (!e.target.classList.contains('select-player-btn')) return;
             const card = e.target.closest('.player-card');
@@ -1363,14 +1364,14 @@ $(document).ready(function () {
         });
     }
 
-    $('.btn-complete-innings').on('click', function(){
+    $('.btn-complete-innings').on('click', function () {
         sendInningsStatus();
     });
 
     // ------------------------
     // 🔹 Initialization
     // ------------------------
-    $('#btn-trigger-bowler-modal').on('click', function(){
+    $('#btn-trigger-bowler-modal').on('click', function () {
         openBowlerModal();
     });
 
@@ -1379,7 +1380,7 @@ $(document).ready(function () {
         console.log('Resuming from last over:', lastOver);
     }
 
-    if(tossCompleted){
+    if (tossCompleted) {
         loadFullMatchState(matchId);
         fetchBowlingTeamPlayers();
         loadYetToBatPlayers();
@@ -1387,11 +1388,11 @@ $(document).ready(function () {
     }
     toggleTossInputs($('#start-match').val());
     startCheckingOver();
-    $('.btn-undo-ball').on('click', function(){
+    $('.btn-undo-ball').on('click', function () {
         undoLastDelivery();
     });
 
-    $('#btn-reset-wicket-form').on('click', function(){
+    $('#btn-reset-wicket-form').on('click', function () {
         resetWicketForm();
     });
 
@@ -1405,7 +1406,7 @@ $(document).ready(function () {
         const matchState = getMatchState();
         let battingTeamPlayers = matchState.team.total_players || 2;
 
-        if(parseInt(wicketsFallen) ==  battingTeamPlayers - 1 && !loadLocalState('isInningsEnded')) {
+        if (parseInt(wicketsFallen) == battingTeamPlayers - 1 && !loadLocalState('isInningsEnded')) {
             storeLocalState('isInningsEnded', true);
             $('.btn-delivery-section').hide();
             $('.current-bowler-section').hide();
@@ -1416,7 +1417,7 @@ $(document).ready(function () {
             $('.btn-complete-innings').addClass('btn-success');
             $('.target-window').removeClass('d-none');
             let targetRuns = parseInt($('#targetInfo').data('target-runs')) || 0;
-            $('#targetInfo').text(`Target: ${score+1} runs`);
+            $('#targetInfo').text(`Target: ${score + 1} runs`);
             Swal.fire('Innings has ended as all batsmen are out.');
             storeLocalState('inningsEndAlertShown', true);
         }

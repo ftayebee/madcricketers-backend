@@ -1,54 +1,9 @@
-[2026-04-06 18:42:29] local.INFO: Match ID: 1  
-[2026-04-06 19:02:48] local.INFO: Match ID: 1  
-[2026-04-06 19:03:08] local.INFO: Match ID: 1  
-[2026-04-06 19:03:26] local.INFO: Match ID: 1  
-[2026-04-06 19:04:47] local.INFO: Match ID: 1  
-[2026-04-06 19:05:33] local.INFO: Match ID: 1  
-[2026-04-06 19:05:33] local.INFO: Match ID: 1  
-[2026-04-06 19:05:34] local.INFO: Match ID: 1  
-[2026-04-06 19:09:26] local.INFO: array (
-  'team_id' => '1',
-  'player_ids' => 
-  array (
-    0 => '1',
-    1 => '2',
-    2 => '3',
-    3 => '4',
-  ),
-)  
-[2026-04-06 19:09:38] local.INFO: array (
-  'team_id' => '2',
-  'player_ids' => 
-  array (
-    0 => '8',
-    1 => '9',
-    2 => '10',
-    3 => '11',
-  ),
-)  
-[2026-04-06 19:19:30] local.INFO: Match ID: 1  
-[2026-04-06 19:21:26] local.INFO: Match ID: 1  
-[2026-04-06 19:22:11] local.INFO: Current Over Data:  {"success":true,"current_over":1,"balls":[{"ball":"0","class":"ball dot-ball","type":"normal","title":""}],"legalBalls":1} 
-[2026-04-06 19:23:20] local.INFO: Before switch - Striker: 4 (on-strike), Non-striker: 1 (batting)  
-[2026-04-06 19:23:20] local.INFO: After switch - Striker: 1, Non-striker: 4  
-[2026-04-06 19:23:20] local.INFO: Current Over Data:  {"success":true,"current_over":1,"balls":[{"ball":"0","class":"ball dot-ball","type":"normal","title":""},{"ball":"1","class":"ball run-ball","type":"normal","title":""}],"legalBalls":2} 
-[2026-04-06 19:23:30] local.INFO: Current Over Data:  {"success":true,"current_over":1,"balls":[{"ball":"0","class":"ball dot-ball","type":"normal","title":""},{"ball":"1","class":"ball run-ball","type":"normal","title":""},{"ball":"2","class":"ball run-ball","type":"normal","title":""}],"legalBalls":3} 
-[2026-04-06 19:23:34] local.INFO: Current Over Data:  {"success":true,"current_over":1,"balls":[{"ball":"0","class":"ball dot-ball","type":"normal","title":""},{"ball":"1","class":"ball run-ball","type":"normal","title":""},{"ball":"2","class":"ball run-ball","type":"normal","title":""},{"ball":"4","class":"ball four-ball","type":"normal","title":""}],"legalBalls":4} 
-[2026-04-06 19:24:22] local.INFO: Current Over Data:  {"success":true,"current_over":1,"balls":[{"ball":"0","class":"ball dot-ball","type":"normal","title":""},{"ball":"1","class":"ball run-ball","type":"normal","title":""},{"ball":"2","class":"ball run-ball","type":"normal","title":""},{"ball":"4","class":"ball four-ball","type":"normal","title":""},{"ball":"0","class":"ball dot-ball","type":"normal","title":""}],"legalBalls":5} 
-[2026-04-06 19:24:27] local.INFO: Before switch - Striker: 1 (on-strike), Non-striker: 4 (batting)  
-[2026-04-06 19:24:27] local.INFO: After switch - Striker: 4, Non-striker: 1  
-[2026-04-06 19:24:27] local.INFO: Current Over Data:  {"success":true,"current_over":1,"balls":[{"ball":"0","class":"ball dot-ball","type":"normal","title":""},{"ball":"1","class":"ball run-ball","type":"normal","title":""},{"ball":"2","class":"ball run-ball","type":"normal","title":""},{"ball":"4","class":"ball four-ball","type":"normal","title":""},{"ball":"0","class":"ball dot-ball","type":"normal","title":""},{"ball":"0","class":"ball dot-ball","type":"normal","title":""}],"legalBalls":6} 
-[2026-04-06 19:25:18] local.INFO: Match ID: 1  
-[2026-04-06 19:29:04] local.INFO: Current Over Data:  {"success":true,"current_over":2,"balls":[{"ball":"2","class":"ball run-ball","type":"normal","title":""}],"legalBalls":1} 
-[2026-04-06 19:29:09] local.INFO: Current Over Data:  {"success":true,"current_over":2,"balls":[{"ball":"2","class":"ball run-ball","type":"normal","title":""},{"ball":"6","class":"ball six-ball","type":"normal","title":""}],"legalBalls":2} 
-[2026-04-06 19:29:16] local.INFO: Current Over Data:  {"success":true,"current_over":2,"balls":[{"ball":"2","class":"ball run-ball","type":"normal","title":""},{"ball":"6","class":"ball six-ball","type":"normal","title":""},{"ball":"1","class":"ball extra-ball","type":"no-ball","title":"NB"}],"legalBalls":2} 
-[2026-04-06 19:29:23] local.INFO: Before switch - Striker: 4 (on-strike), Non-striker: 1 (batting)  
-[2026-04-06 19:29:23] local.INFO: After switch - Striker: 1, Non-striker: 4  
-[2026-04-06 19:29:23] local.INFO: Current Over Data:  {"success":true,"current_over":2,"balls":[{"ball":"2","class":"ball run-ball","type":"normal","title":""},{"ball":"6","class":"ball six-ball","type":"normal","title":""},{"ball":"1","class":"ball extra-ball","type":"no-ball","title":"NB"},{"ball":"WD2","class":"ball run-ball","type":"wide","title":"WD"}],"legalBalls":2} 
-[2026-04-06 19:29:30] local.INFO: Current Over Data:  {"success":true,"current_over":2,"balls":[{"ball":"2","class":"ball run-ball","type":"normal","title":""},{"ball":"6","class":"ball six-ball","type":"normal","title":""},{"ball":"1","class":"ball extra-ball","type":"no-ball","title":"NB"},{"ball":"WD2","class":"ball run-ball","type":"wide","title":"WD"},{"ball":"W","class":"ball dot-ball","type":"normal","title":""}],"legalBalls":3} 
-[2026-04-06 19:30:22] local.INFO: Current Over Data:  {"success":true,"current_over":2,"balls":[{"ball":"2","class":"ball run-ball","type":"normal","title":""},{"ball":"6","class":"ball six-ball","type":"normal","title":""},{"ball":"1","class":"ball extra-ball","type":"no-ball","title":"NB"},{"ball":"WD2","class":"ball run-ball","type":"wide","title":"WD"},{"ball":"W","class":"ball dot-ball","type":"normal","title":""},{"ball":"0","class":"ball dot-ball","type":"normal","title":""}],"legalBalls":4} 
-[2026-04-06 19:30:37] local.INFO: Match ID: 1  
-[2026-04-06 19:50:52] local.INFO: Before switch - Striker: 2 (on-strike), Non-striker: 4 (batting)  
-[2026-04-06 19:50:52] local.INFO: After switch - Striker: 4, Non-striker: 2  
-[2026-04-06 19:50:53] local.INFO: Current Over Data:  {"success":true,"current_over":2,"balls":[{"ball":"2","class":"ball run-ball","type":"normal","title":""},{"ball":"6","class":"ball six-ball","type":"normal","title":""},{"ball":"1","class":"ball extra-ball","type":"no-ball","title":"NB"},{"ball":"WD2","class":"ball run-ball","type":"wide","title":"WD"},{"ball":"W","class":"ball dot-ball","type":"normal","title":""},{"ball":"0","class":"ball dot-ball","type":"normal","title":""},{"ball":"1","class":"ball run-ball","type":"normal","title":""}],"legalBalls":5} 
-[2026-04-06 19:51:22] local.INFO: Match ID: 1  
+[2026-04-12 19:15:32] local.INFO: Match ID: 36  
+[2026-04-12 19:47:37] local.INFO: Match ID: 36  
+[2026-04-12 19:47:37] local.INFO: Team ID: 16  
+[2026-04-12 19:47:37] local.INFO: Type: bowling  
+[2026-04-12 19:47:37] local.INFO: Players: [{"id":34,"player_uid":null,"user_id":37,"player_type":"registered","player_role":"batsman","batting_style":"left-handed","bowling_style":"none","jursey_number":"43","jursey_name":"ET","jursey_size":"xl","chest_measurement":"40","deleted_at":null,"created_at":"2026-04-12T18:24:03.000000Z","updated_at":"2026-04-12T18:24:03.000000Z","favourite_football_country":"Gambia","favourite_cricket_country":"Bosnia and Herzegovina","favourite_football_league_team":"Walter, Robel and Walsh","married_status":"Single","education_batch":"Batch 1977","ssc_batch":"SSC 2009","overs_bowled":0},{"id":52,"player_uid":null,"user_id":55,"player_type":"registered","player_role":"bowler","batting_style":"right-handed","bowling_style":"fast","jursey_number":"94","jursey_name":"MINIMA","jursey_size":"2xl","chest_measurement":"40","deleted_at":null,"created_at":"2026-04-12T18:24:04.000000Z","updated_at":"2026-04-12T18:24:04.000000Z","favourite_football_country":"Turkey","favourite_cricket_country":"Luxembourg","favourite_football_league_team":"Murray-Oberbrunner","married_status":"Single","education_batch":"Batch 1980","ssc_batch":"SSC 2019","overs_bowled":0},{"id":38,"player_uid":null,"user_id":41,"player_type":"registered","player_role":"wicketkeeper","batting_style":"left-handed","bowling_style":"spin","jursey_number":"60","jursey_name":"ESSE","jursey_size":"xl","chest_measurement":"42","deleted_at":null,"created_at":"2026-04-12T18:24:03.000000Z","updated_at":"2026-04-12T18:24:03.000000Z","favourite_football_country":"Togo","favourite_cricket_country":"Luxembourg","favourite_football_league_team":"Grant, Bruen and O'Kon","married_status":"Married","education_batch":"Batch 2011","ssc_batch":"SSC 1973","overs_bowled":0},{"id":42,"player_uid":null,"user_id":45,"player_type":"registered","player_role":"all-rounder","batting_style":"left-handed","bowling_style":"spin","jursey_number":"72","jursey_name":"QUAM","jursey_size":"2xl","chest_measurement":"39","deleted_at":null,"created_at":"2026-04-12T18:24:04.000000Z","updated_at":"2026-04-12T18:24:04.000000Z","favourite_football_country":"Bahamas","favourite_cricket_country":"Austria","favourite_football_league_team":"Dietrich-Smith","married_status":"Single","education_batch":"Batch 1999","ssc_batch":"SSC 2006","overs_bowled":0},{"id":43,"player_uid":null,"user_id":46,"player_type":"registered","player_role":"wicketkeeper","batting_style":"right-handed","bowling_style":"none","jursey_number":"70","jursey_name":"BEATAE","jursey_size":"xl","chest_measurement":"42","deleted_at":null,"created_at":"2026-04-12T18:24:04.000000Z","updated_at":"2026-04-12T18:24:04.000000Z","favourite_football_country":"Guernsey","favourite_cricket_country":"Senegal","favourite_football_league_team":"Keeling, Rempel and Homenick","married_status":"Single","education_batch":"Batch 2005","ssc_batch":"SSC 1994","overs_bowled":0}]  
+[2026-04-12 19:48:07] local.INFO: Current Over Data:  {"success":true,"current_over":1,"balls":[{"ball":"0","class":"ball dot-ball","type":"normal","title":""}],"legalBalls":1} 
+[2026-04-12 19:48:13] local.INFO: Before switch - Striker: 45 (on-strike), Non-striker: 53 (batting)  
+[2026-04-12 19:48:13] local.INFO: After switch - Striker: 53, Non-striker: 45  
+[2026-04-12 19:48:13] local.INFO: Current Over Data:  {"success":true,"current_over":1,"balls":[{"ball":"0","class":"ball dot-ball","type":"normal","title":""},{"ball":"1","class":"ball run-ball","type":"normal","title":""}],"legalBalls":2} 

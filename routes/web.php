@@ -81,6 +81,7 @@ Route::prefix('admin')->name('admin.')->middleware(['auth'])->group(function(){
 
         Route::post('/assign-teams', [TournamentController::class, 'assignTeams'])->name('assign-teams');
         Route::post('/generate-fixtures', [TournamentController::class, 'generateFixtures'])->name('generate-fixtures');
+        Route::post('/select-next-stage', [TournamentController::class, 'selectNextStage'])->name('select-next-stage');
 
         Route::get('/{tournament}/update-team-ids', [TournamentController::class, 'bulkUpdateTeamIds'])->name('bulkUpdateTeamIds');
     });
