@@ -1,6 +1,11 @@
-<link rel="shortcut icon" href="{{ asset('storage/assets/images/main-favicon.png') }}">
-<link href="{{ asset('storage/assets/css/vendor.min.css') }}" rel="stylesheet" type="text/css" />
-<link href="{{ asset('storage/assets/css/icons.min.css') }}" rel="stylesheet" type="text/css" />
+<link rel="shortcut icon"
+    href="{{ asset((request()->getHost() === 'app.madcricketers.com' ? 'public/' : '') . 'storage/assets/images/main-favicon.png') }}">
+<link
+    href="{{ asset((request()->getHost() === 'app.madcricketers.com' ? 'public/' : '') . 'storage/assets/css/vendor.min.css') }}"
+    rel="stylesheet" type="text/css" />
+<link
+    href="{{ asset((request()->getHost() === 'app.madcricketers.com' ? 'public/' : '') . 'storage/assets/css/icons.min.css') }}"
+    rel="stylesheet" type="text/css" />
 <link href="https://cdn.datatables.net/1.13.6/css/dataTables.bootstrap5.min.css" rel="stylesheet" />
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/dropify@0.2.2/dist/css/dropify.min.css">
@@ -8,12 +13,15 @@
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.6/cropper.min.css" />
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/apexcharts/3.48.0/apexcharts.min.css" />
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/7.0.1/css/all.min.css" />
-<link href="{{ asset('storage/assets/css/app.min.css') }}" rel="stylesheet" type="text/css" />
+<link
+    href="{{ asset((request()->getHost() === 'app.madcricketers.com' ? 'public/' : '') . 'storage/assets/css/app.min.css') }}"
+    rel="stylesheet" type="text/css" />
 
-<script src="{{ asset('storage/assets/js/config.min.js') }}"></script>
+<script
+    src="{{ asset((request()->getHost() === 'app.madcricketers.com' ? 'public/' : '') . 'storage/assets/js/config.min.js') }}"></script>
 @stack('styles')
 <style>
-    .custom-card-border{
+    .custom-card-border {
         border-color: #3787a1;
         border-width: 1px solid;
     }

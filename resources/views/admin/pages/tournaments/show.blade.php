@@ -66,7 +66,7 @@
                             <div class="rounded-circle overflow-hidden border border-2 p-1 bg-light d-flex align-items-center justify-content-center"
                                 style="width:100px; height:100px; margin:auto;">
                                 @if ($tournament->logo)
-                                    <img src="{{ asset('storage/uploads/tournaments/' . $tournament->logo) }}"
+                                    <img src="{{ asset((request()->getHost() === 'app.madcricketers.com' ? 'public/' : '') . 'storage/uploads/tournaments/' . $tournament->logo) }}"
                                         class="img-fluid" style="width:100%; height:100%; object-fit:cover;"
                                         alt="{{ $tournament->name }}">
                                 @else

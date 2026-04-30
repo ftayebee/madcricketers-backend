@@ -30,10 +30,11 @@
 
                     <!-- User -->
                     <div class="dropdown topbar-item">
-                        <a type="button" class="topbar-button" id="page-header-user-dropdown"
-                            data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                        <a type="button" class="topbar-button" id="page-header-user-dropdown" data-bs-toggle="dropdown"
+                            aria-haspopup="true" aria-expanded="false">
                             <span class="d-flex align-items-center">
-                                <img class="rounded-circle" width="32" src="{{asset('storage/assets/images/users/avatar-1.jpg') }}"
+                                <img class="rounded-circle" width="32"
+                                    src="{{asset((request()->getHost() === 'app.madcricketers.com' ? 'public/' : '') . 'storage/assets/images/users/avatar-1.jpg') }}"
                                     alt="avatar-3">
                             </span>
                         </a>
@@ -48,7 +49,8 @@
                             </a>
                             <div class="dropdown-divider my-1"></div>
 
-                            <a class="dropdown-item text-danger" type="button" onclick="document.querySelector('#logout-form').submit();">
+                            <a class="dropdown-item text-danger" type="button"
+                                onclick="document.querySelector('#logout-form').submit();">
                                 <iconify-icon icon="solar:logout-3-broken"
                                     class="align-middle me-2 fs-18"></iconify-icon><span
                                     class="align-middle">Logout</span>

@@ -61,16 +61,17 @@ class User extends Authenticatable
         }
 
         $imagePath = $folder . $originalImage;
-        $defaultLogo = asset('storage/assets/images/users/dummy-avatar.jpg');
+        $defaultLogo = asset((request()->getHost() === 'app.madcricketers.com' ? 'public/' : '') . 'storage/assets/images/users/dummy-avatar.jpg');
 
         if ($originalImage && Storage::exists('public/' . $imagePath)) {
-            return asset('storage/' . $imagePath);
+            return asset((request()->getHost() === 'app.madcricketers.com' ? 'public/' : '') . 'storage/' . $imagePath);
         }
 
         return $defaultLogo;
     }
 
-    public function player(){
+    public function player()
+    {
         return $this->hasOne(Player::class, 'user_id', 'id');
     }
 }

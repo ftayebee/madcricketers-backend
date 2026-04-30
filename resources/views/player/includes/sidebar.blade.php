@@ -2,15 +2,17 @@
     <!-- Sidebar Logo -->
     <div class="logo-box">
         <a href="index.html" class="logo-dark" style="text-align: center;">
-            <img src="{{ asset('storage/assets/images/Main-Logo.png') }}" class="logo-sm" alt="logo sm">
-            <img src="{{ asset('storage/assets/images/main-logo-dark.png') }}" class="logo-lg" alt="logo dark"
-                height="45px">
+            <img src="{{ asset((request()->getHost() === 'app.madcricketers.com' ? 'public/' : '') . 'storage/assets/images/Main-Logo.png') }}"
+                class="logo-sm" alt="logo sm">
+            <img src="{{ asset((request()->getHost() === 'app.madcricketers.com' ? 'public/' : '') . 'storage/assets/images/main-logo-dark.png') }}"
+                class="logo-lg" alt="logo dark" height="45px">
         </a>
 
         <a href="index.html" class="logo-light" style="text-align: center;">
-            <img src="{{ asset('storage/assets/images/Main-Logo.png') }}" class="logo-sm" alt="logo sm">
-            <img src="{{ asset('storage/assets/images/main-logo-light.png') }}" class="logo-lg" alt="logo light"
-                style="height: 45px!important;">
+            <img src="{{ asset((request()->getHost() === 'app.madcricketers.com' ? 'public/' : '') . 'storage/assets/images/Main-Logo.png') }}"
+                class="logo-sm" alt="logo sm">
+            <img src="{{ asset((request()->getHost() === 'app.madcricketers.com' ? 'public/' : '') . 'storage/assets/images/main-logo-light.png') }}"
+                class="logo-lg" alt="logo light" style="height: 45px!important;">
         </a>
     </div>
 
@@ -28,7 +30,8 @@
                     <div class="d-block">
                         <p class="text-light fw-medium fs-16 mb-0">{{ Auth::user()->full_name }}</p>
                         <p class="mb-0 text-light">{{ Auth::user()->email }}</p>
-                        <p class="mb-0 badge badge-soft-info fs-12 mt-1">{{ ucfirst(optional(Auth::user()->primary_role)->name ?? 'player') }}</p>
+                        <p class="mb-0 badge badge-soft-info fs-12 mt-1">
+                            {{ ucfirst(optional(Auth::user()->primary_role)->name ?? 'player') }}</p>
                     </div>
                 </div>
             </div>

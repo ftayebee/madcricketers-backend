@@ -47,10 +47,10 @@ class Team extends Model
         $originalImage = $this->getAttributes()['logo'] ?? null;
 
         $imagePath = 'public/uploads/teams/' . $originalImage;
-        $defaultLogo = asset('storage/assets/images/team-dummy.png');
+        $defaultLogo = asset((request()->getHost() === 'app.madcricketers.com' ? 'public/' : '') . 'storage/assets/images/team-dummy.png');
 
         if ($originalImage && Storage::exists($imagePath)) {
-            return asset('storage/uploads/teams/' . $originalImage);
+            return asset((request()->getHost() === 'app.madcricketers.com' ? 'public/' : '') . 'storage/uploads/teams/' . $originalImage);
         }
 
         return $defaultLogo;

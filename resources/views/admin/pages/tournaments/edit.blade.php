@@ -3,10 +3,26 @@
 @section('content')
     @push('styles')
         <style>
-            .cs-label-color { color: #002450; }
-            .required-mark  { color: red; font-size: 16px; font-weight: 800; }
-            .readonly-badge { font-size: 12px; }
-            .current-img    { max-height: 80px; border-radius: 6px; border: 1px solid #dee2e6; padding: 4px; }
+            .cs-label-color {
+                color: #002450;
+            }
+
+            .required-mark {
+                color: red;
+                font-size: 16px;
+                font-weight: 800;
+            }
+
+            .readonly-badge {
+                font-size: 12px;
+            }
+
+            .current-img {
+                max-height: 80px;
+                border-radius: 6px;
+                border: 1px solid #dee2e6;
+                padding: 4px;
+            }
         </style>
     @endpush
 
@@ -17,8 +33,8 @@
                     <h5 class="text-center fs-24 fw-bold m-0">Edit Tournament — {{ $tournament->name }}</h5>
                 </div>
                 <div class="card-body">
-                    <form action="{{ route('admin.tournaments.update', $tournament->id) }}"
-                          method="POST" enctype="multipart/form-data">
+                    <form action="{{ route('admin.tournaments.update', $tournament->id) }}" method="POST"
+                        enctype="multipart/form-data">
                         @csrf
 
                         <div class="modal-body">
@@ -30,8 +46,8 @@
                                         Tournament Name <span class="required-mark">*</span>
                                     </label>
                                     <input type="text" name="name" class="form-control @error('name') is-invalid @enderror"
-                                           value="{{ old('name', $tournament->name) }}"
-                                           placeholder="Enter tournament name" required>
+                                        value="{{ old('name', $tournament->name) }}" placeholder="Enter tournament name"
+                                        required>
                                     @error('name')
                                         <div class="invalid-feedback">{{ $message }}</div>
                                     @enderror
@@ -41,8 +57,8 @@
                                 <div class="col-md-6">
                                     <label class="form-label fs-16 cs-label-color">Location</label>
                                     <input type="text" name="location" class="form-control"
-                                           value="{{ old('location', $tournament->location) }}"
-                                           placeholder="Enter venue or city">
+                                        value="{{ old('location', $tournament->location) }}"
+                                        placeholder="Enter venue or city">
                                 </div>
 
                                 {{-- Start Date --}}
@@ -51,7 +67,7 @@
                                         Start Date <span class="required-mark">*</span>
                                     </label>
                                     <input type="date" name="start_date" class="form-control"
-                                           value="{{ old('start_date', $tournament->start_date ? \Carbon\Carbon::parse($tournament->start_date)->format('Y-m-d') : '') }}">
+                                        value="{{ old('start_date', $tournament->start_date ? \Carbon\Carbon::parse($tournament->start_date)->format('Y-m-d') : '') }}">
                                 </div>
 
                                 {{-- End Date --}}
@@ -60,7 +76,7 @@
                                         End Date <span class="required-mark">*</span>
                                     </label>
                                     <input type="date" name="end_date" class="form-control"
-                                           value="{{ old('end_date', $tournament->end_date ? \Carbon\Carbon::parse($tournament->end_date)->format('Y-m-d') : '') }}">
+                                        value="{{ old('end_date', $tournament->end_date ? \Carbon\Carbon::parse($tournament->end_date)->format('Y-m-d') : '') }}">
                                 </div>
 
                                 {{-- Status --}}
@@ -69,8 +85,8 @@
                                         Status <span class="required-mark">*</span>
                                     </label>
                                     <select name="status" class="form-select">
-                                        <option value="upcoming"  {{ old('status', $tournament->status) === 'upcoming'  ? 'selected' : '' }}>Upcoming</option>
-                                        <option value="ongoing"   {{ old('status', $tournament->status) === 'ongoing'   ? 'selected' : '' }}>Ongoing</option>
+                                        <option value="upcoming" {{ old('status', $tournament->status) === 'upcoming' ? 'selected' : '' }}>Upcoming</option>
+                                        <option value="ongoing" {{ old('status', $tournament->status) === 'ongoing' ? 'selected' : '' }}>Ongoing</option>
                                         <option value="completed" {{ old('status', $tournament->status) === 'completed' ? 'selected' : '' }}>Completed</option>
                                     </select>
                                 </div>
@@ -81,7 +97,7 @@
                                         Overs Per Innings <span class="required-mark">*</span>
                                     </label>
                                     <input type="number" name="overs_per_innings" class="form-control"
-                                           value="{{ old('overs_per_innings', $tournament->overs_per_innings) }}" min="1">
+                                        value="{{ old('overs_per_innings', $tournament->overs_per_innings) }}" min="1">
                                 </div>
 
                                 {{-- Format (read-only — cannot change post-creation) --}}
@@ -91,20 +107,20 @@
                                         <span class="badge bg-secondary readonly-badge ms-1">Read-only</span>
                                     </label>
                                     <input type="text" class="form-control bg-light"
-                                           value="{{ ucfirst($tournament->format) }}" readonly>
+                                        value="{{ ucfirst($tournament->format) }}" readonly>
                                     <small class="text-muted">Format cannot be changed after creation.</small>
                                 </div>
 
                                 {{-- Groups (read-only info) --}}
                                 @if($tournament->format === 'group' && $tournament->group_count)
-                                <div class="col-md-6">
-                                    <label class="form-label fs-16 cs-label-color">
-                                        Number of Groups
-                                        <span class="badge bg-secondary readonly-badge ms-1">Read-only</span>
-                                    </label>
-                                    <input type="text" class="form-control bg-light"
-                                           value="{{ $tournament->group_count }}" readonly>
-                                </div>
+                                    <div class="col-md-6">
+                                        <label class="form-label fs-16 cs-label-color">
+                                            Number of Groups
+                                            <span class="badge bg-secondary readonly-badge ms-1">Read-only</span>
+                                        </label>
+                                        <input type="text" class="form-control bg-light" value="{{ $tournament->group_count }}"
+                                            readonly>
+                                    </div>
                                 @endif
 
                                 {{-- Trophy Image --}}
@@ -112,8 +128,8 @@
                                     <label class="form-label fs-16 cs-label-color">Trophy Image</label>
                                     @if($tournament->trophy_image)
                                         <div class="mb-2">
-                                            <img src="{{ asset('storage/uploads/tournaments/' . $tournament->trophy_image) }}"
-                                                 class="current-img" alt="Current trophy">
+                                            <img src="{{ asset((request()->getHost() === 'app.madcricketers.com' ? 'public/' : '') . 'storage/uploads/tournaments/' . $tournament->trophy_image) }}"
+                                                class="current-img" alt="Current trophy">
                                             <small class="text-muted ms-2">Current image</small>
                                         </div>
                                     @endif
@@ -126,8 +142,8 @@
                                     <label class="form-label fs-16 cs-label-color">Tournament Logo</label>
                                     @if($tournament->logo)
                                         <div class="mb-2">
-                                            <img src="{{ asset('storage/uploads/tournaments/' . $tournament->logo) }}"
-                                                 class="current-img" alt="Current logo">
+                                            <img src="{{ asset((request()->getHost() === 'app.madcricketers.com' ? 'public/' : '') . 'storage/uploads/tournaments/' . $tournament->logo) }}"
+                                                class="current-img" alt="Current logo">
                                             <small class="text-muted ms-2">Current logo</small>
                                         </div>
                                     @endif
@@ -139,7 +155,7 @@
                                 <div class="col-12">
                                     <label class="form-label fs-16 cs-label-color">Description</label>
                                     <textarea name="description" rows="3" class="form-control"
-                                              placeholder="Write tournament description...">{{ old('description', $tournament->description) }}</textarea>
+                                        placeholder="Write tournament description...">{{ old('description', $tournament->description) }}</textarea>
                                 </div>
 
                             </div>

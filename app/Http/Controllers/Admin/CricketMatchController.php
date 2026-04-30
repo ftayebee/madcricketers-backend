@@ -1745,14 +1745,14 @@ class CricketMatchController extends Controller
                     'striker' => [
                         'id' => $striker->player_id,
                         'name' => $striker->player->user->full_name,
-                        'img' => $striker->player->image ?? asset('storage/assets/images/users/dummy-avatar.jpg'),
+                        'img' => $striker->player->image ?? asset((request()->getHost() === 'app.madcricketers.com' ? 'public/' : '') . 'storage/assets/images/users/dummy-avatar.jpg'),
                         'runs' => $striker->runs_scored ?? 0,
                         'balls' => $striker->balls_faced ?? 0,
                     ],
                     'nonStriker' => [
                         'id' => $nonStriker->player_id,
                         'name' => $nonStriker->player->user->full_name,
-                        'img' => $nonStriker->player->image ?? asset('storage/assets/images/users/dummy-avatar.jpg'),
+                        'img' => $nonStriker->player->image ?? asset((request()->getHost() === 'app.madcricketers.com' ? 'public/' : '') . 'storage/assets/images/users/dummy-avatar.jpg'),
                         'runs' => $nonStriker->runs_scored ?? 0,
                         'balls' => $nonStriker->balls_faced ?? 0,
                     ]

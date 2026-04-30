@@ -5,7 +5,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&display=swap" rel="stylesheet">
-    <link href="{{ asset('storage/backend/css/scoreboard.css') }}" rel="stylesheet">
+    <link href="{{ asset((request()->getHost() === 'app.madcricketers.com' ? 'public/' : '') . 'storage/backend/css/scoreboard.css') }}" rel="stylesheet">
     <style>
         :root {
             --primary-color: #1e3c72;
@@ -470,7 +470,7 @@
                                 @if ($match->tournament && $match->tournament->logo)
                                     <div class="col-12 col-md-2 text-center mb-3 mb-md-0">
                                         <div class="rounded border p-2" style="background: var(--light-bg); border-color: var(--secondary-color)!important;">
-                                            <img src="{{ asset('storage/uploads/tournaments/' . $match->tournament->logo) }}"
+                                            <img src="{{ asset((request()->getHost() === 'app.madcricketers.com' ? 'public/' : '') . 'storage/uploads/tournaments/' . $match->tournament->logo) }}"
                                                 class="img-fluid rounded" style="max-height: 80px;"
                                                 alt="{{ $match->tournament->name }}">
                                         </div>

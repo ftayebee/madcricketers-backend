@@ -2,15 +2,17 @@
     <!-- Sidebar Logo -->
     <div class="logo-box">
         <a href="index.html" class="logo-dark" style="text-align: center;">
-            <img src="{{ asset('storage/assets/images/Main-Logo.png') }}" class="logo-sm" alt="logo sm">
-            <img src="{{ asset('storage/assets/images/main-logo-dark.png') }}" class="logo-lg" alt="logo dark"
-                height="45px">
+            <img src="{{ asset((request()->getHost() === 'app.madcricketers.com' ? 'public/' : '') . 'storage/assets/images/Main-Logo.png') }}"
+                class="logo-sm" alt="logo sm">
+            <img src="{{ asset((request()->getHost() === 'app.madcricketers.com' ? 'public/' : '') . 'storage/assets/images/main-logo-dark.png') }}"
+                class="logo-lg" alt="logo dark" height="45px">
         </a>
 
         <a href="index.html" class="logo-light" style="text-align: center;">
-            <img src="{{ asset('storage/assets/images/Main-Logo.png') }}" class="logo-sm" alt="logo sm">
-            <img src="{{ asset('storage/assets/images/main-logo-light.png') }}" class="logo-lg" alt="logo light"
-                style="height: 45px!important;">
+            <img src="{{ asset((request()->getHost() === 'app.madcricketers.com' ? 'public/' : '') . 'storage/assets/images/Main-Logo.png') }}"
+                class="logo-sm" alt="logo sm">
+            <img src="{{ asset((request()->getHost() === 'app.madcricketers.com' ? 'public/' : '') . 'storage/assets/images/main-logo-light.png') }}"
+                class="logo-lg" alt="logo light" style="height: 45px!important;">
         </a>
     </div>
 
@@ -28,7 +30,9 @@
                     <div class="d-block">
                         <p class="text-light fw-medium fs-16 mb-0">{{ Auth::user()->full_name }}</p>
                         <p class="mb-0 text-light">{{ Auth::user()->email }}</p>
-                        <p class="mb-0 badge badge-soft-info fs-12 mt-1">{{ ucfirst(optional(Auth::user()->primary_role)->name ?? 'user') }}</p>
+                        <p class="mb-0 badge badge-soft-info fs-12 mt-1">
+                            {{ ucfirst(optional(Auth::user()->primary_role)->name ?? 'user') }}
+                        </p>
                     </div>
                 </div>
             </div>
@@ -71,7 +75,8 @@
 
             @if (Auth::check() && Auth::user()->can('cricket-matches-view'))
                 <li class="nav-item">
-                    <a class="nav-link menu-arrow" href="#sidebarCricketMatches" data-bs-toggle="collapse" role="button" aria-expanded="false" aria-controls="sidebarCricketMatches">
+                    <a class="nav-link menu-arrow" href="#sidebarCricketMatches" data-bs-toggle="collapse" role="button"
+                        aria-expanded="false" aria-controls="sidebarCricketMatches">
                         <span class="nav-icon">
                             <i class="ri-basketball-line"></i>
                         </span>
@@ -92,7 +97,8 @@
 
             @if (Auth::check() && Auth::user()->can('tournaments-view'))
                 <li class="nav-item">
-                    <a class="nav-link menu-arrow" href="#sidebarTournaments" data-bs-toggle="collapse" role="button" aria-expanded="false" aria-controls="sidebarTournaments">
+                    <a class="nav-link menu-arrow" href="#sidebarTournaments" data-bs-toggle="collapse" role="button"
+                        aria-expanded="false" aria-controls="sidebarTournaments">
                         <span class="nav-icon">
                             <i class="ri-folder-chart-line"></i>
                         </span>
@@ -130,7 +136,9 @@
 
             @if (Auth::check() && $showFinanceMenu)
                 <li class="nav-item">
-                    <a class="nav-link menu-arrow {{ $isFinanceOpen ? 'active' : '' }}" href="#sidebarFinance" data-bs-toggle="collapse" role="button" aria-expanded="{{ $isFinanceOpen ? 'true' : 'false' }}" aria-controls="sidebarFinance">
+                    <a class="nav-link menu-arrow {{ $isFinanceOpen ? 'active' : '' }}" href="#sidebarFinance"
+                        data-bs-toggle="collapse" role="button" aria-expanded="{{ $isFinanceOpen ? 'true' : 'false' }}"
+                        aria-controls="sidebarFinance">
                         <span class="nav-icon">
                             <i class="ri-money-dollar-circle-line"></i>
                         </span>
@@ -140,35 +148,42 @@
                         <ul class="nav sub-navbar-nav">
                             @if ($canFinanceView)
                                 <li class="sub-nav-item">
-                                    <a class="sub-nav-link {{ Route::is('admin.finance.dashboard') ? 'active' : '' }}" href="{{ route('admin.finance.dashboard') }}">Dashboard</a>
+                                    <a class="sub-nav-link {{ Route::is('admin.finance.dashboard') ? 'active' : '' }}"
+                                        href="{{ route('admin.finance.dashboard') }}">Dashboard</a>
                                 </li>
                             @endif
                             @if ($canFinanceDues)
                                 <li class="sub-nav-item">
-                                    <a class="sub-nav-link {{ Route::is('admin.finance.dues.index') ? 'active' : '' }}" href="{{ route('admin.finance.dues.index') }}">Player Dues</a>
+                                    <a class="sub-nav-link {{ Route::is('admin.finance.dues.index') ? 'active' : '' }}"
+                                        href="{{ route('admin.finance.dues.index') }}">Player Dues</a>
                                 </li>
                             @endif
                             @if ($canFinancePayments)
                                 <li class="sub-nav-item">
-                                    <a class="sub-nav-link {{ Route::is('admin.finance.payments.create') ? 'active' : '' }}" href="{{ route('admin.finance.payments.create') }}">Receive Payment</a>
+                                    <a class="sub-nav-link {{ Route::is('admin.finance.payments.create') ? 'active' : '' }}"
+                                        href="{{ route('admin.finance.payments.create') }}">Receive Payment</a>
                                 </li>
                                 <li class="sub-nav-item">
-                                    <a class="sub-nav-link {{ Route::is('admin.finance.payments.index') ? 'active' : '' }}" href="{{ route('admin.finance.payments.index') }}">Payment History</a>
+                                    <a class="sub-nav-link {{ Route::is('admin.finance.payments.index') ? 'active' : '' }}"
+                                        href="{{ route('admin.finance.payments.index') }}">Payment History</a>
                                 </li>
                             @endif
                             @if ($canFinanceExpenses)
                                 <li class="sub-nav-item">
-                                    <a class="sub-nav-link {{ Route::is('admin.finance.expenses.index') ? 'active' : '' }}" href="{{ route('admin.finance.expenses.index') }}">Expenses</a>
+                                    <a class="sub-nav-link {{ Route::is('admin.finance.expenses.index') ? 'active' : '' }}"
+                                        href="{{ route('admin.finance.expenses.index') }}">Expenses</a>
                                 </li>
                             @endif
                             @if ($canFinanceCategories)
                                 <li class="sub-nav-item">
-                                    <a class="sub-nav-link {{ Route::is('admin.finance.categories.index') ? 'active' : '' }}" href="{{ route('admin.finance.categories.index') }}">Categories</a>
+                                    <a class="sub-nav-link {{ Route::is('admin.finance.categories.index') ? 'active' : '' }}"
+                                        href="{{ route('admin.finance.categories.index') }}">Categories</a>
                                 </li>
                             @endif
                             @if ($canFinanceReports)
                                 <li class="sub-nav-item">
-                                    <a class="sub-nav-link {{ Route::is('admin.finance.reports.index') || Route::is('admin.finance.summary') ? 'active' : '' }}" href="{{ route('admin.finance.reports.index') }}">Reports</a>
+                                    <a class="sub-nav-link {{ Route::is('admin.finance.reports.index') || Route::is('admin.finance.summary') ? 'active' : '' }}"
+                                        href="{{ route('admin.finance.reports.index') }}">Reports</a>
                                 </li>
                             @endif
                         </ul>

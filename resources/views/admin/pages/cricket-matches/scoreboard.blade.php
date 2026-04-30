@@ -5,7 +5,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&display=swap" rel="stylesheet">
-    <link href="{{ asset('storage/backend/css/scoreboard.css') }}" rel="stylesheet">
+    <link href="{{ asset((request()->getHost() === 'app.madcricketers.com' ? 'public/' : '') . 'storage/backend/css/scoreboard.css') }}" rel="stylesheet">
 @endpush
 
 @section('content')
@@ -23,7 +23,7 @@
                                     @if ($match->tournament && $match->tournament->logo)
                                         <div class="col-md-2 text-center">
                                             <div class="rounded border p-2 bg-light">
-                                                <img src="{{ asset('storage/uploads/tournaments/' . $match->tournament->logo) }}"
+                                                <img src="{{ asset((request()->getHost() === 'app.madcricketers.com' ? 'public/' : '') . 'storage/uploads/tournaments/' . $match->tournament->logo) }}"
                                                     class="img-fluid rounded" style="max-height: 100px;"
                                                     alt="{{ $match->tournament->name }}">
                                             </div>
@@ -648,5 +648,5 @@
 @endsection
 
 @push('scripts')
-    <script src="{{ asset('storage/backend/js/scoreboard.js') }}"></script>
+    <script src="{{ asset((request()->getHost() === 'app.madcricketers.com' ? 'public/' : '') . 'storage/backend/js/scoreboard.js') }}"></script>
 @endpush
