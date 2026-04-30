@@ -2,7 +2,7 @@
 return [
     'users' => ['users-view', 'users-create', 'users-edit', 'users-delete'],
     'roles' => ['roles-view', 'roles-create', 'roles-edit', 'roles-delete'],
-    'permissions' => ['permissions-view', 'permissions-create', 'permissions-edit', 'permissions-delete'],
+    'permissions' => ['permissions-view', 'permissions-manage'],
     'players' => ['players-view', 'players-create', 'players-edit', 'players-delete'],
     'teams' => ['teams-view', 'teams-create', 'teams-edit', 'teams-delete'],
     'tournaments' => ['tournaments-view', 'tournaments-create', 'tournaments-edit', 'tournaments-delete', 'tournaments-assign-teams', 'tournaments-generate-fixtures'],
@@ -15,4 +15,5 @@ return [
     'fallOfWickets' => ['fallOfWickets-view', 'fallOfWickets-create', 'fallOfWickets-edit', 'fallOfWickets-delete'],
     'partnerships' => ['partnerships-view', 'partnerships-create', 'partnerships-edit', 'partnerships-delete'],
     'payments' =>  ['payments-view', 'payments-create', 'payments-edit', 'payments-delete'],
+    'finance' => ['finance-view', 'finance-dues-manage', 'finance-payments-manage', 'finance-expenses-manage', 'finance-categories-manage', 'finance-reports-view'],
 ];

@@ -11,6 +11,7 @@ use Illuminate\Support\Facades\Hash;
 use App\Providers\RouteServiceProvider;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Foundation\Auth\RegistersUsers;
+use Spatie\Permission\Models\Role;
 
 class RegisterController extends Controller
 {
@@ -35,13 +36,18 @@ class RegisterController extends Controller
     protected function create(array $data)
     {
         try {
-            return User::create([
+            $role = Role::firstOrCreate(['name' => 'player'], ['guard_name' => 'web']);
+
+            $user = User::create([
                 'full_name'    => $data['full_name'],
                 'email'        => $data['email'],
                 'password'     => Hash::make($data['password']),
-                'visible_pass' => $data['password'],
-                'role_id'      => 1,
+                'role_id'      => $role->id,
             ]);
+
+            $user->syncRoles([$role]);
+
+            return $user;
         } catch (Exception $e) {
             Log::error('User Registration Failed: ' . $e->getMessage());
             abort(500, 'Registration failed. Please try again later.');
@@ -50,8 +56,9 @@ class RegisterController extends Controller
 
     protected function redirectTo()
     {
-        $user = Auth::guard($guard)->user();
-        if ($user->hasRole('admin')) {
+        $user = Auth::user();
+
+        if ($user->hasAnyRole(['super-admin', 'admin'])) {
             return RouteServiceProvider::ADMIN_DASHBOARD;
         } elseif ($user->hasRole('manager')) {
             return RouteServiceProvider::MANAGER_DASHBOARD;

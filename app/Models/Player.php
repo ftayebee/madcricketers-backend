@@ -18,13 +18,7 @@ class Player extends Model
         'jursey_number',
         'jursey_name',
         'jursey_size',
-        'chest_measurement',
-        'favourite_football_country',
-        'favourite_cricket_country',
-        'favourite_football_league_team',
-        'married_status',
-        'education_batch',
-        'ssc_batch',
+        'chest_measurement'
     ];
 
     public function user()

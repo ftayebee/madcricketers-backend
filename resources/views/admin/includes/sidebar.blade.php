@@ -28,7 +28,7 @@
                     <div class="d-block">
                         <p class="text-light fw-medium fs-16 mb-0">{{ Auth::user()->full_name }}</p>
                         <p class="mb-0 text-light">{{ Auth::user()->email }}</p>
-                        <p class="mb-0 badge badge-soft-info fs-12 mt-1">{{ ucfirst(Auth::user()->role->name) }}</p>
+                        <p class="mb-0 badge badge-soft-info fs-12 mt-1">{{ ucfirst(optional(Auth::user()->primary_role)->name ?? 'user') }}</p>
                     </div>
                 </div>
             </div>
@@ -111,23 +111,66 @@
                 </li>
             @endif
 
-            @if (Auth::check() && Auth::user()->can('payments-view'))
+            @php
+                $authUser = Auth::user();
+                $roleName = optional(optional($authUser)->primary_role)->name;
+                $isFinanceAdmin = $authUser && (
+                    in_array($roleName, ['admin', 'super-admin'], true) ||
+                    (method_exists($authUser, 'hasRole') && ($authUser->hasRole('admin') || $authUser->hasRole('super-admin')))
+                );
+                $canFinanceView = $isFinanceAdmin || ($authUser && $authUser->can('finance-view'));
+                $canFinanceDues = $isFinanceAdmin || ($authUser && $authUser->can('finance-dues-manage'));
+                $canFinancePayments = $isFinanceAdmin || ($authUser && $authUser->can('finance-payments-manage'));
+                $canFinanceExpenses = $isFinanceAdmin || ($authUser && $authUser->can('finance-expenses-manage'));
+                $canFinanceCategories = $isFinanceAdmin || ($authUser && $authUser->can('finance-categories-manage'));
+                $canFinanceReports = $isFinanceAdmin || ($authUser && $authUser->can('finance-reports-view'));
+                $showFinanceMenu = $canFinanceView || $canFinanceDues || $canFinancePayments || $canFinanceExpenses || $canFinanceCategories || $canFinanceReports;
+                $isFinanceOpen = Route::is('admin.finance.*') || request()->is('admin/finance*');
+            @endphp
+
+            @if (Auth::check() && $showFinanceMenu)
                 <li class="nav-item">
-                    <a class="nav-link menu-arrow" href="#sidebarDashboards" data-bs-toggle="collapse" role="button" aria-expanded="false" aria-controls="sidebarDashboards">
+                    <a class="nav-link menu-arrow {{ $isFinanceOpen ? 'active' : '' }}" href="#sidebarFinance" data-bs-toggle="collapse" role="button" aria-expanded="{{ $isFinanceOpen ? 'true' : 'false' }}" aria-controls="sidebarFinance">
                         <span class="nav-icon">
                             <i class="ri-money-dollar-circle-line"></i>
                         </span>
-                        <span class="nav-text">Payments</span>
+                        <span class="nav-text">Finance</span>
                     </a>
-                    <div class="collapse" id="sidebarDashboards">
+                    <div class="collapse {{ $isFinanceOpen ? 'show' : '' }}" id="sidebarFinance">
                         <ul class="nav sub-navbar-nav">
-                            <li class="sub-nav-item">
-                                <a class="sub-nav-link" href="{{ route('admin.payments.index') }}">All
-                                    Payments</a>
-                            </li>
-                            <li class="sub-nav-item">
-                                <a class="sub-nav-link" href="{{ route('admin.payments.summary') }}">Payment Summary</a>
-                            </li>
+                            @if ($canFinanceView)
+                                <li class="sub-nav-item">
+                                    <a class="sub-nav-link {{ Route::is('admin.finance.dashboard') ? 'active' : '' }}" href="{{ route('admin.finance.dashboard') }}">Dashboard</a>
+                                </li>
+                            @endif
+                            @if ($canFinanceDues)
+                                <li class="sub-nav-item">
+                                    <a class="sub-nav-link {{ Route::is('admin.finance.dues.index') ? 'active' : '' }}" href="{{ route('admin.finance.dues.index') }}">Player Dues</a>
+                                </li>
+                            @endif
+                            @if ($canFinancePayments)
+                                <li class="sub-nav-item">
+                                    <a class="sub-nav-link {{ Route::is('admin.finance.payments.create') ? 'active' : '' }}" href="{{ route('admin.finance.payments.create') }}">Receive Payment</a>
+                                </li>
+                                <li class="sub-nav-item">
+                                    <a class="sub-nav-link {{ Route::is('admin.finance.payments.index') ? 'active' : '' }}" href="{{ route('admin.finance.payments.index') }}">Payment History</a>
+                                </li>
+                            @endif
+                            @if ($canFinanceExpenses)
+                                <li class="sub-nav-item">
+                                    <a class="sub-nav-link {{ Route::is('admin.finance.expenses.index') ? 'active' : '' }}" href="{{ route('admin.finance.expenses.index') }}">Expenses</a>
+                                </li>
+                            @endif
+                            @if ($canFinanceCategories)
+                                <li class="sub-nav-item">
+                                    <a class="sub-nav-link {{ Route::is('admin.finance.categories.index') ? 'active' : '' }}" href="{{ route('admin.finance.categories.index') }}">Categories</a>
+                                </li>
+                            @endif
+                            @if ($canFinanceReports)
+                                <li class="sub-nav-item">
+                                    <a class="sub-nav-link {{ Route::is('admin.finance.reports.index') || Route::is('admin.finance.summary') ? 'active' : '' }}" href="{{ route('admin.finance.reports.index') }}">Reports</a>
+                                </li>
+                            @endif
                         </ul>
                     </div>
                 </li>

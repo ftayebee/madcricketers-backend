@@ -10,11 +10,13 @@ class CricketMatch extends Model
     use HasFactory;
 
     protected $fillable = [
+        'title',
         'tournament_id',
         'team_a_id',
         'team_b_id',
         'match_date',
         'venue',
+        'match_type',
         'status',
         'winning_team_id',
         'bowler_max_overs',

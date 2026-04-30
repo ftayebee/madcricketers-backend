@@ -1,6 +1,8 @@
 <?php
 
 use App\Http\Controllers\Admin\CricketMatchController;
+use App\Http\Controllers\Admin\CricketMatchCreateController;
+use App\Http\Controllers\Admin\FinanceController;
 use App\Http\Controllers\Admin\MonthlyDonationController;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
@@ -18,7 +20,7 @@ Route::get('/', function () {
 });
 Auth::routes();
 
-Route::prefix('admin')->name('admin.')->middleware(['auth'])->group(function(){
+Route::prefix('admin')->name('admin.')->middleware(['auth', 'admin.access'])->group(function(){
     Route::get('/dashboard', [PageController::class, 'dashboard'])->name('dashboard');
     Route::get('/profile', [PageController::class, 'profile'])->name('profile');
 
@@ -28,9 +30,9 @@ Route::prefix('admin')->name('admin.')->middleware(['auth'])->group(function(){
             Route::get('/loader', [RoleController::class, 'tableLoader'])->name('loader'); // working
             Route::get('/show/{slug}', [RoleController::class, 'show'])->name('show'); // working
             Route::post('/store', [RoleController::class, 'store'])->name('store'); // working
-            Route::post('/update', [RoleController::class, 'update'])->name('update'); // working
-            Route::post('/destroy', [RoleController::class, 'destroy'])->name('destroy'); // working
-            Route::get('/seed-database', [RoleController::class, 'seedDatabase'])->name('seed'); // working
+            Route::post('/update/{id}', [RoleController::class, 'update'])->name('update'); // working
+            Route::post('/destroy/{id}', [RoleController::class, 'destroy'])->name('destroy'); // working
+            Route::post('/seed-database', [RoleController::class, 'seedDatabase'])->middleware('role:super-admin|admin')->name('seed'); // working
         });
 
         Route::prefix('permissions')->name('permissions.')->group(function () {
@@ -81,7 +83,6 @@ Route::prefix('admin')->name('admin.')->middleware(['auth'])->group(function(){
 
         Route::post('/assign-teams', [TournamentController::class, 'assignTeams'])->name('assign-teams');
         Route::post('/generate-fixtures', [TournamentController::class, 'generateFixtures'])->name('generate-fixtures');
-        Route::post('/select-next-stage', [TournamentController::class, 'selectNextStage'])->name('select-next-stage');
 
         Route::get('/{tournament}/update-team-ids', [TournamentController::class, 'bulkUpdateTeamIds'])->name('bulkUpdateTeamIds');
     });
@@ -90,6 +91,10 @@ Route::prefix('admin')->name('admin.')->middleware(['auth'])->group(function(){
         Route::get('/', [CricketMatchController::class, 'index'])->name('index');
         Route::get('/loader', [CricketMatchController::class, 'tableLoader'])->name('loader');
         Route::get('/create', [CricketMatchController::class, 'create'])->name('create');
+        Route::get('/create-casual', [CricketMatchCreateController::class, 'create'])->name('create-casual');
+        Route::post('/create-casual/filter-players', [CricketMatchCreateController::class, 'filterPlayers'])->name('create-casual.filter-players');
+        Route::post('/create-casual/add-player', [CricketMatchCreateController::class, 'addPlayer'])->name('create-casual.add-player');
+        Route::post('/create-casual/store', [CricketMatchCreateController::class, 'store'])->name('create-casual.store');
         Route::get('/show/{id}', [CricketMatchController::class, 'show'])->name('show');
         Route::get('/edit', [CricketMatchController::class, 'edit'])->name('edit');
         Route::post('/store', [CricketMatchController::class, 'store'])->name('store');
@@ -106,7 +111,7 @@ Route::prefix('admin')->name('admin.')->middleware(['auth'])->group(function(){
             Route::post('/select-bowler', [CricketMatchController::class, 'selectBowler'])->name('select-bowler');
             Route::post('/set-striker', [CricketMatchController::class, 'setStriker'])->name('set-striker');
             Route::get('/full-match-state/{match_id}', [CricketMatchController::class, 'getFullMatchState'])->name('full-match-state');
-            Route::get('/mark-innings-complete/{match_id}', [CricketMatchController::class, 'setInningsStatus'])->name('mark-innings-complete');
+            Route::post('/mark-innings-complete/{match_id}', [CricketMatchController::class, 'setInningsStatus'])->name('mark-innings-complete');
             Route::get('/match-info', [CricketMatchController::class, 'getMatchInfo'])->name('match-info');
             Route::post('/switch-strike', [CricketMatchController::class, 'switchStrike'])->name('switch-strike');
             Route::get('/change-bowler', [CricketMatchController::class, 'changeBowler'])->name('change-bowler');
@@ -117,6 +122,18 @@ Route::prefix('admin')->name('admin.')->middleware(['auth'])->group(function(){
             Route::get('/{match}/current-over', [CricketMatchController::class, 'getCurrentOver'])->name('current-over');
             Route::post('/undo-last-delivery', [CricketMatchController::class, 'undoLastDelivery'])->name('undo-last-delivery');
         });
+    });
+
+    Route::prefix('finance')->name('finance.')->group(function () {
+        Route::get('/', [FinanceController::class, 'dashboard'])->middleware('can:finance-view')->name('dashboard');
+        Route::redirect('/dashboard', '/admin/finance')->middleware('can:finance-view')->name('dashboard.redirect');
+        Route::get('/dues', [FinanceController::class, 'dues'])->middleware('can:finance-dues-manage')->name('dues.index');
+        Route::get('/payments/create', [FinanceController::class, 'createPayment'])->middleware('can:finance-payments-manage')->name('payments.create');
+        Route::get('/payments', [FinanceController::class, 'payments'])->middleware('can:finance-payments-manage')->name('payments.index');
+        Route::get('/expenses', [FinanceController::class, 'expenses'])->middleware('can:finance-expenses-manage')->name('expenses.index');
+        Route::get('/categories', [FinanceController::class, 'categories'])->middleware('can:finance-categories-manage')->name('categories.index');
+        Route::get('/reports', [FinanceController::class, 'reports'])->middleware('can:finance-reports-view')->name('reports.index');
+        Route::get('/summary', [FinanceController::class, 'reports'])->middleware('can:finance-reports-view')->name('summary');
     });
 
     Route::resource('payments', PaymentController::class)->except(['create', 'edit', 'show']);

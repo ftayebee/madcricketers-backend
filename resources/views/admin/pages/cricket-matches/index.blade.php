@@ -1,6 +1,12 @@
 @extends('admin.layouts.theme')
 
 @section('content')
+    @php
+        $canCreateMatches = Auth::check() && (
+            Auth::user()->can('cricket-matches-create') ||
+            (method_exists(Auth::user(), 'hasRole') && Auth::user()->hasRole(['admin', 'super-admin']))
+        );
+    @endphp
     @push('styles')
         <style>
             .choices {
@@ -105,10 +111,41 @@
                         <div class="col-12 col-md-4">
                             <div class="d-flex flex-column flex-md-row gap-2 justify-content-md-end">
 
-                                <button type="button" class="btn btn-primary w-100 w-md-auto" data-bs-toggle="modal"
-                                    data-bs-target="#add-cricket-match">
-                                    <i class="fa fa-plus me-1"></i> Match
-                                </button>
+                                @if ($canCreateMatches)
+                                    <div class="dropdown w-100 w-md-auto">
+                                        <button class="btn btn-primary dropdown-toggle w-100 w-md-auto" type="button"
+                                            id="createMatchDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+                                            <i class="fa fa-plus me-1"></i> Create Match
+                                        </button>
+                                        <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="createMatchDropdown">
+                                            <li>
+                                                <a class="dropdown-item"
+                                                    href="{{ route('admin.cricket-matches.create', ['type' => 'regular']) }}">
+                                                    <i class="fa fa-calendar-plus me-2"></i> Regular Match
+                                                </a>
+                                            </li>
+                                            <li>
+                                                <a class="dropdown-item"
+                                                    href="{{ route('admin.cricket-matches.create', ['type' => 'tournament']) }}">
+                                                    <i class="fa fa-trophy me-2"></i> Tournament Match
+                                                </a>
+                                            </li>
+                                            <li>
+                                                <a class="dropdown-item"
+                                                    href="{{ route('admin.cricket-matches.create-casual') }}">
+                                                    <i class="fa fa-filter me-2"></i> Filter Based Match
+                                                </a>
+                                            </li>
+                                            <li><hr class="dropdown-divider"></li>
+                                            <li>
+                                                <button type="button" class="dropdown-item" data-bs-toggle="modal"
+                                                    data-bs-target="#add-cricket-match">
+                                                    <i class="fa fa-bolt me-2"></i> Quick Match Modal
+                                                </button>
+                                            </li>
+                                        </ul>
+                                    </div>
+                                @endif
 
                                 <button type="button" class="btn btn-outline-primary w-100 w-md-auto"
                                     data-bs-toggle="modal" data-bs-target="#add-team">

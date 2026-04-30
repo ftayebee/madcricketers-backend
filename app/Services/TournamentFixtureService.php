@@ -6,7 +6,11 @@ use Carbon\Carbon;
 use Carbon\CarbonPeriod;
 use App\Models\Tournament;
 use App\Models\CricketMatch;
+use App\Models\TournamentGroup;
+use App\Models\TournamentGroupTeam;
+use App\Models\TournamentTeamStat;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\DB;
 
 class TournamentFixtureService
 {
@@ -350,7 +354,8 @@ class TournamentFixtureService
      *   group_total_count       int   — total group-stage matches
      *   group_complete_count    int   — how many are completed
      *   group_stage_complete    bool  — all group matches are completed (and at least 1 exists)
-     *   next_stage_exists       bool  — playoffs or semi-final fixtures already generated
+     *   next_stage_exists       bool  — any post-group-stage fixtures exist (playoffs/semi-final/super8)
+     *   super8_exists           bool  — super8 fixtures specifically have been generated
      *   can_generate_next_stage bool  — safe to show "Make Schedule" button
      *   next_stage              string — stage label to use when generating next round
      */
@@ -367,7 +372,11 @@ class TournamentFixtureService
 
         $groupStageComplete = $total > 0 && $completed === $total;
 
-        $nextStageExists = CricketMatch::where('tournament_id', $tournament->id)
+        $super8Exists = CricketMatch::where('tournament_id', $tournament->id)
+                            ->where('stage', 'super8')
+                            ->exists();
+
+        $nextStageExists = $super8Exists || CricketMatch::where('tournament_id', $tournament->id)
                             ->whereIn('stage', ['playoffs', 'semi-final'])
                             ->exists();
 
@@ -377,11 +386,253 @@ class TournamentFixtureService
             'group_complete_count'    => $completed,
             'group_stage_complete'    => $groupStageComplete,
             'next_stage_exists'       => $nextStageExists,
+            'super8_exists'           => $super8Exists,
             'can_generate_next_stage' => $tournament->format === 'group'
                                             && $groupStageComplete
                                             && !$nextStageExists,
             'next_stage'              => 'playoffs',
         ];
+    }
+
+    // ─────────────────────────────────────────────────────────────
+    // Super 8 generation
+    // ─────────────────────────────────────────────────────────────
+
+    /**
+     * Full Super 8 generation pipeline. Owns the entire flow:
+     *   1. Eligibility check (group stage complete, 8+ teams, no duplicates)
+     *   2. Rank teams within each group by computed points → NRR → DB order
+     *   3. Select top N qualifiers per group (N = 8 ÷ group_count)
+     *   4. Create two "Super 8 - Group X" records in tournament_groups
+     *   5. Assign qualifiers using cross-seeding: (group_index + rank) % 2
+     *   6. Generate round-robin fixtures within each Super 8 group
+     *   7. Bulk-insert matches — all wrapped in a DB transaction
+     *
+     * Returns the number of fixtures inserted.
+     *
+     * Cross-seeding example (4 groups, 2 qualifiers each):
+     *   S8-G1 ← G1-1st, G2-2nd, G3-1st, G4-2nd
+     *   S8-G2 ← G1-2nd, G2-1st, G3-2nd, G4-1st
+     * No two teams from the same original group end up in the same Super 8 group.
+     *
+     * Assumptions:
+     *   - Points are computed live from cricket_matches (winning_team_id).
+     *     TournamentTeamStat.nrr is used as a secondary sort but defaults to 0
+     *     when Phase-1 post-match stat updates are not yet implemented.
+     *   - Valid group counts: 1, 2, 4, 8 (any integer where 8 % count === 0).
+     *
+     * @throws \RuntimeException on any eligibility or configuration failure
+     */
+    public function generateSuper8(Tournament $tournament): int
+    {
+        // ── 1. Eligibility ──────────────────────────────────────────
+        $eligibility = $this->getNextStageEligibility($tournament, 'super8');
+        if (!$eligibility['eligible']) {
+            throw new \RuntimeException($eligibility['reason']);
+        }
+
+        $groups     = $tournament->groups->loadMissing('teams');
+        $groupCount = $groups->count();
+
+        if ($groupCount < 1 || 8 % $groupCount !== 0) {
+            throw new \RuntimeException(
+                "Super 8 requires 8 total qualifiers. With {$groupCount} group(s) the number cannot divide evenly. " .
+                "Supported group counts: 1, 2, 4, or 8."
+            );
+        }
+
+        $qualifiersPerGroup = intdiv(8, $groupCount);
+
+        // ── 2 & 3. Rank and select qualifiers ───────────────────────
+        $rankings = $this->computeGroupRankings($tournament);
+
+        $qualifiedByGroup = $groups->values()->map(function ($group, $gi) use ($rankings, $qualifiersPerGroup) {
+            $ranked     = $rankings->get($group->id, collect());
+            $qualifiers = $ranked->take($qualifiersPerGroup)->pluck('team');
+
+            if ($qualifiers->count() < $qualifiersPerGroup) {
+                throw new \RuntimeException(
+                    "Group \"{$group->name}\" only has {$qualifiers->count()} ranked team(s) " .
+                    "but {$qualifiersPerGroup} qualifier(s) are required for Super 8."
+                );
+            }
+
+            return [
+                'group_index' => $gi,
+                'group'       => $group,
+                'qualifiers'  => $qualifiers,
+            ];
+        });
+
+        // Verify final total
+        $totalQualified = $qualifiedByGroup->sum(fn ($g) => $g['qualifiers']->count());
+        if ($totalQualified < 8) {
+            throw new \RuntimeException(
+                "Only {$totalQualified} team(s) qualified (need 8). " .
+                "Ensure all groups have enough teams with completed matches."
+            );
+        }
+
+        $dates      = $this->super8DatePeriod($tournament);
+        $matchCount = 0;
+
+        DB::transaction(function () use ($tournament, $qualifiedByGroup, $dates, &$matchCount) {
+
+            // ── 4. Create two Super 8 groups ────────────────────────
+            $s8Groups = [
+                TournamentGroup::create([
+                    'tournament_id' => $tournament->id,
+                    'name'          => 'Super 8 - Group 1',
+                ]),
+                TournamentGroup::create([
+                    'tournament_id' => $tournament->id,
+                    'name'          => 'Super 8 - Group 2',
+                ]),
+            ];
+
+            // ── 5. Assign qualifiers with cross-seeding ─────────────
+            foreach ($qualifiedByGroup as $groupData) {
+                $gi = $groupData['group_index'];
+
+                foreach ($groupData['qualifiers']->values() as $r => $team) {
+                    // Formula: teams from the same original group always land in
+                    // different Super 8 groups because adjacent ranks flip groups.
+                    $s8GroupIndex = ($gi + $r) % 2;
+
+                    TournamentGroupTeam::create([
+                        'tournament_id' => $tournament->id,
+                        'group_id'      => $s8Groups[$s8GroupIndex]->id,
+                        'team_id'       => $team->id,
+                    ]);
+                }
+            }
+
+            // ── 6. Generate round-robin within each Super 8 group ───
+            $matches = [];
+
+            foreach ($s8Groups as $s8Group) {
+                $s8Group->load('teams');
+                $teams = $s8Group->teams->values();
+
+                if ($teams->count() < 2) {
+                    // Shouldn't happen if the seeding above worked, but guard it
+                    continue;
+                }
+
+                $matches = array_merge(
+                    $matches,
+                    $this->roundRobinPairs($teams, $tournament, 'super8', $dates)
+                );
+            }
+
+            // ── 7. Bulk insert ───────────────────────────────────────
+            if (!empty($matches)) {
+                CricketMatch::insert($matches);
+                $matchCount = count($matches);
+            }
+        });
+
+        return $matchCount;
+    }
+
+    /**
+     * Compute per-group team rankings from live match results.
+     *
+     * Ranking criteria (in order):
+     *   1. Points  — win = 2, draw = 1, loss = 0  (computed from winning_team_id)
+     *   2. NRR     — read from TournamentTeamStat.nrr (defaults to 0 if not updated)
+     *   3. Stability — Collection preserves insertion order as final tiebreaker
+     *
+     * Returns a Collection keyed by group_id. Each value is an ordered Collection
+     * of arrays: [team, points, nrr, wins, losses, played].
+     *
+     * NOTE: TournamentTeamStat.nrr is only reliable once Phase-1 post-match stat
+     * hooks are implemented. Until then, equal-points teams are ordered by DB
+     * insertion sequence, which is consistent and repeatable.
+     */
+    private function computeGroupRankings(Tournament $tournament): Collection
+    {
+        // All completed group-stage matches for this tournament
+        $completedGroupMatches = CricketMatch::where('tournament_id', $tournament->id)
+            ->where('stage', 'group')
+            ->where('status', 'completed')
+            ->get();
+
+        // Stored stats keyed by team_id (NRR may be 0 if Phase-1 not done)
+        $storedStats = TournamentTeamStat::where('tournament_id', $tournament->id)
+            ->get()
+            ->keyBy('team_id');
+
+        $rankingsByGroup = collect();
+
+        foreach ($tournament->groups as $group) {
+            $teamIds = $group->teams->pluck('id');
+
+            // Only include matches where both teams belong to this specific group
+            $groupMatches = $completedGroupMatches->filter(
+                fn ($m) => $teamIds->contains($m->team_a_id) && $teamIds->contains($m->team_b_id)
+            );
+
+            $ranked = $group->teams->map(function ($team) use ($groupMatches, $storedStats) {
+                $played  = $groupMatches->filter(
+                    fn ($m) => $m->team_a_id === $team->id || $m->team_b_id === $team->id
+                );
+                $wins    = $played->where('winning_team_id', $team->id)->count();
+                $draws   = $played->whereNull('winning_team_id')->count();
+                $losses  = $played->count() - $wins - $draws;
+                $points  = ($wins * 2) + $draws;
+                $nrr     = (float) ($storedStats->get($team->id)?->nrr ?? 0);
+
+                return [
+                    'team'   => $team,
+                    'points' => $points,
+                    'nrr'    => $nrr,
+                    'wins'   => $wins,
+                    'losses' => $losses,
+                    'played' => $played->count(),
+                ];
+            })
+            ->sort(function ($a, $b) {
+                // Primary: more points is better
+                if ($a['points'] !== $b['points']) {
+                    return $b['points'] <=> $a['points'];
+                }
+                // Secondary: higher NRR is better
+                return $b['nrr'] <=> $a['nrr'];
+            })
+            ->values();
+
+            $rankingsByGroup->put($group->id, $ranked);
+        }
+
+        return $rankingsByGroup;
+    }
+
+    /**
+     * Date pool for Super 8 fixtures.
+     * Uses the last 8 days of the tournament window (the period reserved for
+     * post-group knockout rounds). Falls back to today+2 if no dates are set.
+     */
+    private function super8DatePeriod(Tournament $tournament): array
+    {
+        if (!$tournament->end_date) {
+            return [Carbon::today()->addDays(2)];
+        }
+
+        $end   = Carbon::parse($tournament->end_date);
+        $start = $end->copy()->subDays(8);
+
+        // Never go before the tournament's own start date
+        if ($tournament->start_date) {
+            $earliest = Carbon::parse($tournament->start_date);
+            if ($start->lt($earliest)) {
+                $start = $earliest;
+            }
+        }
+
+        $dates = iterator_to_array(CarbonPeriod::create($start, $end));
+
+        return empty($dates) ? [$end] : $dates;
     }
 
     // ─────────────────────────────────────────────────────────────

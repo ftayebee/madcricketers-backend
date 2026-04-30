@@ -136,21 +136,14 @@ $(document).ready(function () {
         }
     };
 
-    const formatOvers = (overs) => {
-        const o = Number(overs ?? 0);
-        if (!Number.isFinite(o)) return '0.0';
-        // cricket over notation: integer overs + (balls/10) in current over
-        return o.toFixed(1);
-    };
-
     const renderCurrentBowlerCard = (bowler) => {
         if (bowler) {
             $('#currentBowlerDetails').html(`
                 <strong style="display: block;">${bowler.name}</strong>
                 <div class="d-flex flex-wrap gap-2 mt-1 dt-current-bowler-info" data-bowler-id="${bowler.id}">
-                    <span>Ov: ${formatOvers(bowler.overs)}</span>
-                    <span>R: ${bowler.runs_conceded ?? 0}</span>
-                    <span>W: ${bowler.wickets ?? 0}</span>
+                    <span>Ov: ${bowler.overs}</span>
+                    <span>R: ${bowler.runs_conceded}</span>
+                    <span>W: ${bowler.wickets}</span>
                 </div>
             `);
         } else {
@@ -533,14 +526,6 @@ $(document).ready(function () {
         }
     }
 
-    // Normalize any incoming wicket string into the canonical snake_case
-    // key the backend understands: bowled, caught, lbw, run_out, stumped,
-    // hit_wicket, retired_hurt.
-    function canonicalWicket(type) {
-        if (!type) return null;
-        return String(type).toLowerCase().trim().replace(/[\s\-]+/g, '_');
-    }
-
     function finalizeWicket({ type, batsmanOut, fielderId = null, runs = 0 }) {
         const modalEl = document.getElementById('wicketModal');
         const modal = bootstrap.Modal.getInstance(modalEl) || new bootstrap.Modal(modalEl);
@@ -551,37 +536,33 @@ $(document).ready(function () {
             $('body').removeClass('modal-open');
         }, 100);
 
-        const canonical = canonicalWicket(type);
+        const extras = {};
+        if (type === 'Run Out') {
+            extras.run_out = true;
+        } else if (type === 'caught') {
+            extras.run_out = false;
+            extras.caught_by = fielderId;
+        } else if (type === 'stumped') {
+            extras.run_out = false;
+            extras.stumped_by = fielderId;
+        }
+        extras.type = type;
+        extras.runs = runs;
 
-        // If no batsman was explicitly provided, default to the current
-        // striker from match state (works for bowled/lbw/caught/etc).
-        let finalBatsmanOut = batsmanOut;
-        if (finalBatsmanOut == null) {
-            const state = getMatchState();
-            finalBatsmanOut = state.striker?.id ?? null;
-        }
-        // Coerce numeric strings to numbers (jQuery .data() sometimes returns
-        // strings depending on the initial attribute value).
-        if (typeof finalBatsmanOut === 'string' && /^\d+$/.test(finalBatsmanOut)) {
-            finalBatsmanOut = Number(finalBatsmanOut);
-        }
+        const finalBatsmanOut = batsmanOut || null;
 
         if (typeof finalBatsmanOut !== 'number') {
-            console.warn('Final Batsman Out ID is not a number:', finalBatsmanOut);
-            showToast('Please select the batsman who got out. Make sure a striker is set.', 'error');
+            console.log("Final Batsman Out ID: " + finalBatsmanOut);
+            showToast('Please select the batsman who got out or you need to select striker first.', 'error');
+
             return;
         }
 
-        const extras = { type: canonical, runs };
-        if (canonical === 'caught')  extras.caught_by  = fielderId;
-        if (canonical === 'stumped') extras.stumped_by = fielderId;
-        if (canonical === 'run_out') extras.run_out    = true;
-
         addDelivery({
             runs: 0,
-            extra: extras,
-            wicket: canonical,
-            batsmanOut: finalBatsmanOut,
+            extra: Object.keys(extras).length ? extras : null,
+            wicket: type,
+            batsman_out: finalBatsmanOut,
             legalBall: true
         });
     }
@@ -589,99 +570,57 @@ $(document).ready(function () {
     // ------------------------
     // 🔹 Wicket buttons
     // ------------------------
-    // Handles the "W" button on the Add Delivery card. The button itself no
-    // longer has data-bs-toggle="modal", so this handler is the single source
-    // that opens the wicket modal.
     $(document).on('click', '.btn-wicket', function () {
         const wicketType = $(this).data('wicket');
         currentWicket = wicketType;
-
-        // Reset any previously-shown sub-option panels before showing the modal
-        resetWicketForm();
-
-        // Refresh Run Out button batsman data-attrs from live match state so
-        // the user can't click a stale string value (e.g. "striker") before
-        // the full match state has loaded.
-        const state = getMatchState();
-        const strikerId    = state.striker?.id ?? null;
-        const nonStrikerId = state.nonStriker?.id ?? null;
-        $('.btn-batsman-out.striker-btn').attr('data-batsman', strikerId ?? '');
-        $('.btn-batsman-out.nonstriker-btn').attr('data-batsman', nonStrikerId ?? '');
-        $('.btn-batsman-out.striker-btn').text(
-            'Striker' + (state.striker?.name ? ' (' + state.striker.name + ')' : '')
-        );
-        $('.btn-batsman-out.nonstriker-btn').text(
-            'Non-Striker' + (state.nonStriker?.name ? ' (' + state.nonStriker.name + ')' : '')
-        );
-
-        const modalEl = document.getElementById('wicketModal');
-        const modal = bootstrap.Modal.getInstance(modalEl) || new bootstrap.Modal(modalEl);
+        const modal = new bootstrap.Modal(document.getElementById('wicketModal'));
         modal.show();
     });
 
     $(document).on('click', '.btn-wicket-type', function () {
         const type = $(this).data('wicket');
-        const canonical = canonicalWicket(type);
         $(".wicket-extra").addClass("d-none");
 
-        if (canonical === 'run_out') {
-            $('#runOutOptions').removeClass('d-none');
-        } else if (canonical === 'caught') {
-            $('#caughtOptions').removeClass('d-none');
+        if (type === "Run Out") {
+            document.getElementById('runOutOptions').classList.toggle('d-none', type !== 'Run Out');
+        }
+        else if (type === "Caught") {
+            $("#caughtOptions").removeClass("d-none");
             loadBowlingTeamPlayers('caughtBySelect');
-        } else if (canonical === 'stumped') {
-            $('#stumpedOptions').removeClass('d-none');
+        }
+        else if (type === "Stumped") {
+            $("#stumpedOptions").removeClass("d-none");
             loadBowlingTeamPlayers('stumpedBySelect');
-        } else {
-            // Bowled, LBW, Hit Wicket, Retired Hurt — dismissed batsman is
-            // always the current striker.
-            finalizeWicket({ type: canonical });
+        }
+        else {
+            finalizeWicket({
+                type,
+                batsmanOut: $('.btn-batsman-out.striker-btn').data('batsman')
+            });
         }
     });
 
-    // Run-out batsman selection inside the modal
     $(document).on('click', '.btn-batsman-out', function () {
-        const raw = $(this).attr('data-batsman');
-        const id  = /^\d+$/.test(raw || '') ? Number(raw) : null;
-        if (id == null) {
-            showToast('Batsman info not loaded yet. Wait a moment and try again.', 'error');
-            return;
-        }
         finalizeWicket({
             type: 'run_out',
-            batsmanOut: id
+            batsmanOut: $(this).data('batsman')
         });
     });
 
     $(document).on('change', '#stumpedBySelect', function () {
-        const keeperId = Number($(this).val());
-        if (!keeperId) return;
-        const state = getMatchState();
-        const strikerId = state.striker?.id ?? null;
-        if (!strikerId) {
-            showToast('Striker not loaded; cannot process stumping.', 'error');
-            return;
-        }
-        finalizeWicket({
-            type: 'stumped',
-            batsmanOut: strikerId,
-            fielderId: keeperId,
-            runs: 0
-        });
+        stumpedData.keeperId = $(this).val();
+        stumpedData.batsmanOut = getMatchState().striker.id;
+
+        tryFinalizeStumped();
     });
 
     $(document).on('change', '#caughtBySelect', function () {
-        const selectedFielder = Number($(this).val());
-        if (!selectedFielder) return;
-        const state = getMatchState();
-        const strikerId = state.striker?.id ?? null;
-        if (!strikerId) {
-            showToast('Striker not loaded; cannot process catch.', 'error');
-            return;
-        }
+        const matchState = getMatchState();
+        const selectedFielder = $(this).val();
+        const striker = matchState.striker.id;
         finalizeWicket({
             type: 'caught',
-            batsmanOut: strikerId,
+            batsmanOut: striker,
             fielderId: selectedFielder,
             runs: 0
         });
@@ -739,9 +678,6 @@ $(document).ready(function () {
                 striker: data.updated_state.striker,
                 nonStriker: data.updated_state.nonStriker
             });
-            if (data.updated_state.bowler) {
-                renderCurrentBowlerCard(data.updated_state.bowler);
-            }
             showToast(data.message);
             loadFullMatchState(matchId);
             loadCurrentOver();
@@ -1418,7 +1354,10 @@ $(document).ready(function () {
     function sendInningsStatus() {
         $.ajax({
             url: '/admin/cricket-matches/scoreboard/mark-innings-complete/' + matchId,
-            method: 'GET',
+            method: 'POST',
+            headers: {
+                'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+            },
             success: function (response) {
                 if (response.success) {
                     Swal.fire({

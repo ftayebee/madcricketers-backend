@@ -11,12 +11,18 @@ use Spatie\Permission\Models\Role;
 use Illuminate\Support\Facades\Log;
 use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Hash;
 use Intervention\Image\Facades\Image;
 use Illuminate\Support\Facades\Validator;
 
 class UserController extends Controller
 {
     protected $module = 'users';
+
+    private function selectedRole(Request $request): Role
+    {
+        return Role::findOrFail($request->input('general.role_id'));
+    }
 
     public function index()
     {
@@ -61,16 +67,18 @@ class UserController extends Controller
                 throw new Exception('Unauthorized Access');
             }
             $users = User::query()
-                ->when(Auth::user()->role->name != 'player', function ($query) {
-                    $query->whereHas('role', function ($q) {
-                        $q->where('name', '!=', 'player');
+                ->when(!Auth::user()->hasRole('player'), function ($query) {
+                    $query->whereDoesntHave('roles', function ($q) {
+                        $q->where('name', 'player');
                     });
                 })
-                ->with(['role'])
+                ->with(['role', 'roles'])
                 ->whereNotIn('id', [Auth::id()])
                 ->get();
 
             $formattedData = $users->map(function ($item) {
+                $role = $item->primary_role;
+
                 return [
                     'id' => $item->id,
                     'image' => $item->image,
@@ -80,8 +88,8 @@ class UserController extends Controller
                     'gender' => $item->gender,
                     'national_id' => $item->national_id,
                     'phone' => $item->phone,
-                    'role' => $item->role->name,
-                    'roleSlug' => $item->role->slug,
+                    'role' => optional($role)->name,
+                    'roleSlug' => optional($role)->name,
                     'viewUrl' => route('admin.settings.users.show', $item->id),
                 ];
             });
@@ -164,7 +172,7 @@ class UserController extends Controller
                 'general.email'           => 'required|email|unique:users,email|max:255',
                 'general.phone'           => 'required|string|max:15',
                 'general.status'          => 'required|in:active,inactive',
-                'general.role_id'         => 'nullable|exists:roles,id',
+                'general.role_id'         => 'required|exists:roles,id',
                 'general.blood_group'     => 'nullable|string|max:3',
                 'general.religion'        => 'nullable|string|max:255',
                 'general.gender'          => 'nullable|in:male,female,other',
@@ -184,6 +192,7 @@ class UserController extends Controller
 
             $email = $request->input('general.email');
             $username = explode('@', $email)[0];
+            $role = $this->selectedRole($request);
 
             $user = new User();
             $user->full_name    = $request->input('general.full_name');
@@ -196,15 +205,14 @@ class UserController extends Controller
             $password           = $request->input('general.password');
 
             if (!empty($password)) {
-                $user->password     = bcrypt($password);
-                $user->visible_pass = $password;
+                $user->password = Hash::make($password);
             }
             $user->national_id  = $request->input('general.national_id');
             $user->religion     = $request->input('general.religion');
             $user->gender       = $request->input('general.gender');
             $user->date_of_birth = $request->input('general.date_of_birth');
             $user->address      = $request->input('general.address');
-            $user->role_id      = $request->input('general.role_id');
+            $user->role_id      = $role->id;
 
             // Handle profile picture
             if ($request->hasFile('general.profile_picture')) {
@@ -228,9 +236,7 @@ class UserController extends Controller
                 }
 
                 // Save image — use players/ folder when creating a player user
-                $assignedRoleId = $request->input('general.role_id');
-                $assignedRole   = \Spatie\Permission\Models\Role::find($assignedRoleId);
-                $uploadFolder   = ($assignedRole && $assignedRole->name === 'player') ? 'players' : 'users';
+                $uploadFolder   = $role->name === 'player' ? 'players' : 'users';
                 $uploadPath     = storage_path('app/public/uploads/' . $uploadFolder);
                 if (!file_exists($uploadPath)) {
                     mkdir($uploadPath, 0775, true);
@@ -240,11 +246,10 @@ class UserController extends Controller
             }
 
             $user->save();
-            $role = Role::findOrFail($user->role_id);
             $user->syncRoles([$role]);
 
             $hasPlayerInfo = filter_var($request->input('hasPlayerInfo'), FILTER_VALIDATE_BOOLEAN);
-            if($hasPlayerInfo == true) {
+            if($role->name === 'player' || $hasPlayerInfo == true) {
                 $player = new Player();
                 $player->user_id        = $user->id;
                 $player->player_type    = $request->input('player.type');
@@ -314,10 +319,10 @@ class UserController extends Controller
                 'general.profile_picture' => 'nullable|string',
                 'general.full_name'       => 'required|string|max:255',
                 'general.nickname'        => 'nullable|string|max:255',
-                'general.email'           => 'required|email|email|max:255',
+                'general.email'           => 'required|email|max:255|unique:users,email,' . $id,
                 'general.phone'           => 'required|string|max:15',
                 'general.status'          => 'required|in:active,inactive',
-                'general.role_id'         => 'nullable|exists:roles,id',
+                'general.role_id'         => 'required|exists:roles,id',
                 'general.blood_group'     => 'nullable|string|max:3',
                 'general.religion'        => 'nullable|string|max:255',
                 'general.gender'          => 'nullable|in:male,female,other',
@@ -345,6 +350,7 @@ class UserController extends Controller
 
             $email = $request->input('general.email');
             $username = explode('@', $email)[0];
+            $role = $this->selectedRole($request);
 
             $user->full_name    = $request->input('general.full_name');
             $user->nickname     = $request->input('general.nickname');
@@ -356,8 +362,7 @@ class UserController extends Controller
             $password           = $request->input('general.password');
 
             if (!empty($password)) {
-                $user->password     = bcrypt($password);
-                $user->visible_pass = $password;
+                $user->password = Hash::make($password);
             }
 
             $user->national_id  = $request->input('general.national_id');
@@ -365,7 +370,7 @@ class UserController extends Controller
             $user->gender       = $request->input('general.gender');
             $user->date_of_birth = $request->input('general.date_of_birth');
             $user->address      = $request->input('general.address');
-            $user->role_id      = $request->input('general.role_id');
+            $user->role_id      = $role->id;
 
             // Handle profile picture
             $profilePicture = $request->input('general.profile_picture');
@@ -392,11 +397,10 @@ class UserController extends Controller
 
             $user->update();
 
-            $role = Role::findOrFail($user->role_id);
             $user->syncRoles([$role]);
 
             if($user->hasRole('player')){
-                $player                 = $user->player;
+                $player                 = $user->player ?: new Player();
                 $player->user_id        = $user->id;
                 $player->player_type    = $request->input('player.player_type');
                 $player->player_role    = $request->input('player.player_role');

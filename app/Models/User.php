@@ -23,7 +23,6 @@ class User extends Authenticatable
         'email',
         'blood_group',
         'password',
-        'visible_pass',
         'phone',
         'address',
         'role_id',
@@ -33,6 +32,7 @@ class User extends Authenticatable
 
     protected $hidden = [
         'password',
+        'visible_pass',
         'remember_token',
     ];
 
@@ -43,6 +43,11 @@ class User extends Authenticatable
     public function role()
     {
         return $this->belongsTo(Role::class);
+    }
+
+    public function getPrimaryRoleAttribute()
+    {
+        return $this->roles->first() ?: $this->role;
     }
 
     public function getImageAttribute()

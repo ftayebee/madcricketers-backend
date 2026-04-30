@@ -10,13 +10,18 @@ class Team extends Model
 {
     use HasFactory;
 
-    protected $fillable = ['name', 'slug', 'logo', 'coach_name', 'manager_name', 'description'];
+    protected $fillable = ['name', 'slug', 'logo', 'coach_name', 'manager_name', 'description', 'captain_id'];
 
     public function players()
     {
         return $this->belongsToMany(Player::class, 'player_team')
             ->withPivot(['match_id', 'tournament_id'])
             ->withTimestamps();
+    }
+
+    public function captain()
+    {
+        return $this->belongsTo(Player::class, 'captain_id');
     }
 
     public function playersForTournamentMatch($matchId, $tournamentId)

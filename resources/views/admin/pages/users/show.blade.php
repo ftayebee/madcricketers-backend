@@ -206,7 +206,7 @@
                                                 <option value=""></option>
                                                 @foreach ($roles as $item)
                                                     <option value="{{ $item->id }}"
-                                                        @if ($item->id == $user->role->id) selected @endif>
+                                                        @if (optional($user->primary_role)->id === $item->id) selected @endif>
                                                         {{ $item->name }}</option>
                                                 @endforeach
                                             </select>

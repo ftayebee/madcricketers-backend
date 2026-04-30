@@ -44,4 +44,9 @@ class TournamentPlayerStat extends Model
     {
         return $this->belongsTo(Team::class, 'team_id', 'id');
     }
+
+    public function tournament()
+    {
+        return $this->belongsTo(Tournament::class, 'tournament_id', 'id');
+    }
 }

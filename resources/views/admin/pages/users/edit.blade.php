@@ -118,7 +118,8 @@
                                     <option value=""></option>
                                     @foreach ($roles as $item)
                                         <option value="{{ $item->id }}"
-                                            @if ($user->hasRole($item->id)) selected @endif>
+                                            data-role-name="{{ $item->name }}"
+                                            @if (optional($user->primary_role)->id === $item->id) selected @endif>
                                             {{ ucfirst($item->name) }}
                                         </option>
                                     @endforeach
@@ -200,16 +201,16 @@
                         </div>
 
                         <div class="row" id="player-info"
-                            style="display: @if ($user->hasRole($item->id)) flex @else none @endif;">
+                            style="display: @if (optional($user->primary_role)->name === 'player') flex @else none @endif;">
                             <div class="col-md-3 mb-3">
                                 <label style="font-size: 16px;font-weight: bold;"class="form-label">Player Type</label>
                                 <select class="select2 form-control" name="player[player_type]">
-                                    <option @if ($user->player->player_type == '') selected @endif value="">
+                                    <option @if (optional($user->player)->player_type == '') selected @endif value="">
                                         Choose
                                     </option>
-                                    <option @if ($user->player->player_type == 'registered') selected @endif value="registered">
+                                    <option @if (optional($user->player)->player_type == 'registered') selected @endif value="registered">
                                         Registered</option>
-                                    <option @if ($user->player->player_type == 'guest') selected @endif value="guest">
+                                    <option @if (optional($user->player)->player_type == 'guest') selected @endif value="guest">
                                         Guest
                                     </option>
                                 </select>
@@ -218,16 +219,16 @@
                                 <label style="font-size: 16px;font-weight: bold;"class="form-label">Player Role</label>
                                 <select class="select2 form-control" name="player[player_role]">
                                     <option value="">Choose</option>
-                                    <option @if ($user->player->player_role == 'batsman') selected @endif value="batsman">
+                                    <option @if (optional($user->player)->player_role == 'batsman') selected @endif value="batsman">
                                         Batsman
                                     </option>
-                                    <option @if ($user->player->player_role == 'bowler') selected @endif value="bowler">
+                                    <option @if (optional($user->player)->player_role == 'bowler') selected @endif value="bowler">
                                         Bowler
                                     </option>
-                                    <option @if ($user->player->player_role == 'all-rounder') selected @endif
+                                    <option @if (optional($user->player)->player_role == 'all-rounder') selected @endif
                                         value="all-rounder">All
                                         Rounder</option>
-                                    <option @if ($user->player->player_role == 'wicketkeeper') selected @endif
+                                    <option @if (optional($user->player)->player_role == 'wicketkeeper') selected @endif
                                         value="wicketkeeper">Wicket
                                         Keeper</option>
                                 </select>
@@ -236,13 +237,13 @@
                                 <label style="font-size: 16px;font-weight: bold;"class="form-label">Batting Style</label>
                                 <select class="select2 form-control" name="player[batting_style]">
                                     <option value="">Choose</option>
-                                    <option @if ($user->player->batting_style == 'right-handed') selected @endif
+                                    <option @if (optional($user->player)->batting_style == 'right-handed') selected @endif
                                         value="right-handed">Right
                                         Handed</option>
-                                    <option @if ($user->player->batting_style == 'left-handed') selected @endif
+                                    <option @if (optional($user->player)->batting_style == 'left-handed') selected @endif
                                         value="left-handed">Left
                                         Handed</option>
-                                    <option @if ($user->player->batting_style == 'switch hitter') selected @endif
+                                    <option @if (optional($user->player)->batting_style == 'switch hitter') selected @endif
                                         value="switch hitter">
                                         Switch Hitter</option>
                                 </select>
@@ -251,14 +252,14 @@
                                 <label style="font-size: 16px;font-weight: bold;"class="form-label">Bowling Style</label>
                                 <select class="select2 form-control" name="player[bowling_style]">
                                     <option value="">Choose</option>
-                                    <option @if ($user->player->bowling_style == 'fast') selected @endif value="fast">Fast
+                                    <option @if (optional($user->player)->bowling_style == 'fast') selected @endif value="fast">Fast
                                     </option>
-                                    <option @if ($user->player->bowling_style == 'medium') selected @endif value="medium">
+                                    <option @if (optional($user->player)->bowling_style == 'medium') selected @endif value="medium">
                                         Meidum
                                     </option>
-                                    <option @if ($user->player->bowling_style == 'spin') selected @endif value="spin">Spin
+                                    <option @if (optional($user->player)->bowling_style == 'spin') selected @endif value="spin">Spin
                                     </option>
-                                    <option @if ($user->player->bowling_style == 'none') selected @endif value="none">None
+                                    <option @if (optional($user->player)->bowling_style == 'none') selected @endif value="none">None
                                     </option>
                                 </select>
                             </div>
@@ -268,7 +269,7 @@
                                         class="required-mark">*</span></label>
                                 <input type="text" class="form-control" placeholder="Jursey Number"
                                     required="" name="player[jursey_number]"
-                                    value="{{ $user->player->jursey_number }}">
+                                    value="{{ optional($user->player)->jursey_number }}">
                             </div>
 
                             <div class="col-md-3 mb-3">
@@ -276,7 +277,7 @@
                                         class="required-mark">*</span></label>
                                 <input type="text" class="form-control" placeholder="Jursey Name"
                                     required="" name="player[jursey_name]"
-                                    value="{{ $user->player->jursey_name }}">
+                                    value="{{ optional($user->player)->jursey_name }}">
                             </div>
 
                             <div class="col-md-3 mb-3">
@@ -320,7 +321,7 @@
                                         class="required-mark">*</span></label>
                                 <input type="text" class="form-control" placeholder="Chest Measurement"
                                     required="" name="player[chest_measurement]"
-                                    value="{{ $user->player->chest_measurement }}">
+                                    value="{{ optional($user->player)->chest_measurement }}">
                             </div>
                         </div>
 
@@ -460,10 +461,10 @@
             });
 
             $('select[name="general[role_id]"]').on('change', function() {
-                const selectedValue = $(this).val();
+                const selectedRole = $(this).find(':selected').data('role-name');
                 $('#player-info').hide();
                 $('input[name="hasPlayerInfo"]').val(false);
-                if (selectedValue == 3) {
+                if (selectedRole === 'player') {
                     $('#player-info').show();
                     $('input[name="hasPlayerInfo"]').val(true);
                     initSelect2();

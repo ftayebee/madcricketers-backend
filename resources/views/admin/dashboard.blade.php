@@ -50,11 +50,13 @@
             <div class="card shadow-sm rounded-2 custom-card-border">
                 <div class="card-header bg-light fw-bold d-flex justify-content-between align-items-center">
                     <span>Players Not Paid This Month</span>
+                    @can('finance-dues-manage')
                     @if ($playersNotPaid->count() > 5)
-                        <a href="{{ route('admin.payments.index') }}" class="btn btn-sm btn-outline-primary">
+                        <a href="{{ route('admin.finance.dues.index') }}" class="btn btn-sm btn-outline-primary">
                             View More
                         </a>
                     @endif
+                    @endcan
                 </div>
                 <div class="card-body">
                     @if ($playersNotPaid->count())

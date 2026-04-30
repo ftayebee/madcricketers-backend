@@ -113,7 +113,9 @@
                                 <select class="select2 form-control" name="general[role_id]">
                                     <option value=""></option>
                                     @foreach ($roles as $item)
-                                        <option value="{{ $item->id }}">{{ ucfirst($item->name) }}</option>
+                                        <option value="{{ $item->id }}" data-role-name="{{ $item->name }}">
+                                            {{ ucfirst($item->name) }}
+                                        </option>
                                     @endforeach
                                 </select>
                             </div>
@@ -359,10 +361,10 @@
             });
 
             $('select[name="general[role_id]"]').on('change', function() {
-                const selectedValue = $(this).val();
+                const selectedRole = $(this).find(':selected').data('role-name');
                 $('#player-info').hide();
                 $('input[name="hasPlayerInfo"]').val(false);
-                if (selectedValue == 3) {
+                if (selectedRole === 'player') {
                     $('#player-info').show();
                     $('input[name="hasPlayerInfo"]').val(true);
                     initSelect2();

@@ -57,6 +57,14 @@
             .avatar-placeholder {
                 border: 1px dashed #ddd;
             }
+
+            .finance-mini-card {
+                border: 1px solid #e8eef5;
+                border-radius: 8px;
+                padding: 1rem;
+                background: #fff;
+                height: 100%;
+            }
         </style>
     @endpush
     <div class="row">
@@ -280,6 +288,12 @@
                                     role="tab" aria-controls="vl-pills-profile" aria-selected="true">
                                     <span>Statistics</span>
                                 </a>
+                                @canany(['finance-view', 'finance-dues-manage', 'finance-payments-manage', 'finance-reports-view'])
+                                    <a class="nav-link" id="vl-pills-finance-tab" data-bs-toggle="pill" href="#vl-pills-finance"
+                                        role="tab" aria-controls="vl-pills-finance" aria-selected="false">
+                                        <span>Finance</span>
+                                    </a>
+                                @endcanany
                             </div>
                         </div>
 
@@ -340,6 +354,88 @@
 
                                     </div>
                                 </div>
+                                @canany(['finance-view', 'finance-dues-manage', 'finance-payments-manage', 'finance-reports-view'])
+                                <div class="tab-pane fade" id="vl-pills-finance" role="tabpanel"
+                                    aria-labelledby="vl-pills-finance-tab">
+                                    @php
+                                        $financePlayer = $user->player;
+                                        $playerPayments = $financePlayer ? $financePlayer->payments()->latest('payment_date')->take(8)->get() : collect();
+                                        $playerDues = $financePlayer ? $financePlayer->monthlyDonations()->latest()->take(8)->get() : collect();
+                                        $totalPaid = $playerPayments->where('status', 'paid')->sum('amount');
+                                        $totalDue = $playerDues->sum('expected_amount');
+                                        $paidAgainstDues = $playerDues->sum('paid_amount');
+                                        $remainingBalance = max(0, $totalDue - $paidAgainstDues);
+                                        $overdueAmount = $playerDues->filter(fn($due) => !$due->is_paid && \Carbon\Carbon::create($due->year, $due->month)->endOfMonth()->isPast())->sum(fn($due) => $due->expected_amount - $due->paid_amount);
+                                    @endphp
+
+                                    <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
+                                        <h5 class="mb-0">Player Finance</h5>
+                                        @if($financePlayer)
+                                            <div class="d-flex flex-wrap gap-2">
+                                                @can('finance-dues-manage')
+                                                    <a href="{{ route('admin.finance.dues.index', ['player_id' => $financePlayer->id]) }}" class="btn btn-sm btn-primary">Add due for this player</a>
+                                                @endcan
+                                                @can('finance-payments-manage')
+                                                    <a href="{{ route('admin.finance.payments.create', ['player_id' => $financePlayer->id]) }}" class="btn btn-sm btn-success">Receive payment</a>
+                                                @endcan
+                                            </div>
+                                        @endif
+                                    </div>
+
+                                    <div class="row g-3 mb-3">
+                                        <div class="col-md-3"><div class="finance-mini-card"><p class="text-muted mb-1">Total Paid</p><h4 class="text-success mb-0">{{ number_format($totalPaid, 2) }}</h4></div></div>
+                                        <div class="col-md-3"><div class="finance-mini-card"><p class="text-muted mb-1">Total Due</p><h4 class="text-primary mb-0">{{ number_format($totalDue, 2) }}</h4></div></div>
+                                        <div class="col-md-3"><div class="finance-mini-card"><p class="text-muted mb-1">Remaining Balance</p><h4 class="text-warning mb-0">{{ number_format($remainingBalance, 2) }}</h4></div></div>
+                                        <div class="col-md-3"><div class="finance-mini-card"><p class="text-muted mb-1">Overdue Amount</p><h4 class="text-danger mb-0">{{ number_format($overdueAmount, 2) }}</h4></div></div>
+                                    </div>
+
+                                    <div class="row g-3">
+                                        <div class="col-lg-6">
+                                            <div class="card border">
+                                                <div class="card-header bg-white fw-bold">Dues</div>
+                                                <div class="card-body">
+                                                    @if($playerDues->count())
+                                                        <div class="table-responsive">
+                                                            <table class="table table-sm">
+                                                                <thead><tr><th>Period</th><th>Amount</th><th>Paid</th><th>Status</th></tr></thead>
+                                                                <tbody>
+                                                                    @foreach($playerDues as $due)
+                                                                        @php $status = $due->is_paid ? 'Paid' : ($due->paid_amount > 0 ? 'Partial' : 'Pending'); @endphp
+                                                                        <tr><td>{{ \Carbon\Carbon::create($due->year, $due->month)->format('F Y') }}</td><td>{{ number_format($due->expected_amount, 2) }}</td><td>{{ number_format($due->paid_amount, 2) }}</td><td><span class="badge bg-{{ $due->is_paid ? 'success' : 'warning text-dark' }}">{{ $status }}</span></td></tr>
+                                                                    @endforeach
+                                                                </tbody>
+                                                            </table>
+                                                        </div>
+                                                    @else
+                                                        <p class="text-muted mb-0">No dues recorded for this player.</p>
+                                                    @endif
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="col-lg-6">
+                                            <div class="card border">
+                                                <div class="card-header bg-white fw-bold">Recent Payments</div>
+                                                <div class="card-body">
+                                                    @if($playerPayments->count())
+                                                        <div class="table-responsive">
+                                                            <table class="table table-sm">
+                                                                <thead><tr><th>Date</th><th>Category</th><th>Amount</th><th>Status</th></tr></thead>
+                                                                <tbody>
+                                                                    @foreach($playerPayments as $payment)
+                                                                        <tr><td>{{ optional($payment->payment_date ? \Carbon\Carbon::parse($payment->payment_date) : null)->format('d M Y') ?? '-' }}</td><td>{{ ucfirst($payment->type) }}</td><td class="text-success">{{ number_format($payment->amount, 2) }}</td><td><span class="badge bg-{{ $payment->status === 'paid' ? 'success' : 'warning text-dark' }}">{{ ucfirst($payment->status ?? 'pending') }}</span></td></tr>
+                                                                    @endforeach
+                                                                </tbody>
+                                                            </table>
+                                                        </div>
+                                                    @else
+                                                        <p class="text-muted mb-0">No payments recorded for this player.</p>
+                                                    @endif
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                @endcanany
                             </div>
                         </div>
                     </div>

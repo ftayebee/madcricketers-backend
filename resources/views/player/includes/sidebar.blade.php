@@ -28,7 +28,7 @@
                     <div class="d-block">
                         <p class="text-light fw-medium fs-16 mb-0">{{ Auth::user()->full_name }}</p>
                         <p class="mb-0 text-light">{{ Auth::user()->email }}</p>
-                        <p class="mb-0 badge badge-soft-info fs-12 mt-1">{{ ucfirst(Auth::user()->role->name) }}</p>
+                        <p class="mb-0 badge badge-soft-info fs-12 mt-1">{{ ucfirst(optional(Auth::user()->primary_role)->name ?? 'player') }}</p>
                     </div>
                 </div>
             </div>

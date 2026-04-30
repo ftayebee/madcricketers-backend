@@ -41,6 +41,49 @@ class CricketMatchController extends Controller
         }
     }
 
+    protected function canAny(array $permissions): bool
+    {
+        $user = Auth::user();
+
+        if (!$user) {
+            return false;
+        }
+
+        foreach ($permissions as $permission) {
+            if ($user->can($permission)) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    protected function canViewScoreboard(): bool
+    {
+        return $this->canAny([
+            $this->module . '-scoreboard',
+            'scoreboard-view',
+            'scoreboard-edit',
+            $this->module . '-start',
+        ]);
+    }
+
+    protected function canManageScoreboard(): bool
+    {
+        return $this->canAny([
+            $this->module . '-scoreboard',
+            'scoreboard-edit',
+        ]);
+    }
+
+    protected function unauthorizedJson()
+    {
+        return response()->json([
+            'success' => false,
+            'message' => 'Unauthorized Access',
+        ], 403);
+    }
+
     public function index()
     {
         try {
@@ -154,7 +197,7 @@ class CricketMatchController extends Controller
 
                     // Permissions
                     'canView' => Auth::user()->can($this->module . '-view'),
-                    'canScore' => Auth::user()->can($this->module . '-edit'),
+                    'canScore' => $this->canManageScoreboard(),
                     'canEdit' => Auth::user()->can($this->module . '-edit'),
                     'canDelete' => Auth::user()->can($this->module . '-delete'),
 
@@ -181,6 +224,54 @@ class CricketMatchController extends Controller
                 'success' => false,
                 'message' => 'Error loading matches.'
             ], 500);
+        }
+    }
+
+    public function create(Request $request)
+    {
+        try {
+            if (Auth::user() && !Auth::user()->can($this->module . '-create')) {
+                throw new Exception('Unauthorized Access');
+            }
+
+            session([
+                'title' => 'Create Cricket Match',
+                'breadcrumbs' => [
+                    'home' => [
+                        'url' => route('admin.dashboard'),
+                        'name' => 'Dashboard'
+                    ],
+                    $this->module => [
+                        'url' => route('admin.cricket-matches.index'),
+                        'name' => 'Daily Cricket Matches Management'
+                    ],
+                    'create' => [
+                        'url' => route('admin.cricket-matches.create'),
+                        'name' => 'Create Match'
+                    ],
+                ]
+            ]);
+
+            $today = Carbon::today();
+            $teamsInFutureTournaments = TournamentGroupTeam::whereHas('group.tournament', function ($query) use ($today) {
+                $query->where('start_date', '>', $today);
+            })->pluck('team_id')->toArray();
+
+            $teams = Team::whereNotIn('id', $teamsInFutureTournaments)->orderBy('name')->get();
+            $tournaments = Tournament::where('start_date', '>=', $today)->orderBy('start_date')->get();
+
+            return view('admin.pages.cricket-matches.create', compact('teams', 'tournaments'));
+        } catch (Exception $e) {
+            Log::error("Error loading cricket match create form", [
+                'line' => $e->getLine(),
+                'file' => $e->getFile(),
+                'message' => $e->getMessage(),
+            ]);
+
+            return redirect()->back()->with([
+                'success' => false,
+                'message' => 'Failed to load match creation form.',
+            ]);
         }
     }
 
@@ -339,6 +430,10 @@ class CricketMatchController extends Controller
     public function storeToss(Request $request)
     {
         try {
+            if (!$this->canAny([$this->module . '-toss', $this->module . '-scoreboard', 'scoreboard-edit'])) {
+                return $this->unauthorizedJson();
+            }
+
             $validation = Validator::make($request->all(), [
                 'match_id' => 'required|exists:cricket_matches,id',
                 'toss_winner_team_id' => 'required|exists:teams,id',
@@ -433,7 +528,7 @@ class CricketMatchController extends Controller
     public function viewScoreBoard($id)
     {
         try {
-            if (Auth::user() && !Auth::user()->can($this->module . '-start')) {
+            if (!$this->canViewScoreboard()) {
                 throw new Exception('Unauthorized Access');
             }
 
@@ -516,6 +611,10 @@ class CricketMatchController extends Controller
 
     public function show($id)
     {
+        if (!$this->canAny([$this->module . '-view'])) {
+            abort(403, 'Unauthorized Access');
+        }
+
         $match = CricketMatch::with(['teamA', 'teamB', 'winningTeam'])->findOrFail($id);
 
         // Fetch scoreboards
@@ -591,6 +690,10 @@ class CricketMatchController extends Controller
     public function selectBatsman(Request $request)
     {
         try {
+            if (!$this->canManageScoreboard()) {
+                return $this->unauthorizedJson();
+            }
+
             $validator = Validator::make($request->all(), [
                 'match_id' => 'required|exists:cricket_matches,id',
                 'team_id' => 'required|exists:teams,id',
@@ -789,6 +892,10 @@ class CricketMatchController extends Controller
     public function selectBowler(Request $request)
     {
         try {
+            if (!$this->canManageScoreboard()) {
+                return $this->unauthorizedJson();
+            }
+
             $validator = Validator::make($request->all(), [
                 'match_id' => 'required|exists:cricket_matches,id',
                 'team_id' => 'required|exists:teams,id',
@@ -876,13 +983,14 @@ class CricketMatchController extends Controller
     public function getPlayersList(Request $request)
     {
         try {
+            if (!$this->canViewScoreboard()) {
+                return $this->unauthorizedJson();
+            }
+
             $matchId = $request->match_id;
             $teamId = $request->team_id;
             $type = $request->type;
             $players = collect();
-            Log::info("Match ID: " . $matchId);
-            Log::info("Team ID: " . $teamId);
-            Log::info("Type: " . $type);
 
             if (!in_array($type, ['batting', 'bowling'])) {
                 return response()->json([
@@ -931,13 +1039,13 @@ class CricketMatchController extends Controller
                     $oversBowled = $matchPlayer ? $matchPlayer->overs_bowled : 0;
 
                     // Only include players who haven't exceeded max overs
-                    if (empty($maxOversPerBowler) || $oversBowled < $maxOversPerBowler) {
+                    if ($oversBowled < $maxOversPerBowler) {
                         // Attach overs_bowled so mapPlayer can use it
                         $player->overs_bowled = $oversBowled;
                         return $player;
                     }
                 })->filter()->values(); // Remove null values
-                Log::info("Players: " . json_encode($players));
+
                 $players = $players->map(fn($player) => $this->mapPlayer($player));
             }
 
@@ -962,7 +1070,11 @@ class CricketMatchController extends Controller
     public function getFullMatchState(Request $request)
     {
         try {
-            $matchId = $request->match_id;
+            if (!$this->canViewScoreboard()) {
+                return $this->unauthorizedJson();
+            }
+
+            $matchId = $request->match_id ?? $request->route('match_id');
             $match = CricketMatch::findOrFail($matchId);
 
             // --- Shared: load scoreboards ---
@@ -1129,6 +1241,7 @@ class CricketMatchController extends Controller
                         'runs' => $scoreboard->runs ?? 0,
                         'wickets' => $scoreboard->wickets ?? 0,
                         'overs' => $scoreboard->overs ?? '0.0',
+                        'status' => $scoreboard->status,
                         'totalOvers' => $totalOvers,
                         'currentCRR' => $currentRate,
                         'projected' => $projected,
@@ -1165,7 +1278,32 @@ class CricketMatchController extends Controller
                 ->where('team_id', $bowling_team_id)
                 ->whereIn('status', ['bowling', 'fielding'])
                 ->with('player.user')
-                ->get();
+                ->get()
+                ->map(function ($mp) use ($match) {
+                    $maxOvers = (int) ($match->bowler_max_overs ?? 0);
+                    return [
+                        'id' => $mp->player_id,
+                        'name' => $mp->player?->user?->full_name ?? 'Unknown',
+                        'role' => $mp->player?->player_role,
+                        'status' => $mp->status,
+                        'overs' => $mp->overs_bowled ?? 0,
+                        'runs_conceded' => $mp->runs_conceded ?? 0,
+                        'wickets' => $mp->wickets_taken ?? 0,
+                        'remaining_overs' => $maxOvers > 0 ? max(0, $maxOvers - (float) ($mp->overs_bowled ?? 0)) : null,
+                    ];
+                })
+                ->values();
+
+            $currentOverData = json_decode($this->getCurrentOver($matchId)->getContent(), true) ?: [];
+            $currentOverBalls = $currentOverData['balls'] ?? [];
+            $legalBallsInCurrentOver = (int) ($currentOverData['legalBalls'] ?? 0);
+            $currentOversParts = explode('.', (string) ($runningScoreboard->overs ?? '0.0'));
+            $currentTotalLegalBalls = ((int) ($currentOversParts[0] ?? 0) * 6) + (int) ($currentOversParts[1] ?? 0);
+            $currentInningsMaxBalls = (int) ($match->max_overs ?? 0) * 6;
+
+            if ($legalBallsInCurrentOver >= 6 && ($currentInningsMaxBalls === 0 || $currentTotalLegalBalls < $currentInningsMaxBalls)) {
+                $currentOverBalls = [];
+            }
 
             $matchState = [
                 'striker' => $striker ? [
@@ -1196,11 +1334,20 @@ class CricketMatchController extends Controller
                 'battingTeamId' => $batting_team_id,
                 'bowlingTeamId' => $bowling_team_id,
                 'currentInnings' => $runningScoreboard->innings,
+                'inningsStatus' => $runningScoreboard->status,
+                'currentOver' => [
+                    'over_number' => $currentOverData['current_over'] ?? null,
+                    'balls' => $currentOverBalls,
+                    'legalBalls' => $legalBallsInCurrentOver,
+                ],
             ];
 
             return response()->json([
                 'success' => true,
                 'match_id' => $matchId,
+                'match_status' => $match->status,
+                'max_overs' => $match->max_overs,
+                'bowler_max_overs' => $match->bowler_max_overs,
                 'innings' => $allInnings,
                 'match_state' => $matchState,
                 'match_result' => $match->status === 'completed' ? [
@@ -1229,6 +1376,10 @@ class CricketMatchController extends Controller
 
     public function getTeamBPlayers($matchId)
     {
+        if (!$this->canViewScoreboard()) {
+            return $this->unauthorizedJson();
+        }
+
         $match = CricketMatch::with(['teamB.players.user'])->findOrFail($matchId);
 
         $players = $match->teamB->players->map(function ($player) {
@@ -1245,6 +1396,10 @@ class CricketMatchController extends Controller
     public function chooseBowler(Request $request)
     {
         try {
+            if (!$this->canManageScoreboard()) {
+                return $this->unauthorizedJson();
+            }
+
             $validator = Validator::make($request->all(), [
                 'match_id' => 'required|exists:cricket_matches,id',
                 'bowler_id' => 'required|exists:players,id',
@@ -1285,6 +1440,7 @@ class CricketMatchController extends Controller
                             'overs_bowled' => 0,
                             'runs_conceded' => 0,
                             'wickets_taken' => 0,
+                            'maidens' => 0,
                         ]
                     )
                 );
@@ -1415,6 +1571,10 @@ class CricketMatchController extends Controller
     public function getCurrentOver($matchId)
     {
         try {
+            if (!$this->canViewScoreboard()) {
+                return $this->unauthorizedJson();
+            }
+
             $scoreboard = MatchScoreBoard::where('match_id', $matchId)->where('status', 'running')->first();
 
             if (!$scoreboard) {
@@ -1536,6 +1696,10 @@ class CricketMatchController extends Controller
     public function switchStrike(Request $request)
     {
         try {
+            if (!$this->canManageScoreboard()) {
+                return $this->unauthorizedJson();
+            }
+
             $validator = Validator::make($request->all(), [
                 'match_id' => 'required|exists:cricket_matches,id',
             ]);
@@ -1659,7 +1823,7 @@ class CricketMatchController extends Controller
         return true;
     }
 
-    public function switchTeam($match, $scoreboard)
+    protected function switchTeam($match, $scoreboard)
     {
         if ($scoreboard->innings >= 2) {
             return null;
@@ -1693,7 +1857,11 @@ class CricketMatchController extends Controller
     public function setInningsStatus(Request $request)
     {
         try {
-            $matchId = $request->match_id;
+            if (!$this->canManageScoreboard()) {
+                return $this->unauthorizedJson();
+            }
+
+            $matchId = $request->match_id ?? $request->route('match_id');
             $match = CricketMatch::findOrFail($matchId);
 
             $scoreboard = MatchScoreBoard::where('match_id', $matchId)
@@ -1719,9 +1887,7 @@ class CricketMatchController extends Controller
                 ->count();
 
             // Convert overs string like "4.3" to balls
-            $overParts = explode('.', (string)$scoreboard->overs);
-            $overs = (int)($overParts[0] ?? 0);
-            $balls = (int)($overParts[1] ?? 0);
+            list($overs, $balls) = explode('.', $scoreboard->overs);
             $ballsBowled = ($overs * 6) + $balls;
             $maxBalls = $match->max_overs * 6;
 
@@ -1844,6 +2010,10 @@ class CricketMatchController extends Controller
     public function storeDelivery(Request $request)
     {
         try {
+            if (!$this->canManageScoreboard()) {
+                return $this->unauthorizedJson();
+            }
+
             $validator = Validator::make($request->all(), [
                 'match_id' => 'required|exists:cricket_matches,id',
                 'striker_id' => 'nullable|exists:players,id',
@@ -1857,6 +2027,9 @@ class CricketMatchController extends Controller
                 'extras.batsman_out' => 'sometimes|exists:players,id',
                 'extras.caught_by' => 'sometimes|exists:players,id',
                 'extras.stumped_by' => 'sometimes|exists:players,id',
+                'caught_by' => 'nullable|exists:players,id',
+                'stumped_by' => 'nullable|exists:players,id',
+                'fielder_id' => 'nullable|exists:players,id',
                 'wicket' => 'nullable|string',
                 'batsman_out' => 'nullable|exists:players,id',
                 'legal_ball' => 'nullable|boolean',
@@ -1950,31 +2123,28 @@ class CricketMatchController extends Controller
                 $extraInputRuns = (int) ($extras['runs'] ?? 0);
 
                 switch ($type) {
-                    case 'NB': // No Ball — not a legal delivery, bowler concedes 1 penalty + runs off bat
+                    case 'NB': // No Ball
                         $deliveryType = 'no-ball';
                         $legalBall = false;
                         $batsmanRuns = $extraInputRuns;
                         $extraRuns = 1;
                         break;
 
-                    case 'WD': // Wide — not a legal delivery, 1 penalty + any runs while running
+                    case 'WD': // Wide
                         $deliveryType = 'wide';
                         $legalBall = false;
                         $batsmanRuns = 0;
                         $extraRuns = 1 + $extraInputRuns;
                         break;
 
-                    case 'LB': // Leg Bye — legal delivery, runs go to team as extras
+                    case 'LB': // Leg Bye
                         $deliveryType = 'leg-bye';
-                        $legalBall = true;
                         $batsmanRuns = 0;
                         $extraRuns = $extraInputRuns;
                         break;
 
-                    case 'B':  // Bye — legal delivery, runs go to team as extras
-                    case 'BY':
+                    case 'B': // Bye
                         $deliveryType = 'bye';
-                        $legalBall = true;
                         $batsmanRuns = 0;
                         $extraRuns = $extraInputRuns;
                         break;
@@ -1982,55 +2152,22 @@ class CricketMatchController extends Controller
             }
 
             // ---------- Wicket detection ----------
-            // The two DB columns that store wicket info use DIFFERENT enums:
-            //
-            //   match_deliveries.wicket_type → 'bowled','caught','lbw','run out',
-            //                                  'stumped','hit wicket','retired hurt','none'
-            //   match_players.status         → 'bowled','caught','lbw','run_out',
-            //                                  'stumped','hit-wicket','retired-hurt', ...
-            //
-            // We normalize whatever the frontend sends into a canonical key and
-            // then map it to both representations to avoid truncated-value errors.
-            $wicketDeliveryType = 'none';  // for match_deliveries
-            $wicketStatus = null;    // for match_players.status
+            $wicketType = 'none';
+            $wicketStatus = 'none';
             $wicketPlayerId = null;
-            $caughtBy = $extras['caught_by'] ?? null;
-            $stumpedBy = $extras['stumped_by'] ?? null;
+            $caughtBy = $request->caught_by ?? $request->fielder_id ?? ($extras['caught_by'] ?? null);
+            $stumpedBy = $request->stumped_by ?? ($extras['stumped_by'] ?? null);
 
-            $rawWicket = trim((string) ($request->wicket ?? ''));
-
-            // run_out can arrive via either the top-level wicket field OR as
-            // an extras.run_out boolean (from NB extras).
-            if (!empty($extras['run_out']) && $extras['run_out']) {
-                $rawWicket = 'run_out';
+            if (!empty($request->wicket) && strtolower($request->wicket) !== 'none') {
+                [$wicketType, $wicketStatus] = $this->normalizeWicketType($request->wicket);
+                $wicketPlayerId = $request->batsman_out ?? $strikerId;
+            } elseif (!empty($extras['run_out']) && $extras['run_out']) {
+                $wicketType = 'run_out';
+                [$wicketType, $wicketStatus] = $this->normalizeWicketType($wicketType);
+                $wicketPlayerId = $request->batsman_out ?? ($extras['batsman_out'] ?? null);
             }
 
-            if ($rawWicket !== '' && strtolower($rawWicket) !== 'none') {
-                $canonical = strtolower(preg_replace('/[\s\-_]+/', '_', $rawWicket));
-                // canonical keys: bowled, caught, lbw, run_out, stumped,
-                // hit_wicket, retired_hurt
-                $wicketMap = [
-                    'bowled' => ['delivery' => 'bowled', 'status' => 'bowled'],
-                    'caught' => ['delivery' => 'caught', 'status' => 'caught'],
-                    'lbw' => ['delivery' => 'lbw', 'status' => 'lbw'],
-                    'run_out' => ['delivery' => 'run out', 'status' => 'run_out'],
-                    'stumped' => ['delivery' => 'stumped', 'status' => 'stumped'],
-                    'hit_wicket' => ['delivery' => 'hit wicket', 'status' => 'hit-wicket'],
-                    'retired_hurt' => ['delivery' => 'retired hurt', 'status' => 'retired-hurt'],
-                ];
-
-                if (isset($wicketMap[$canonical])) {
-                    $wicketDeliveryType = $wicketMap[$canonical]['delivery'];
-                    $wicketStatus = $wicketMap[$canonical]['status'];
-                    $wicketPlayerId = $request->batsman_out ?? ($extras['batsman_out'] ?? $strikerId);
-                } else {
-                    Log::warning('Unknown wicket type received', ['raw' => $rawWicket]);
-                }
-            }
-
-            $isWicket = $wicketDeliveryType !== 'none';
-            // Back-compat alias used by the rest of this method.
-            $wicketType = $wicketDeliveryType;
+            $isWicket = $wicketType !== 'none';
 
             // ---------- Determine next over/ball (for this innings) ----------
             $lastDelivery = MatchDelivery::where('match_id', $matchId)
@@ -2109,34 +2246,23 @@ class CricketMatchController extends Controller
 
             $striker->save();
 
-            // Derive bowler overs from the authoritative source: legal balls
-            // already recorded in match_deliveries for this bowler + innings.
-            // The current delivery row was just inserted above, so it is
-            // included in the count automatically.
-            $bowlerLegalBalls = MatchDelivery::where('match_id', $matchId)
-                ->where('innings', $innings)
-                ->where('bowler_id', $bowlerId)
-                ->whereNotIn('delivery_type', ['no-ball', 'wide'])
-                ->count();
+            $oversBowled = $bowlerInfo->overs_bowled ?? 0;
+            $overPart = floor($oversBowled);
+            $ballPart = round(($oversBowled - $overPart) * 10);
 
-            $bowlerRunsConceded = (int) MatchDelivery::where('match_id', $matchId)
-                ->where('innings', $innings)
-                ->where('bowler_id', $bowlerId)
-                ->sum(DB::raw('runs_batsman + runs_extras'));
+            if (!in_array($deliveryType, ['no-ball', 'wide'])) {
+                $ballPart++;
+                if ($ballPart >= 6) {
+                    $overPart++;
+                    $ballPart = 0;
+                }
+            }
 
-            // Exclude dismissals not credited to the bowler: run out and
-            // retired hurt. Note: match_deliveries.wicket_type uses the
-            // space-separated enum values ('run out', 'retired hurt').
-            $bowlerWickets = MatchDelivery::where('match_id', $matchId)
-                ->where('innings', $innings)
-                ->where('bowler_id', $bowlerId)
-                ->where('is_wicket', 1)
-                ->whereNotIn('wicket_type', ['run out', 'retired hurt'])
-                ->count();
-
-            $bowlerInfo->overs_bowled = intdiv($bowlerLegalBalls, 6) + (($bowlerLegalBalls % 6) / 10);
-            $bowlerInfo->runs_conceded = $bowlerRunsConceded;
-            $bowlerInfo->wickets_taken = $bowlerWickets;
+            $bowlerInfo->overs_bowled = $overPart + ($ballPart / 10);
+            $bowlerInfo->runs_conceded = ($bowlerInfo->runs_conceded ?? 0) + ($batsmanRuns + $extraRuns);
+            if ($isWicket && $wicketType != 'run_out') {
+                $bowlerInfo->wickets_taken = ($bowlerInfo->wickets_taken ?? 0) + 1;
+            }
             $bowlerInfo->save();
 
             // ---------- Update scoreboard totals ----------
@@ -2199,19 +2325,16 @@ class CricketMatchController extends Controller
                     'batter_id' => $wicketPlayerId,
                     'bowler_id' => $bowlerId,
                     'dismissal_type' => $wicketType,
-                    'caught_by' => $caughtBy,
-                    'stumped_by' => $stumpedBy,
+                    'fielder_id' => $caughtBy ?? $stumpedBy ?? $request->fielder_id,
                 ]);
 
-                // update dismissed player status (use the match_players enum form)
-                if ($wicketStatus) {
-                    if ($wicketPlayerId == $strikerId) {
-                        $striker->status = $wicketStatus;
-                        $striker->save();
-                    } elseif ($wicketPlayerId == $nonStrikerId) {
-                        $nonStriker->status = $wicketStatus;
-                        $nonStriker->save();
-                    }
+                // update dismissed player status
+                if ($wicketPlayerId == $strikerId) {
+                    $striker->status = $wicketStatus;
+                    $striker->save();
+                } elseif ($wicketPlayerId == $nonStrikerId) {
+                    $nonStriker->status = $wicketStatus;
+                    $nonStriker->save();
                 }
 
                 if ($partnership) {
@@ -2221,30 +2344,14 @@ class CricketMatchController extends Controller
             }
 
             // ---------- Strike rotation ----------
-            // Rules per ICC:
-            //  - Odd runs run between the wickets rotate strike.
-            //  - End of over rotates strike regardless.
-            //  - For bye / leg-bye, batsmen still physically run, so odd
-            //    extraRuns must rotate strike even though batsmanRuns is 0.
-            //  - For wide, any additional runs beyond the 1-run penalty come
-            //    from batsmen running; odd extraInputRuns rotates strike.
-            //  - For no-ball, runs off the bat go to batsmanRuns, so odd
-            //    batsmanRuns rotates strike. Byes/leg-byes on a no-ball are
-            //    not modelled here (simplification).
-            $oddRotated = false;
             if ($legalBall) {
-                if (in_array($deliveryType, ['bye', 'leg-bye'], true)) {
-                    if ($extraRuns % 2 !== 0) {
-                        $this->doSwitchStrike($matchId);
-                        $oddRotated = true;
-                    }
-                } elseif ($batsmanRuns % 2 !== 0) {
+                // End of over
+                if ($ball == 6) {
                     $this->doSwitchStrike($matchId);
-                    $oddRotated = true;
                 }
 
-                // End of over: rotate once more (odd rotations can cancel out).
-                if ($ball == 6) {
+                // Odd runs: switch strike immediately via DB
+                if ($batsmanRuns % 2 !== 0) {
                     $this->doSwitchStrike($matchId);
                 }
             } elseif ($deliveryType === 'no-ball' || $deliveryType === 'wide') {
@@ -2522,14 +2629,7 @@ class CricketMatchController extends Controller
                         'overs' => $scoreboard->overs,
                         'wickets' => $scoreboard->wickets,
                         'status' => $scoreboard->status,
-                    ],
-                    'bowler' => [
-                        'id' => $bowlerInfo->player_id,
-                        'name' => $bowlerInfo->player?->user?->full_name ?? '---',
-                        'overs' => $bowlerInfo->overs_bowled ?? 0,
-                        'runs_conceded' => $bowlerInfo->runs_conceded ?? 0,
-                        'wickets' => $bowlerInfo->wickets_taken ?? 0,
-                    ],
+                    ]
                 ]
             ]);
         } catch (\Exception $e) {
@@ -2549,6 +2649,10 @@ class CricketMatchController extends Controller
     public function undoLastDelivery(Request $request)
     {
         try {
+            if (!$this->canManageScoreboard()) {
+                return $this->unauthorizedJson();
+            }
+
             $validator = Validator::make($request->all(), [
                 'match_id' => 'required|exists:cricket_matches,id',
             ]);
@@ -2894,6 +2998,10 @@ class CricketMatchController extends Controller
     public function destroy($id)
     {
         try {
+            if (!$this->canAny([$this->module . '-delete'])) {
+                throw new Exception('Unauthorized Access');
+            }
+
             $match = CricketMatch::with(['scoreboard', 'players', 'deliveries'])->findOrFail($id);
 
             if ($match->status === 'completed') {
@@ -3048,6 +3156,30 @@ class CricketMatchController extends Controller
                 'player' => $player // Nesting for frontend compatibility
             ];
         })->values();
+    }
+
+    private function normalizeWicketType($type)
+    {
+        $key = strtolower(str_replace(['-', '_'], ' ', (string) $type));
+
+        switch ($key) {
+            case 'run out':
+                return ['run out', 'run_out'];
+            case 'hit wicket':
+                return ['hit wicket', 'hit-wicket'];
+            case 'retired hurt':
+                return ['retired hurt', 'retired-hurt'];
+            case 'stumped':
+                return ['stumped', 'stumped'];
+            case 'caught':
+                return ['caught', 'caught'];
+            case 'lbw':
+                return ['lbw', 'lbw'];
+            case 'bowled':
+                return ['bowled', 'bowled'];
+            default:
+                return ['none', 'none'];
+        }
     }
 
     private function calculateProjected($scoreboard, $maxOvers)

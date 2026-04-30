@@ -43,9 +43,11 @@
                                                 @php
                                                     // Build expected permission name for this module + action
                                                     $expectedPermission = $moduleName . '-' . $action;
+                                                    $permissionExists = in_array($expectedPermission, $modulePermissions);
                                                     $isChecked = in_array($expectedPermission, $rolePermissions);
                                                 @endphp
                                                 <td class="text-center">
+                                                    @if ($permissionExists)
                                                     <div
                                                         class="form-check form-check-md text-center m-auto d-flex justify-content-center">
                                                         <input type="checkbox" class="form-check-input permission-checkbox"
@@ -54,6 +56,9 @@
                                                             data-role="{{ $role->id }}"
                                                             {{ $isChecked ? 'checked' : '' }}>
                                                     </div>
+                                                    @else
+                                                        <span class="text-muted">-</span>
+                                                    @endif
                                                 </td>
                                             @endforeach
                                         </tr>

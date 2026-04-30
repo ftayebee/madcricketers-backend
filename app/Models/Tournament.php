@@ -9,7 +9,7 @@ class Tournament extends Model
 {
     use HasFactory;
 
-    protected $fillable = ['name','slug','location','description','start_date','end_date','status','trophy_image','logo', 'format', 'has_knockout', 'overs_per_innings', 'next_stage_selection'];
+    protected $fillable = ['name','slug','location','description','start_date','end_date','status','trophy_image','logo', 'format', 'has_knockout', 'overs_per_innings'];
 
     public function groups()
     {

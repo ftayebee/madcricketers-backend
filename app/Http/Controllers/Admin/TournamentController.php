@@ -18,8 +18,6 @@ use App\Http\Controllers\Controller;
 use App\Models\TournamentPlayerStat;
 use Illuminate\Support\Facades\Auth;
 use Intervention\Image\Facades\Image;
-use Illuminate\Http\JsonResponse;
-use App\Services\TournamentFixtureService;
 use Illuminate\Validation\ValidationException;
 
 class TournamentController extends Controller
@@ -29,6 +27,10 @@ class TournamentController extends Controller
     public function bulkUpdateTeamIds($tournamentId)
     {
         try {
+            if (!Auth::user()->can($this->module . '-edit')) {
+                throw new Exception('Unauthorized Access');
+            }
+
             DB::beginTransaction();
 
             $stats = TournamentPlayerStat::where('tournament_id', $tournamentId)
@@ -503,8 +505,7 @@ class TournamentController extends Controller
 
             $tournament = Tournament::with(['groups', 'matches', 'standings', 'groups.teams'])->where('slug', $slug)->first();
             if ($tournament) {
-                $stageStatus = (new TournamentFixtureService())->groupStageStatus($tournament);
-                return view('admin.pages.tournaments.show', compact('tournament', 'stageStatus'));
+                return view('admin.pages.tournaments.show', compact('tournament'));
             }
         } catch (Exception $e) {
             Log::error("Error showing team data: ", [
@@ -529,27 +530,130 @@ class TournamentController extends Controller
 
             $validated = $request->validate([
                 'tournament_id' => 'required|exists:tournaments,id',
-                'match_stage'   => 'required|in:group,playoffs,semi-final,final',
+                'match_stage'   => 'required|in:group,playoffs,final',
             ]);
 
             $tournament = Tournament::with('groups.teams')->findOrFail($validated['tournament_id']);
             $stage      = $validated['match_stage'];
+            $matches    = [];
+            $startDate  = Carbon::parse($tournament->start_date);
+            $endDate    = Carbon::parse($tournament->end_date);
+            $reservedDays = 4;
+            $groupStageEnd = $endDate->copy()->subDays($reservedDays);
+            $period     = CarbonPeriod::create($startDate, $groupStageEnd);
 
-            $service = new TournamentFixtureService();
-            $matches = $service->generate($tournament, $stage);
+            if ($stage === 'group') {
+                foreach ($tournament->groups as $group) {
+                    $teams = $group->teams;
 
-            if (empty($matches)) {
-                return redirect()->back()->with([
-                    'success' => false,
-                    'message' => 'No fixtures could be generated. Check that teams are assigned correctly.',
-                ]);
+                    for ($i = 0; $i < count($teams); $i++) {
+                        for ($j = $i + 1; $j < count($teams); $j++) {
+                            $teamA = $teams[$i];
+                            $teamB = $teams[$j];
+                            $dates = iterator_to_array($period);
+                            $matchDate = $dates[array_rand($dates)];
+
+                            $matches[] = [
+                                'title'         => "{$teamA->name} vs {$teamB->name}",
+                                'team_a_id'     => $teamA->id,
+                                'team_b_id'     => $teamB->id,
+                                'tournament_id' => $tournament->id,
+                                'match_date'    => $matchDate->setTime(rand(9, 18), rand(0, 30)),
+                                'venue'         => null,
+                                'max_overs'     => $tournament->overs_per_innings,
+                                'match_type'    => 'tournament',
+                                'status'        => 'upcoming',
+                                'stage'         => 'group',
+                                'created_at'    => now(),
+                                'updated_at'    => now(),
+                            ];
+                        }
+                    }
+                }
+            } elseif ($stage === 'playoffs') {
+                $qualifiedTeams = collect();
+
+                foreach ($tournament->groups as $group) {
+                    $topTeams = \App\Models\TournamentTeamStat::where('tournament_id', $tournament->id)
+                        ->whereIn('team_id', $group->teams->pluck('id'))
+                        ->orderByDesc('points')
+                        ->orderByDesc('nrr')
+                        ->take(4)
+                        ->pluck('team_id');
+
+                    $qualifiedTeams = $qualifiedTeams->merge($topTeams);
+                }
+
+                $qualifiedTeams = $qualifiedTeams->unique()->values();
+
+                // For simplicity: pairing 1v2, 3v4...
+                for ($i = 0; $i < count($qualifiedTeams); $i += 2) {
+                    if (isset($qualifiedTeams[$i + 1])) {
+                        $teamAId = $qualifiedTeams[$i];
+                        $teamBId = $qualifiedTeams[$i + 1];
+                        $teamA = \App\Models\Team::find($teamAId);
+                        $teamB = \App\Models\Team::find($teamBId);
+
+                        $matches[] = [
+                            'title' => "{$teamA->name} vs {$teamB->name}",
+                            'team_a_id' => $teamA->id,
+                            'team_b_id' => $teamB->id,
+                            'tournament_id' => $tournament->id,
+                            'match_date' => now()->addDays(rand(11, 15)), // later date
+                            'venue' => null,
+                            'max_overs'     => $tournament->overs_per_innings,
+                            'match_type' => 'tournament',
+                            'status' => 'upcoming',
+                            'stage' => 'playoffs',
+                            'created_at' => now(),
+                            'updated_at' => now(),
+                        ];
+                    }
+                }
+            } elseif ($stage === 'final') {
+                $qualifiedTeams = collect();
+
+                $playoffMatches = \App\Models\CricketMatch::where('tournament_id', $tournament->id)
+                    ->where('stage', 'playoffs')
+                    ->get();
+
+                foreach ($playoffMatches as $match) {
+                    $qualifiedTeams->push($match->winning_team_id);
+                }
+
+                $qualifiedTeams = $qualifiedTeams->unique()->values();
+                Log::info($qualifiedTeams);
+
+                for ($i = 0; $i < count($qualifiedTeams); $i += 2) {
+                    if (isset($qualifiedTeams[$i + 1])) {
+                        $teamAId = $qualifiedTeams[$i];
+                        $teamBId = $qualifiedTeams[$i + 1];
+                        $teamA = \App\Models\Team::find($teamAId);
+                        $teamB = \App\Models\Team::find($teamBId);
+
+                        $matches[] = [
+                            'title' => "{$teamA->name} vs {$teamB->name}",
+                            'team_a_id' => $teamA->id,
+                            'team_b_id' => $teamB->id,
+                            'tournament_id' => $tournament->id,
+                            'match_date' => now()->addDays(rand(11, 15)),
+                            'venue' => null,
+                            'max_overs' => $tournament->overs_per_innings,
+                            'match_type' => 'tournament',
+                            'status' => 'upcoming',
+                            'stage' => 'final',
+                            'created_at' => now(),
+                            'updated_at' => now(),
+                        ];
+                    }
+                }
             }
 
             CricketMatch::insert($matches);
 
             return redirect()->back()->with([
                 'success' => true,
-                'message' => count($matches) . ' ' . ucfirst(str_replace('-', ' ', $stage)) . ' fixture(s) generated successfully.',
+                'message' => ucfirst($stage) . ' fixtures generated successfully.',
             ]);
         } catch (ValidationException $e) {
             Log::error('Validation failed in generateFixtures', [
@@ -564,105 +668,27 @@ class TournamentController extends Controller
                     'success' => false,
                     'message' => 'Invalid data submitted.',
                 ]);
-        } catch (\RuntimeException $e) {
-            // Business logic errors from the service (invalid state, duplicates, etc.)
-            Log::warning('Fixture generation blocked', [
-                'tournament_id' => $request->input('tournament_id'),
-                'stage'         => $request->input('match_stage'),
-                'reason'        => $e->getMessage(),
-            ]);
-
-            return redirect()->back()->with([
-                'success' => false,
-                'message' => $e->getMessage(),
-            ]);
         } catch (Exception $e) {
             Log::error('Error generating fixtures', [
-                'line'    => $e->getLine(),
-                'file'    => $e->getFile(),
+                'line' => $e->getLine(),
+                'file' => $e->getFile(),
                 'message' => $e->getMessage(),
             ]);
 
             return redirect()->back()->with([
                 'success' => false,
-                'message' => 'An unexpected error occurred while generating fixtures.',
+                'message' => 'Error generating fixtures.',
             ]);
-        }
-    }
-
-    /**
-     * Validate eligibility for a Super 8 or Super 4 next stage and,
-     * if eligible, persist the admin's selection on the tournament record.
-     *
-     * Called via AJAX from the next-stage selection modal.
-     * Returns JSON — never redirects.
-     */
-    public function selectNextStage(Request $request): JsonResponse
-    {
-        try {
-            if (!Auth::user()->can($this->module . '-generate-fixtures')) {
-                return response()->json([
-                    'success' => false,
-                    'message' => 'Unauthorized.',
-                ], 403);
-            }
-
-            $validated = $request->validate([
-                'tournament_id' => 'required|exists:tournaments,id',
-                'next_stage'    => 'required|in:super8,super4',
-            ]);
-
-            $tournament = Tournament::with('groups.teams')->findOrFail($validated['tournament_id']);
-            $nextStage  = $validated['next_stage'];
-
-            $service     = new TournamentFixtureService();
-            $eligibility = $service->getNextStageEligibility($tournament, $nextStage);
-
-            if (!$eligibility['eligible']) {
-                return response()->json([
-                    'success' => false,
-                    'message' => $eligibility['reason'],
-                    'data'    => $eligibility,
-                ]);
-            }
-
-            // Persist the selection so the generation phase can read it
-            $tournament->next_stage_selection = $nextStage;
-            $tournament->save();
-
-            $label = $nextStage === 'super8' ? 'Super 8' : 'Super 4';
-
-            return response()->json([
-                'success' => true,
-                'message' => "{$label} stage confirmed. You can now generate fixtures for this stage.",
-                'data'    => array_merge($eligibility, [
-                    'next_stage' => $nextStage,
-                    'label'      => $label,
-                ]),
-            ]);
-        } catch (ValidationException $e) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Invalid input.',
-                'errors'  => $e->errors(),
-            ], 422);
-        } catch (Exception $e) {
-            Log::error('Error in selectNextStage', [
-                'message' => $e->getMessage(),
-                'line'    => $e->getLine(),
-                'file'    => $e->getFile(),
-            ]);
-
-            return response()->json([
-                'success' => false,
-                'message' => 'An unexpected error occurred.',
-            ], 500);
         }
     }
 
     public function destroy($id)
     {
         try {
+            if (!Auth::user()->can($this->module . '-delete')) {
+                throw new Exception('Unauthorized Access');
+            }
+
             $tournament = Tournament::with('groups')->findOrFail($id);
 
             // Delete logo if exists

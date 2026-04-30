@@ -11,9 +11,12 @@
                         <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#exampleModalCenter">
                             Add New
                         </button>
-                        <button type="button" class="btn btn-primary" onclick="window.location.href='{{ route('admin.settings.roles.seed') }}'">
+                        <form action="{{ route('admin.settings.roles.seed') }}" method="POST" class="d-inline">
+                            @csrf
+                            <button type="submit" class="btn btn-primary">
                             Seed DB
-                        </button>
+                            </button>
+                        </form>
                         @endif
                     </div>
                 </div>

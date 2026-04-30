@@ -10,7 +10,9 @@ use Illuminate\Support\Facades\Log;
 use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Artisan;
+use Illuminate\Support\Facades\Schema;
 use Spatie\Permission\Models\Permission;
+use Spatie\Permission\PermissionRegistrar;
 use Illuminate\Support\Facades\Validator;
 
 class RoleController extends Controller
@@ -96,12 +98,21 @@ class RoleController extends Controller
 
             // Validate input
             $request->validate([
-                'name' => 'required|string|max:255|unique:roles,name',
+                'name' => 'required|string|max:255',
             ]);
+
+            $roleName = Str::slug($request->input('name'));
+
+            if (Role::where('name', $roleName)->exists()) {
+                return redirect()->back()->with([
+                    'success' => false,
+                    'message' => 'Role already exists.'
+                ]);
+            }
 
             // Create role using Spatie's Role model
             $role = Role::firstOrCreate(
-                ['name' => strtolower($request->input('name'))],
+                ['name' => $roleName],
                 ['guard_name' => 'web']
             );
 
@@ -168,7 +179,15 @@ class RoleController extends Controller
 
                 // Get assigned permissions for this role
                 $rolePermissions = $role->permissions->pluck('name')->toArray();
-                $actions = ['view', 'create', 'edit', 'delete'];
+                $actions = collect($moduleList)
+                    ->flatMap(function ($permissions, $moduleName) {
+                        return collect($permissions)->map(function ($permission) use ($moduleName) {
+                            return Str::after($permission, $moduleName . '-');
+                        });
+                    })
+                    ->unique()
+                    ->values()
+                    ->toArray();
 
                 return view('admin.pages.roles.show', compact('role', 'groupedPermissions', 'rolePermissions', 'moduleList', 'actions'));
             }
@@ -190,9 +209,16 @@ class RoleController extends Controller
 
     public function update(Request $request, $id){
         try{
+            if (!Auth::user()->can('roles-edit')) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Unauthorized Access'
+                ], 403);
+            }
+
             $validated = Validator::make($request->all(), [
-                'name' => 'string',
-                'status' => 'string'
+                'name' => 'required|string|max:255',
+                'status' => 'nullable|string'
             ]);
 
             if($validated->fails()){
@@ -206,10 +232,36 @@ class RoleController extends Controller
             $role = Role::findOrFail($id);
 
             if($role){
-                $role->name = $request->name;
-                $role->slug = Str::slug($request->name);
-                $role->description = null;
-                $role->status =  $request->status;
+                if (in_array($role->name, ['super-admin', 'admin'], true)) {
+                    return response()->json([
+                        'success' => false,
+                        'message' => 'Protected system roles cannot be renamed.'
+                    ], 422);
+                }
+
+                $roleName = Str::slug($request->name);
+
+                if (Role::where('name', $roleName)->where('id', '!=', $role->id)->exists()) {
+                    return response()->json([
+                        'success' => false,
+                        'message' => 'Role already exists.'
+                    ], 422);
+                }
+
+                $role->name = $roleName;
+
+                if (Schema::hasColumn('roles', 'slug')) {
+                    $role->slug = $roleName;
+                }
+
+                if (Schema::hasColumn('roles', 'description')) {
+                    $role->description = null;
+                }
+
+                if (Schema::hasColumn('roles', 'status')) {
+                    $role->status = $request->status;
+                }
+
                 $role->save();
 
                 return response()->json([
@@ -232,10 +284,33 @@ class RoleController extends Controller
         }
     }
 
-    public function destroy($id){
+    public function destroy(Request $request, $id){
         try{
+            if (!Auth::user()->can('roles-delete')) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Unauthorized Access'
+                ], 403);
+            }
+
             $role = Role::where('id', $id)->first();
             if($role){
+                if (in_array($role->name, ['super-admin', 'admin'], true)) {
+                    return response()->json([
+                        'success' => false,
+                        'message' => 'Protected system roles cannot be deleted.'
+                    ], 422);
+                }
+
+                if ($role->users()->exists() || \App\Models\User::where('role_id', $role->id)->exists()) {
+                    return response()->json([
+                        'success' => false,
+                        'message' => 'This role is assigned to users and cannot be deleted.'
+                    ], 422);
+                }
+
+                $role->delete();
+
                 return response()->json([
                     'success' => true,
                     'message' => 'Role has been deleted successfully.'
@@ -260,6 +335,13 @@ class RoleController extends Controller
     public function permissionUpdate(Request $request)
     {
         try {
+            if (!Auth::user()->can('permissions-manage')) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Unauthorized Access'
+                ], 403);
+            }
+
             $validate = $request->validate([
                 'module'  => 'required|string',
                 'action'  => 'required|string',
@@ -306,6 +388,8 @@ class RoleController extends Controller
                 }
             }
 
+            app(PermissionRegistrar::class)->forgetCachedPermissions();
+
             return response()->json([
                 'success' => true,
                 'message' => 'Permissions updated successfully.',
@@ -326,6 +410,13 @@ class RoleController extends Controller
 
     public function seedDatabase(Request $request){
         try{
+            if (!Auth::user()->hasAnyRole(['super-admin', 'admin'])) {
+                return redirect()->back()->with([
+                    'success' => false,
+                    'message' => 'Unauthorized Access'
+                ]);
+            }
+
             Artisan::call('db:seed', [
                 '--class' => 'PermissionSeeder',
                 '--force' => true

@@ -20,6 +20,7 @@
                                         <th>Name</th>
                                         <th>Coach</th>
                                         <th>Manager</th>
+                                        <th>Captain</th>
                                         <th>Total Players</th>
                                         <th>Actions</th>
                                     </tr>
@@ -63,6 +64,13 @@
                                     </option>
                                 @endforeach
                             </select>
+                        </div>
+                        <div class="mb-3">
+                            <label for="captain_selector" class="form-label">Captain</label>
+                            <select class="form-control" id="captain_selector" name="captain_id" style="width: 100%;">
+                                <option value="">No captain selected</option>
+                            </select>
+                            <small class="text-muted">Captain options are limited to selected players.</small>
                         </div>
 
                     </div>
@@ -117,28 +125,54 @@
                     templateSelection: formatPlayerSelection,
                     escapeMarkup: function(markup) { return markup; }
                 });
+                $('#captain_selector').select2({
+                    placeholder: 'Select captain...',
+                    dropdownParent: $('#assignPlayerModal'),
+                    width: '100%'
+                });
             } catch (e) {
                 console.error("Select2 Init Error Modal 1: ", e);
             }
 
-            // The #player_selector2 control was replaced with a filter-based
-            // player grid inside _create-team-modal.blade.php. This block is
-            // intentionally left as a no-op for backwards compatibility with
-            // any template that still references $playerSelector2.
-            if ($('#player_selector2').length) {
-                try {
-                    window.$playerSelector2 = $('#player_selector2').select2({
-                        placeholder: 'Search and select players...',
-                        dropdownParent: $('#add-team'),
-                        width: '100%',
-                        templateResult: formatPlayer,
-                        templateSelection: formatPlayerSelection,
-                        escapeMarkup: function(markup) { return markup; }
-                    });
-                } catch (e) {
-                    console.error("Select2 Init Error Modal 2: ", e);
+            try {
+                window.$playerSelector2 = $('#player_selector2').select2({
+                    placeholder: 'Search and select players...',
+                    dropdownParent: $('#add-team'),
+                    width: '100%',
+                    templateResult: formatPlayer,
+                    templateSelection: formatPlayerSelection,
+                    escapeMarkup: function(markup) { return markup; }
+                });
+                $('#captain_selector2').select2({
+                    placeholder: 'Select captain...',
+                    dropdownParent: $('#add-team'),
+                    width: '100%'
+                });
+            } catch (e) {
+                console.error("Select2 Init Error Modal 2: ", e);
+            }
+
+            function syncCaptainOptions(playerSelector, captainSelector) {
+                let selected = $(playerSelector).select2('data') || [];
+                let current = $(captainSelector).val();
+                $(captainSelector).empty().append(new Option('No captain selected', '', false, false));
+                selected.forEach(function(player) {
+                    $(captainSelector).append(new Option(player.text, player.id, false, String(current) === String(player.id)));
+                });
+                if (current && !selected.some(player => String(player.id) === String(current))) {
+                    $(captainSelector).val('').trigger('change');
+                } else {
+                    $(captainSelector).trigger('change');
                 }
             }
+
+            $('#player_selector').on('change', function() {
+                syncCaptainOptions('#player_selector', '#captain_selector');
+            });
+
+            $('#player_selector2').on('change', function() {
+                syncCaptainOptions('#player_selector2', '#captain_selector2');
+            });
         });
 
         $(document).ready(function() {
@@ -187,6 +221,13 @@
                     {
                         data: 'manager_name',
                         title: 'Manager'
+                    },
+                    {
+                        data: 'captain_name',
+                        title: 'Captain',
+                        render: function(data) {
+                            return data || '<span class="text-muted">Not set</span>';
+                        }
                     },
                     {
                         data: 'players_count',
@@ -262,6 +303,7 @@
                 const teamId = $(this).data('id');
                 $('#modal_team_id').val(teamId);
                 $('#player_selector').val(null).trigger('change');
+                $('#captain_selector').val('').trigger('change');
                 $('#assignPlayerModal').modal('show');
             });
 

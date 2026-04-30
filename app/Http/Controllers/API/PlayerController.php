@@ -13,6 +13,7 @@ use Illuminate\Support\Facades\DB;
 use Spatie\Permission\Models\Role;
 use Illuminate\Support\Facades\Log;
 use App\Http\Controllers\Controller;
+use Illuminate\Support\Facades\Hash;
 use Intervention\Image\Facades\Image;
 use Illuminate\Support\Facades\Validator;
 
@@ -150,8 +151,7 @@ class PlayerController extends Controller
 
             $password           = $request->input('password');
             if (!empty($password)) {
-                $user->password     = bcrypt($password);
-                $user->visible_pass = $password;
+                $user->password = Hash::make($password);
             }
 
             $user->gender       = $request->input('gender');
@@ -159,7 +159,8 @@ class PlayerController extends Controller
             $user->religion     = $request->input('religion');
             $user->national_id  = $request->input('national_id');
             $user->address      = $request->input('address');
-            $user->role_id      = Role::where('name', 'player')->first()->id;
+            $role = Role::firstOrCreate(['name' => 'player'], ['guard_name' => 'web']);
+            $user->role_id      = $role->id;
 
             if ($request->hasFile('image')) {
                 $file = $request->file('image');
@@ -189,7 +190,6 @@ class PlayerController extends Controller
             }
 
             $user->save();
-            $role = Role::findOrFail($user->role_id);
             $user->syncRoles([$role]);
 
             $player                 = new Player();
@@ -240,7 +240,18 @@ class PlayerController extends Controller
     public function getAllPlayers(Request $request)
     {
         try {
-            $players = Player::with(['user', 'teams'])->get();
+            $players = Player::with(['user', 'teams'])
+                ->when($request->team_id, function ($query) use ($request) {
+                    $query->whereHas('teams', fn ($teamQuery) => $teamQuery->where('teams.id', $request->team_id));
+                })
+                ->when($request->q, function ($query) use ($request) {
+                    $query->whereHas('user', function ($userQuery) use ($request) {
+                        $userQuery->where('full_name', 'like', '%' . $request->q . '%')
+                            ->orWhere('email', 'like', '%' . $request->q . '%');
+                    });
+                })
+                ->get();
+
             return response()->json([
                 'success' => true,
                 'data' => $players
@@ -394,6 +405,43 @@ class PlayerController extends Controller
                 'success' => false,
                 'message' => 'An error occurred while fetching player key stats.',
                 'error' => $e->getMessage(),
+            ], 500);
+        }
+    }
+
+    public function searchPlayers(Request $request)
+    {
+        try {
+            $query = trim((string) $request->input('q', ''));
+
+            $players = Player::with(['user', 'teams'])
+                ->when($query !== '', function ($playerQuery) use ($query) {
+                    $playerQuery->whereHas('user', function ($userQuery) use ($query) {
+                        $userQuery->where('full_name', 'like', '%' . $query . '%')
+                            ->orWhere('email', 'like', '%' . $query . '%')
+                            ->orWhere('phone', 'like', '%' . $query . '%');
+                    });
+                })
+                ->when($request->team_id, function ($playerQuery) use ($request) {
+                    $playerQuery->whereHas('teams', fn ($teamQuery) => $teamQuery->where('teams.id', $request->team_id));
+                })
+                ->limit(25)
+                ->get();
+
+            return response()->json([
+                'success' => true,
+                'data' => $players,
+            ]);
+        } catch (Exception $e) {
+            Log::error("Error searching players", [
+                'line' => $e->getLine(),
+                'file' => $e->getFile(),
+                'message' => $e->getMessage()
+            ]);
+
+            return response()->json([
+                'success' => false,
+                'message' => 'An error occurred while searching players.',
             ], 500);
         }
     }

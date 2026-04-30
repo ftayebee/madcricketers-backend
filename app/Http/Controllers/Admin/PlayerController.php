@@ -64,9 +64,12 @@ class PlayerController extends Controller
                 ->when(Auth::user()->hasRole('player') === false, function ($query) {
                     $query->role('player'); // uses Spatie's `role` scope
                 })
+                ->with(['role', 'roles'])
                 ->get();
 
             $formattedData =  $users->map(function ($item) {
+                $role = $item->primary_role;
+
                 return [
                     'id' => $item->id,
                     'image' => $item->image,
@@ -76,8 +79,8 @@ class PlayerController extends Controller
                     'status' => $item->status,
                     'gender' => $item->gender,
                     'national_id' => $item->national_id,
-                    'role' => $item->role->name,
-                    'roleSlug' => $item->role->name,
+                    'role' => optional($role)->name,
+                    'roleSlug' => optional($role)->name,
                     'playerType' => $item->player ? $item->player->player_type : 'guest',
                     'playerRole' => $item->player ? $item->player->player_role : '-',
                     'viewUrl' => route('admin.players.show', $item->id),
@@ -128,6 +131,10 @@ class PlayerController extends Controller
     public function approve(Request $request, $id)
     {
         try {
+            if (!Auth::user()->can($this->module . '-edit')) {
+                throw new Exception('Unauthorized Access');
+            }
+
             $user = User::findOrFail($id);
             $isApproved = $request->has('approve') && $request->input('approve') == 'on' || $request->input('approve') == 'registered';
 
@@ -153,6 +160,39 @@ class PlayerController extends Controller
                 'success' => false,
                 'message' => 'Error updating player status.'
             ]);
+        }
+    }
+
+    public function destroy(Request $request)
+    {
+        try {
+            if (!Auth::user()->can($this->module . '-delete')) {
+                throw new Exception('Unauthorized Access');
+            }
+
+            $user = User::findOrFail($request->input('id'));
+
+            if ($user->player) {
+                $user->player->delete();
+            }
+
+            $user->delete();
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Player deleted successfully.',
+            ]);
+        } catch (Exception $e) {
+            Log::error("Error deleting player", [
+                'line' => $e->getLine(),
+                'file' => $e->getFile(),
+                'message' => $e->getMessage()
+            ]);
+
+            return response()->json([
+                'success' => false,
+                'message' => 'Error deleting player.',
+            ], 500);
         }
     }
 

@@ -10,13 +10,25 @@ use Illuminate\Http\Request;
 use App\Models\MonthlyDonation;
 use Illuminate\Support\Facades\Log;
 use App\Http\Controllers\Controller;
+use Illuminate\Support\Facades\Auth;
 use Yajra\DataTables\Facades\DataTables;
 use Illuminate\Support\Facades\Validator;
 
 class PaymentController extends Controller
 {
+    private function authorizePayment(string $permission): void
+    {
+        if (!Auth::user() || !Auth::user()->can($permission)) {
+            abort(403, 'Unauthorized Access');
+        }
+    }
+
     public function index(Request $request)
     {
+        $this->authorizePayment('finance-view');
+
+        return redirect()->route('admin.finance.dashboard');
+
         session([
             'title' => 'Payments Summary',
             'breadcrumbs' => [
@@ -48,6 +60,8 @@ class PaymentController extends Controller
 
     public function tableLoader(Request $request)
     {
+        $this->authorizePayment('finance-payments-manage');
+
         $month = $request->month ?? now()->month;
         $year  = $request->year ?? now()->year;
 
@@ -147,6 +161,8 @@ class PaymentController extends Controller
     // Store a payment
     public function store(Request $request)
     {
+        $this->authorizePayment('finance-payments-manage');
+
         $validator = Validator::make($request->all(), [
             'player_id' => 'required|exists:players,id',
             'amount' => 'required|numeric|min:0',
@@ -158,19 +174,35 @@ class PaymentController extends Controller
 
         if ($validator->fails()) {
             Log::info($validator->errors());
+            if (!$request->expectsJson() && !$request->ajax()) {
+                return redirect()->back()->withErrors($validator)->withInput();
+            }
+
             return response()->json([
                 'success' => false,
                 'message' => 'Validation Failed',
                 'errors' => $validator->errors()
-            ]);
+            ], 422);
         }
 
         $payment = Payment::create($request->all());
 
-        if ($payment->type === 'donation') {
+        if ($request->filled('due_id') && $payment->status === 'paid') {
+            $due = MonthlyDonation::where('id', $request->due_id)
+                ->where('player_id', $payment->player_id)
+                ->first();
+
+            if ($due) {
+                $due->paid_amount = min($due->expected_amount, $due->paid_amount + $payment->amount);
+                $due->is_paid = $due->paid_amount >= $due->expected_amount;
+                $due->save();
+            }
+        }
+
+        if ($payment->type === 'donation' && !$request->filled('due_id')) {
             $paymentDate = \Carbon\Carbon::parse($payment->payment_date);
 
-            MonthlyDonation::updateOrCreate(
+            $due = MonthlyDonation::firstOrCreate(
                 [
                     'player_id' => $payment->player_id,
                     'year'      => $paymentDate->year,
@@ -178,10 +210,23 @@ class PaymentController extends Controller
                 ],
                 [
                     'expected_amount' => $payment->amount,
-                    'paid_amount'     => $payment->amount,
-                    'is_paid'         => $payment->status === 'paid',
+                    'paid_amount'     => 0,
+                    'is_paid'         => false,
                 ]
             );
+
+            if ($payment->status === 'paid') {
+                $due->paid_amount = min($due->expected_amount, $due->paid_amount + $payment->amount);
+                $due->is_paid = $due->paid_amount >= $due->expected_amount;
+                $due->save();
+            }
+        }
+
+        if (!$request->expectsJson() && !$request->ajax()) {
+            return redirect()->route('admin.finance.payments.index')->with([
+                'success' => true,
+                'message' => 'Payment received successfully.',
+            ]);
         }
 
         return response()->json([
@@ -193,6 +238,8 @@ class PaymentController extends Controller
     // Monthly donation report
     public function monthlyDonationsReport($month = null, $year = null)
     {
+        $this->authorizePayment('finance-reports-view');
+
         $month = $month ?? date('m');
         $year = $year ?? date('Y');
 
@@ -213,6 +260,8 @@ class PaymentController extends Controller
     // Tournament payments report
     public function tournamentReport($tournament_id)
     {
+        $this->authorizePayment('finance-reports-view');
+
         $tournament = Tournament::findOrFail($tournament_id);
         $payments = Payment::with('player')
             ->where('tournament_id', $tournament_id)
@@ -230,6 +279,8 @@ class PaymentController extends Controller
     // Mark payment as paid
     public function markAsPaid($id)
     {
+        $this->authorizePayment('finance-payments-manage');
+
         $payment = Payment::findOrFail($id);
         $payment->status = 'paid';
         $payment->payment_date = Carbon::now();
@@ -238,8 +289,53 @@ class PaymentController extends Controller
         return redirect()->back()->with('success', 'Payment marked as paid.');
     }
 
+    public function update(Request $request, $id)
+    {
+        $this->authorizePayment('finance-payments-manage');
+
+        $validator = Validator::make($request->all(), [
+            'player_id' => 'required|exists:players,id',
+            'amount' => 'required|numeric|min:0',
+            'type' => 'required|in:donation,tournament,jersey,other',
+            'status' => 'required|in:paid,pending',
+            'tournament_id' => 'nullable|exists:tournaments,id',
+            'payment_date' => 'required|date',
+        ]);
+
+        if ($validator->fails()) {
+            if (!$request->expectsJson() && !$request->ajax()) {
+                return redirect()->back()->withErrors($validator)->withInput();
+            }
+
+            return response()->json([
+                'success' => false,
+                'message' => 'Validation Failed',
+                'errors' => $validator->errors()
+            ], 422);
+        }
+
+        $payment = Payment::findOrFail($id);
+        $payment->update($validator->validated());
+
+        if (!$request->expectsJson() && !$request->ajax()) {
+            return redirect()->back()->with([
+                'success' => true,
+                'message' => 'Payment updated successfully.',
+            ]);
+        }
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Payment updated successfully.',
+        ]);
+    }
+
     public function summaryIndex()
     {
+        $this->authorizePayment('finance-reports-view');
+
+        return redirect()->route('admin.finance.reports.index');
+
         session([
             'title' => 'Payments Summary',
             'breadcrumbs' => [
@@ -259,6 +355,8 @@ class PaymentController extends Controller
 
     public function summaryData(Request $request)
     {
+        $this->authorizePayment('finance-reports-view');
+
         $query = \App\Models\Payment::query();
 
         // Apply filters if provided
@@ -285,6 +383,16 @@ class PaymentController extends Controller
         return response()->json($summary);
     }
 
+    public function destroy($id)
+    {
+        $this->authorizePayment('finance-payments-manage');
 
-    public function destroy($id) {}
+        $payment = Payment::findOrFail($id);
+        $payment->delete();
+
+        return redirect()->back()->with([
+            'success' => true,
+            'message' => 'Payment deleted successfully.',
+        ]);
+    }
 }

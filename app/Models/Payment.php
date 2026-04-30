@@ -9,7 +9,7 @@ class Payment extends Model
 {
     use HasFactory;
 
-    protected $fillable = ['player_id', 'type', 'amount', 'payment_date', 'reference', 'tournament_id'];
+    protected $fillable = ['player_id', 'type', 'amount', 'payment_date', 'status', 'reference', 'tournament_id'];
 
     public function player(){
         return $this->belongsTo(Player::class, 'player_id', 'id');

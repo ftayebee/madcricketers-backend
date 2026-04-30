@@ -21,7 +21,7 @@ class LoginController extends Controller
     {
         $user = Auth::user();
         
-        if ($user->hasRole('admin')) {
+        if ($user->hasAnyRole(['super-admin', 'admin'])) {
             return RouteServiceProvider::ADMIN_DASHBOARD;
         } elseif ($user->hasRole('manager')) {
             return RouteServiceProvider::MANAGER_DASHBOARD;
